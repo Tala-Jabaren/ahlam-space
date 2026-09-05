@@ -26,7 +26,21 @@ export async function middleware(request: NextRequest) {
   )
 
   // Refreshes the session if expired
-  await supabase.auth.getUser()
+  const {
+    data: { user },
+  } = await supabase.auth.getUser()
+
+  const isMemberRoute =
+    request.nextUrl.pathname.startsWith('/dashboard') ||
+    request.nextUrl.pathname.startsWith('/bookings') ||
+    request.nextUrl.pathname.startsWith('/orders') ||
+    request.nextUrl.pathname.startsWith('/profile')
+
+  if (isMemberRoute && !user) {
+    const url = request.nextUrl.clone()
+    url.pathname = '/login'
+    return NextResponse.redirect(url)
+  }
 
   return response
 }
