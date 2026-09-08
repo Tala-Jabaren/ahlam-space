@@ -1,4 +1,5 @@
 import { redirect } from 'next/navigation'
+import Link from 'next/link'
 import { createClient } from '@/lib/supabase/server'
 import LogoutButton from './logout-button'
 
@@ -76,6 +77,10 @@ export default async function DashboardPage() {
           ))}
         </ul>
       )}
+
+      <p style={{ marginTop: 16 }}>
+        <Link href="/bookings">حجوزاتي</Link>
+      </p>
 
       <LogoutButton />
     </div>
