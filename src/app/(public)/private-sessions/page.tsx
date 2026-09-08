@@ -66,14 +66,26 @@ export default function PrivateSessionsPage() {
   }
 
   return (
-    <div dir="rtl" style={{ maxWidth: 700, margin: '40px auto' }}>
+    <div
+      dir="rtl"
+      className="mx-auto max-w-7xl px-5 py-16 text-[#25311f] sm:px-8 lg:px-10 [&_h1]:mb-10 [&_h1]:font-serif [&_h1]:text-5xl [&_h1]:leading-tight [&_h1]:text-[#25311f] [&_form>h2]:font-serif [&_form>h2]:text-4xl [&_form>h2]:text-[#25311f]"
+    >
       <h1>الجلسات الفردية</h1>
 
       {SERVICES.map((service) => (
-        <section key={service.title} style={{ marginBottom: 32 }}>
-          <h2>{service.title}</h2>
-          <p>{service.description}</p>
+        <section
+          key={service.title}
+          className="mb-8 rounded-[1.75rem] border border-[#617A55]/10 bg-white/70 p-6 shadow-sm"
+        >
+          <div className="mb-5 aspect-[4/3] rounded-[1.5rem] bg-[#D6E2B6]" />
+          <h2 className="font-serif text-3xl leading-tight text-[#25311f]">
+            {service.title}
+          </h2>
+          <p className="mt-4 leading-8 text-[#4f5d49]">
+            {service.description}
+          </p>
           <button
+            className="mt-6 rounded-full bg-[#617A55] px-6 py-3 text-sm font-semibold text-white transition hover:bg-[#4f6645]"
             type="button"
             onClick={() => handleRequestClick(service.title)}
           >
@@ -82,15 +94,19 @@ export default function PrivateSessionsPage() {
         </section>
       ))}
 
-      <hr style={{ margin: '32px 0' }} />
+      <hr className="my-12 border-[#617A55]/15" />
 
-      <form ref={formRef} onSubmit={handleSubmit}>
+      <form
+        ref={formRef}
+        onSubmit={handleSubmit}
+        className="mx-auto max-w-3xl rounded-[2rem] border border-[#617A55]/10 bg-white/70 p-6 shadow-sm sm:p-8"
+      >
         <h2>طلب حجز جلسة</h2>
 
-        <div style={{ marginBottom: 12 }}>
+        <div className="mt-6 grid gap-2 text-sm font-medium text-[#617A55]">
           <label htmlFor="session_type">نوع الجلسة</label>
-          <br />
           <select
+            className="rounded-2xl border border-[#617A55]/20 bg-[#F7F6F0] px-4 py-3 text-[#25311f] outline-none transition focus:border-[#617A55]"
             id="session_type"
             value={sessionType}
             onChange={(e) => setSessionType(e.target.value)}
@@ -103,10 +119,10 @@ export default function PrivateSessionsPage() {
           </select>
         </div>
 
-        <div style={{ marginBottom: 12 }}>
+        <div className="mt-5 grid gap-2 text-sm font-medium text-[#617A55]">
           <label htmlFor="full_name">الاسم الكامل</label>
-          <br />
           <input
+            className="rounded-2xl border border-[#617A55]/20 bg-[#F7F6F0] px-4 py-3 text-[#25311f] outline-none transition focus:border-[#617A55]"
             id="full_name"
             type="text"
             value={fullName}
@@ -115,10 +131,10 @@ export default function PrivateSessionsPage() {
           />
         </div>
 
-        <div style={{ marginBottom: 12 }}>
+        <div className="mt-5 grid gap-2 text-sm font-medium text-[#617A55]">
           <label htmlFor="phone">رقم الهاتف</label>
-          <br />
           <input
+            className="rounded-2xl border border-[#617A55]/20 bg-[#F7F6F0] px-4 py-3 text-[#25311f] outline-none transition focus:border-[#617A55]"
             id="phone"
             type="text"
             value={phone}
@@ -127,10 +143,10 @@ export default function PrivateSessionsPage() {
           />
         </div>
 
-        <div style={{ marginBottom: 12 }}>
+        <div className="mt-5 grid gap-2 text-sm font-medium text-[#617A55]">
           <label htmlFor="email">البريد الإلكتروني</label>
-          <br />
           <input
+            className="rounded-2xl border border-[#617A55]/20 bg-[#F7F6F0] px-4 py-3 text-[#25311f] outline-none transition focus:border-[#617A55]"
             id="email"
             type="text"
             value={email}
@@ -138,10 +154,10 @@ export default function PrivateSessionsPage() {
           />
         </div>
 
-        <div style={{ marginBottom: 12 }}>
+        <div className="mt-5 grid gap-2 text-sm font-medium text-[#617A55]">
           <label htmlFor="message">رسالة</label>
-          <br />
           <textarea
+            className="min-h-36 rounded-2xl border border-[#617A55]/20 bg-[#F7F6F0] px-4 py-3 text-[#25311f] outline-none transition placeholder:text-[#617A55]/55 focus:border-[#617A55]"
             id="message"
             value={message}
             onChange={(e) => setMessage(e.target.value)}
@@ -149,7 +165,11 @@ export default function PrivateSessionsPage() {
           />
         </div>
 
-        <button type="submit" disabled={status === 'submitting'}>
+        <button
+          className="mt-6 rounded-full bg-[#617A55] px-7 py-3 text-sm font-semibold text-white transition hover:bg-[#4f6645] disabled:cursor-not-allowed disabled:opacity-60"
+          type="submit"
+          disabled={status === 'submitting'}
+        >
           {status === 'submitting' ? 'جارٍ الإرسال...' : 'إرسال الطلب'}
         </button>
 

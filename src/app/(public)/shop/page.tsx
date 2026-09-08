@@ -30,23 +30,66 @@ export default async function ShopPage() {
   const products = (data ?? []) as Product[]
 
   return (
-    <div style={{ maxWidth: 800, margin: '40px auto' }}>
-      <h1>Shop</h1>
-      {error && <p>Unable to load products right now.</p>}
-      {!error && products.length === 0 && <p>No products available yet.</p>}
+    <div className="px-5 py-16 sm:px-8 lg:px-10">
+      <section className="mx-auto max-w-7xl">
+        <div className="grid gap-10 lg:grid-cols-[0.9fr_1.1fr] lg:items-end">
+          <div className="space-y-5">
+            <p className="text-sm font-medium uppercase tracking-[0.28em] text-[#617A55]">
+              Studio shop
+            </p>
+            <h1 className="font-serif text-5xl leading-tight text-[#25311f] sm:text-6xl">
+              Shop
+            </h1>
+            <p className="text-lg leading-8 text-[#4f5d49]">
+              Small objects for care, ritual, and warmth beyond the studio.
+            </p>
+          </div>
+          <div className="min-h-52 rounded-[2rem] bg-[#C7D6E8] p-5">
+            <div className="h-full min-h-44 rounded-[1.5rem] bg-[#F7F6F0]/55" />
+          </div>
+        </div>
+      </section>
+
+      <section className="mx-auto mt-12 max-w-7xl">
+      {error && (
+        <div className="rounded-[1.75rem] bg-[#C7D6E8]/55 p-8 text-[#4f5d49]">
+          Unable to load products right now.
+        </div>
+      )}
+      {!error && products.length === 0 && (
+        <div className="rounded-[1.75rem] bg-[#C7D6E8]/55 p-8 text-[#4f5d49]">
+          No products available yet.
+        </div>
+      )}
       {!error && products.length > 0 && (
-        <ul>
+        <ul className="grid gap-6 sm:grid-cols-2 xl:grid-cols-3">
           {products.map((product) => (
-            <li key={product.id}>
-              <h2>
-                <Link href={`/shop/${product.id}`}>{product.name}</Link>
+            <li
+              key={product.id}
+              className="flex min-h-full flex-col rounded-[1.75rem] border border-[#617A55]/10 bg-white/70 p-5 shadow-sm"
+            >
+              <div className="aspect-[4/3] rounded-[1.5rem] bg-[#D6E2B6]" />
+              <h2 className="mt-5 font-serif text-3xl leading-tight text-[#25311f]">
+                <Link
+                  href={`/shop/${product.id}`}
+                  className="transition hover:text-[#617A55]"
+                >
+                  {product.name}
+                </Link>
               </h2>
-              {product.description && <p>{product.description}</p>}
-              <p>{formatPrice(product.price)}</p>
+              {product.description && (
+                <p className="mt-4 flex-1 leading-7 text-[#4f5d49]">
+                  {product.description}
+                </p>
+              )}
+              <p className="mt-6 text-sm font-semibold uppercase tracking-[0.16em] text-[#617A55]">
+                {formatPrice(product.price)}
+              </p>
             </li>
           ))}
         </ul>
       )}
+      </section>
     </div>
   )
 }
