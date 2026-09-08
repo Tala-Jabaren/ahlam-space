@@ -1,4 +1,5 @@
 import { createClient } from '@/lib/supabase/server'
+import BookSessionButton from './book-session-button'
 
 type ScheduleRow = {
   id: string
@@ -81,9 +82,10 @@ export default async function SchedulePage() {
                       </td>
                       <td className="px-5 py-5">${s.classes?.price ?? '-'}</td>
                       <td className="px-5 py-5">
-                        <span className="rounded-full bg-[#C7D6E8]/70 px-3 py-1 text-[#25311f]">
-                          {remaining > 0 ? remaining : 'Full'}
-                        </span>
+                        <BookSessionButton
+                          sessionId={s.id}
+                          initialRemaining={remaining}
+                        />
                       </td>
                     </tr>
                   )
