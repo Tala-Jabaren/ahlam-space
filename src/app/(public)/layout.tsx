@@ -14,14 +14,39 @@ export default function PublicLayout({
         >
           Ahlam Space
         </Link>
-        <div className="flex flex-wrap items-center gap-x-5 gap-y-3 text-sm font-medium uppercase tracking-[0.18em] text-[#617A55]">
-        <Link className="transition hover:text-[#25311f]" href="/">Home</Link>
-        <Link className="transition hover:text-[#25311f]" href="/about">About</Link>
-        <Link className="transition hover:text-[#25311f]" href="/classes">Classes</Link>
-        <Link className="transition hover:text-[#25311f]" href="/schedule">Schedule</Link>
-        <Link href="/private-sessions">جلسات فردية</Link>
-        <Link className="transition hover:text-[#25311f]" href="/shop">Shop</Link>
-        <Link className="transition hover:text-[#25311f]" href="/contact">Contact</Link>
+        <div className="flex flex-col gap-4 lg:flex-row lg:items-center">
+          <div className="flex flex-wrap items-center gap-x-5 gap-y-3 text-sm font-medium uppercase tracking-[0.18em] text-[#617A55]">
+            <Link className="transition hover:text-[#25311f]" href="/">
+              Home
+            </Link>
+            <Link className="transition hover:text-[#25311f]" href="/about">
+              About
+            </Link>
+            <Link className="transition hover:text-[#25311f]" href="/classes">
+              Classes
+            </Link>
+            <Link className="transition hover:text-[#25311f]" href="/schedule">
+              Schedule
+            </Link>
+            <Link
+              className="transition hover:text-[#25311f]"
+              href="/private-sessions"
+            >
+              جلسات فردية
+            </Link>
+            <Link className="transition hover:text-[#25311f]" href="/shop">
+              Shop
+            </Link>
+            <Link className="transition hover:text-[#25311f]" href="/contact">
+              Contact
+            </Link>
+          </div>
+          <Link
+            className="inline-flex min-h-11 items-center justify-center rounded-full bg-[#617A55] px-6 py-3 text-sm font-semibold text-white shadow-sm transition hover:bg-[#4f6645]"
+            href="/login"
+          >
+            تسجيل الدخول
+          </Link>
         </div>
       </nav>
       <main>{children}</main>
