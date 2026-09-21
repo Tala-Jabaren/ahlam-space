@@ -3,7 +3,11 @@
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 
-export default function LogoutButton() {
+export default function LogoutButton({
+  variant = 'default',
+}: {
+  variant?: 'default' | 'sidebar'
+}) {
   const router = useRouter()
 
   async function handleLogout() {
@@ -15,11 +19,20 @@ export default function LogoutButton() {
 
   return (
     <button
-      className="inline-flex min-h-11 items-center justify-center rounded-full border border-[#617A55]/30 px-7 py-3 text-sm font-semibold text-[#617A55] transition hover:bg-[#D6E2B6]/70"
+      className={
+        variant === 'sidebar'
+          ? 'flex min-h-12 w-full items-center gap-4 rounded-lg px-4 text-right font-medium text-[#617A55] transition hover:bg-[#C7D6E8]/60'
+          : 'inline-flex min-h-11 items-center justify-center rounded-full border border-[#617A55]/30 px-7 py-3 text-sm font-semibold text-[#617A55] transition hover:bg-[#D6E2B6]/70'
+      }
       type="button"
       onClick={handleLogout}
     >
-      Log out
+      {variant === 'sidebar' && (
+        <span aria-hidden="true" className="grid size-7 place-items-center">
+          ←
+        </span>
+      )}
+      {variant === 'sidebar' ? 'تسجيل الخروج' : 'Log out'}
     </button>
   )
 }
