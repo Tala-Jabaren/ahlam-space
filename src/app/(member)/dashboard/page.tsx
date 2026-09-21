@@ -11,6 +11,7 @@ type UpcomingBooking = {
     session_date: string
     start_time: string
     end_time: string
+    location: string | null
     classes: {
       name: string
     } | null
@@ -67,7 +68,7 @@ export default async function DashboardPage() {
   const { data: bookings, error: bookingsError } = await supabase
     .from('bookings')
     .select(
-      'id, status, class_sessions!inner(id, session_date, start_time, end_time, classes(name))'
+      'id, status, class_sessions!inner(id, session_date, start_time, end_time, location, classes(name))'
     )
     .eq('user_id', user.id)
     .in('status', ['confirmed', 'pending'])
@@ -179,6 +180,11 @@ export default async function DashboardPage() {
                           ? formatTime(session.start_time, session.end_time)
                           : 'Time coming soon'}
                       </p>
+                      {session?.location && (
+                        <p className="mt-1 text-sm leading-6 text-[#4f5d49]">
+                          {session.location}
+                        </p>
+                      )}
                     </article>
                   )
                 })}
