@@ -59,12 +59,12 @@ export default function CancelBookingButton({
   }
 
   return (
-    <div className="space-y-3">
+    <div className="w-full space-y-3 sm:w-auto">
       <button
         type="button"
         onClick={handleCancel}
         disabled={loading}
-        className="rounded-full border border-[#617A55]/30 px-5 py-2 text-sm font-semibold text-[#617A55] transition hover:bg-[#D6E2B6] disabled:cursor-not-allowed disabled:opacity-60"
+        className="min-h-11 w-full rounded-lg border border-[#617A55]/35 px-6 py-3 text-sm font-semibold text-[#617A55] transition hover:bg-[#D6E2B6]/70 disabled:cursor-not-allowed disabled:opacity-60 sm:w-auto"
       >
         {loading ? 'جار الإلغاء...' : 'إلغاء الحجز'}
       </button>
