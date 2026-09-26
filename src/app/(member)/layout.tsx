@@ -2,13 +2,14 @@ import Link from 'next/link'
 import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
 import LogoutButton from './dashboard/logout-button'
+import MemberNavLink from './member-nav-link'
 
 const navItems = [
   { href: '/member-schedule', label: 'الحصص', icon: '□' },
   { href: '/bookings', label: 'حجوزاتي', icon: '◇' },
   { href: '/courses', label: 'كورسات ومحاضرات', icon: '▤' },
   { href: '/shop', label: 'المتجر', icon: '▱' },
-  { href: '/dashboard', label: 'حسابي', icon: '○' },
+  { href: '/account', label: 'حسابي', icon: '○' },
 ]
 
 export default async function MemberLayout({
@@ -51,19 +52,10 @@ export default async function MemberLayout({
 
         <nav className="mt-7 grid gap-2" aria-label="تنقل حساب العضو">
           {navItems.map((item) => (
-            <Link
+            <MemberNavLink
               key={item.href}
-              href={item.href}
-              className="flex min-h-12 items-center gap-4 rounded-lg px-4 text-base font-medium transition hover:bg-[#D6E2B6]/70"
-            >
-              <span
-                aria-hidden="true"
-                className="grid size-7 place-items-center text-xl"
-              >
-                {item.icon}
-              </span>
-              {item.label}
-            </Link>
+              {...item}
+            />
           ))}
         </nav>
 
@@ -137,16 +129,11 @@ export default async function MemberLayout({
         aria-label="تنقل الجوال"
       >
         {navItems.map((item) => (
-          <Link
+          <MemberNavLink
             key={item.href}
-            href={item.href}
-            className="flex min-h-14 min-w-0 flex-col items-center justify-center gap-1 rounded-lg px-1 text-[11px] font-medium transition hover:bg-[#D6E2B6]/70"
-          >
-            <span aria-hidden="true" className="text-lg leading-none">
-              {item.icon}
-            </span>
-            <span className="max-w-full truncate">{item.label}</span>
-          </Link>
+            {...item}
+            mobile
+          />
         ))}
       </nav>
     </div>

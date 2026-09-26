@@ -96,9 +96,6 @@ export default async function DashboardPage() {
       <section className="mx-auto grid max-w-5xl gap-8">
         <div className="rounded-[2rem] border border-[#617A55]/10 bg-white/70 p-6 shadow-sm sm:p-8">
           <div className="max-w-3xl space-y-4">
-            <p className="text-sm font-medium uppercase tracking-[0.28em] text-[#617A55]">
-              Member area
-            </p>
             <h1 className="font-serif text-5xl leading-tight sm:text-6xl">
               {profileName ? `Welcome, ${profileName}` : 'Welcome to Ahlam Space'}
             </h1>

@@ -25,8 +25,8 @@ export default function PublicLayout({
             <Link className="transition hover:text-[#25311f]" href="/classes">
               Classes
             </Link>
-            <Link className="transition hover:text-[#25311f]" href="/schedule">
-              Schedule
+            <Link className="transition hover:text-[#25311f]" href="/courses">
+              كورسات ومحاضرات
             </Link>
             <Link
               className="transition hover:text-[#25311f]"

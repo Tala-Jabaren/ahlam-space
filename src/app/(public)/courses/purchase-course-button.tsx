@@ -26,7 +26,7 @@ export default function PurchaseCourseButton({ courseId }: Props) {
     } = await supabase.auth.getUser()
 
     if (!user) {
-      router.push('/login')
+      router.push('/login?returnTo=%2Fcourses')
       return
     }
 
@@ -45,7 +45,7 @@ export default function PurchaseCourseButton({ courseId }: Props) {
     } = await supabase.auth.getUser()
 
     if (!user) {
-      router.push('/login')
+      router.push('/login?returnTo=%2Fcourses')
       return
     }
 
@@ -77,8 +77,8 @@ export default function PurchaseCourseButton({ courseId }: Props) {
               تم تسجيل طلب الشراء. طريقة الدفع: حوالة بنكية.
               <br />
               {/* TODO: Replace with real IBAN/account details. */}
-              تفاصيل التحويل: اسم الحساب Ahlam Space، رقم الحساب 000000،
-              IBAN: IL00 0000 0000 0000 0000 000.
+              تفاصيل التحويل: اسم الحساب Ahlam Space، رقم الحساب 000000، IBAN:
+              IL00 0000 0000 0000 0000 000.
             </p>
           ) : (
             <p>

@@ -132,10 +132,7 @@ export default async function MyBookingsPage({
       <section className="mx-auto max-w-7xl">
         <header className="relative overflow-hidden border-b border-[#617A55]/15 pb-8 sm:pb-10">
           <div className="relative z-10 max-w-2xl">
-            <p className="text-sm font-semibold uppercase tracking-[0.24em] text-[#617A55]/70">
-              Member area
-            </p>
-            <h1 className="mt-3 font-serif text-4xl leading-tight sm:text-5xl">
+            <h1 className="font-serif text-4xl leading-tight sm:text-5xl">
               حجوزاتي
             </h1>
             <p className="mt-3 text-base leading-8 text-[#617A55]/80 sm:text-lg">
@@ -322,7 +319,7 @@ export default async function MyBookingsPage({
               </div>
             </div>
             <Link
-              href="/schedule"
+              href="/classes"
               className="inline-flex min-h-11 shrink-0 items-center justify-center rounded-lg bg-[#617A55] px-7 py-3 text-sm font-semibold text-[#F7F6F0] transition hover:bg-[#617A55]/85"
             >
               تصفحي الحصص

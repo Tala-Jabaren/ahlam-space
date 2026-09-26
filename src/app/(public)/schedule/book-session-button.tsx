@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import PaymentMethodSelector, {
   type PaymentMethod,
@@ -11,6 +11,8 @@ type Props = {
   sessionId: string
   initialRemaining: number
   studioAddress: string | null
+  showRemaining?: boolean
+  autoOpen?: boolean
 }
 
 type BookingState = 'idle' | 'booking' | 'success' | 'full' | 'error'
@@ -19,12 +21,44 @@ export default function BookSessionButton({
   sessionId,
   initialRemaining,
   studioAddress,
+  showRemaining = true,
+  autoOpen = false,
 }: Props) {
   const router = useRouter()
   const [remaining, setRemaining] = useState(initialRemaining)
   const [state, setState] = useState<BookingState>('idle')
   const [isPaymentStepOpen, setIsPaymentStepOpen] = useState(false)
   const [paymentMethod, setPaymentMethod] = useState<PaymentMethod | null>(null)
+  const hasAutoOpened = useRef(false)
+
+  useEffect(() => {
+    if (!autoOpen || hasAutoOpened.current || remaining <= 0) return
+
+    hasAutoOpened.current = true
+    let isCurrent = true
+
+    async function resumeBooking() {
+      const supabase = createClient()
+      const {
+        data: { user },
+      } = await supabase.auth.getUser()
+
+      if (!isCurrent || !user) return
+
+      document
+        .getElementById(`session-${sessionId}`)
+        ?.scrollIntoView({ behavior: 'smooth', block: 'center' })
+      setPaymentMethod(null)
+      setIsPaymentStepOpen(true)
+      window.history.replaceState(null, '', `/classes#session-${sessionId}`)
+    }
+
+    void resumeBooking()
+
+    return () => {
+      isCurrent = false
+    }
+  }, [autoOpen, remaining, sessionId])
 
   async function openPaymentStep() {
     const supabase = createClient()
@@ -33,7 +67,8 @@ export default function BookSessionButton({
     } = await supabase.auth.getUser()
 
     if (!user) {
-      router.push('/login')
+      const returnTo = `/classes?book=${encodeURIComponent(sessionId)}`
+      router.push(`/login?returnTo=${encodeURIComponent(returnTo)}`)
       return
     }
 
@@ -52,7 +87,8 @@ export default function BookSessionButton({
     } = await supabase.auth.getUser()
 
     if (!user) {
-      router.push('/login')
+      const returnTo = `/classes?book=${encodeURIComponent(sessionId)}`
+      router.push(`/login?returnTo=${encodeURIComponent(returnTo)}`)
       return
     }
 
@@ -101,9 +137,11 @@ export default function BookSessionButton({
 
   return (
     <div className="flex flex-col items-start gap-2">
-      <span className="rounded-full bg-[#C7D6E8]/70 px-3 py-1 text-[#25311f]">
-        {remaining > 0 ? remaining : 'Full'}
-      </span>
+      {showRemaining && (
+        <span className="rounded-full bg-[#C7D6E8]/70 px-3 py-1 text-[#25311f]">
+          {remaining > 0 ? remaining : 'Full'}
+        </span>
+      )}
 
       {state === 'success' ? (
         <div className="max-w-xs rounded-lg bg-[#D6E2B6]/55 p-3 text-sm leading-6 text-[#617A55]">

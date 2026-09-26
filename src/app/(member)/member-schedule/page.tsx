@@ -185,10 +185,12 @@ export default async function MemberSchedulePage() {
                       <p className="font-serif text-2xl font-semibold">
                         ₪{session.classes?.price ?? '-'}
                       </p>
-                      <div className="[&_button]:min-h-11 [&_button]:rounded-lg [&_button]:px-6 [&_button]:py-3 [&_span]:hidden">
+                      <div className="[&>div>button]:min-h-11 [&>div>button]:rounded-lg [&>div>button]:px-6 [&>div>button]:py-3">
                         <BookSessionButton
                           sessionId={session.id}
                           initialRemaining={remaining}
+                          studioAddress={session.location}
+                          showRemaining={false}
                         />
                       </div>
                     </div>
