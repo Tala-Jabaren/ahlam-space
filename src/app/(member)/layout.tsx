@@ -4,9 +4,9 @@ import { createClient } from '@/lib/supabase/server'
 import LogoutButton from './dashboard/logout-button'
 
 const navItems = [
-  { href: '/', label: 'الرئيسية', icon: '⌂' },
   { href: '/member-schedule', label: 'الحصص', icon: '□' },
   { href: '/bookings', label: 'حجوزاتي', icon: '◇' },
+  { href: '/courses', label: 'كورسات ومحاضرات', icon: '▤' },
   { href: '/shop', label: 'المتجر', icon: '▱' },
   { href: '/dashboard', label: 'حسابي', icon: '○' },
 ]
@@ -68,6 +68,13 @@ export default async function MemberLayout({
         </nav>
 
         <div className="mt-auto border-t border-[#617A55]/15 pt-5">
+          <Link
+            href="/"
+            className="mb-2 inline-flex min-h-11 items-center gap-2 px-4 text-sm font-medium text-[#617A55]/75 transition hover:text-[#617A55]"
+          >
+            <span aria-hidden="true">↗</span>
+            العودة للموقع
+          </Link>
           <Link
             href="/contact"
             className="flex min-h-12 items-center gap-4 rounded-lg px-4 font-medium transition hover:bg-[#C7D6E8]/60"
