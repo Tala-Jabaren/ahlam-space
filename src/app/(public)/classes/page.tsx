@@ -45,6 +45,9 @@ export default async function ClassesPage({
 }) {
   const { book: requestedSessionId } = await searchParams
   const supabase = await createClient()
+  const {
+    data: { user },
+  } = await supabase.auth.getUser()
   const [
     { data: classes, error: classesError },
     { data: sessions, error: sessionsError },
@@ -201,7 +204,8 @@ export default async function ClassesPage({
                                       initialRemaining={remaining}
                                       studioAddress={session.location}
                                       showRemaining={false}
-                                      autoOpen={isRequested}
+                                      autoOpen={isRequested && Boolean(user)}
+                                      isAuthenticated={Boolean(user)}
                                     />
                                   </div>
                                 </div>

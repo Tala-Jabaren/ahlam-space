@@ -12,6 +12,22 @@ export default function LoginPage() {
   const [error, setError] = useState<string | null>(null)
   const [loading, setLoading] = useState(false)
 
+  function handleCreateAccount(event: React.MouseEvent<HTMLAnchorElement>) {
+    const requestedReturnTo = new URLSearchParams(window.location.search).get(
+      'returnTo'
+    )
+
+    if (
+      !requestedReturnTo?.startsWith('/') ||
+      requestedReturnTo.startsWith('//')
+    ) {
+      return
+    }
+
+    event.preventDefault()
+    router.push(`/sign-up?returnTo=${encodeURIComponent(requestedReturnTo)}`)
+  }
+
   async function handleLogin(e: React.FormEvent) {
     e.preventDefault()
     setError(null)
@@ -105,6 +121,7 @@ export default function LoginPage() {
           <Link
             className="inline-flex min-h-11 items-center justify-center rounded-full px-4 font-medium text-[#617A55] underline-offset-4 transition hover:bg-[#D6E2B6]/50 hover:text-[#25311f] hover:underline"
             href="/sign-up"
+            onClick={handleCreateAccount}
           >
             Create an account
           </Link>

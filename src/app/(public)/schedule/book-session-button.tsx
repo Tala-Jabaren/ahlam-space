@@ -13,6 +13,7 @@ type Props = {
   studioAddress: string | null
   showRemaining?: boolean
   autoOpen?: boolean
+  isAuthenticated?: boolean
 }
 
 type BookingState = 'idle' | 'booking' | 'success' | 'full' | 'error'
@@ -23,6 +24,7 @@ export default function BookSessionButton({
   studioAddress,
   showRemaining = true,
   autoOpen = false,
+  isAuthenticated = true,
 }: Props) {
   const router = useRouter()
   const [remaining, setRemaining] = useState(initialRemaining)
@@ -32,7 +34,14 @@ export default function BookSessionButton({
   const hasAutoOpened = useRef(false)
 
   useEffect(() => {
-    if (!autoOpen || hasAutoOpened.current || remaining <= 0) return
+    if (
+      !autoOpen ||
+      !isAuthenticated ||
+      hasAutoOpened.current ||
+      remaining <= 0
+    ) {
+      return
+    }
 
     hasAutoOpened.current = true
     let isCurrent = true
@@ -58,9 +67,15 @@ export default function BookSessionButton({
     return () => {
       isCurrent = false
     }
-  }, [autoOpen, remaining, sessionId])
+  }, [autoOpen, isAuthenticated, remaining, sessionId])
 
   async function openPaymentStep() {
+    if (!isAuthenticated) {
+      const returnTo = `/classes?book=${encodeURIComponent(sessionId)}`
+      router.push(`/login?returnTo=${encodeURIComponent(returnTo)}`)
+      return
+    }
+
     const supabase = createClient()
     const {
       data: { user },
@@ -78,6 +93,12 @@ export default function BookSessionButton({
 
   async function handleBook() {
     if (!paymentMethod || paymentMethod === 'card_gateway') {
+      return
+    }
+
+    if (!isAuthenticated) {
+      const returnTo = `/classes?book=${encodeURIComponent(sessionId)}`
+      router.push(`/login?returnTo=${encodeURIComponent(returnTo)}`)
       return
     }
 
