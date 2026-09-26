@@ -1,10 +1,11 @@
+import Image from 'next/image'
 import Link from 'next/link'
 
 export default function HomePage() {
   return (
     <div>
-      <section className="mx-auto grid max-w-7xl items-center gap-12 px-5 py-16 sm:px-8 sm:py-20 lg:grid-cols-[1.05fr_0.95fr] lg:px-10 lg:py-24">
-        <div className="space-y-8">
+      <section className="py-16 sm:py-20 lg:py-24">
+        <div className="mx-auto max-w-7xl space-y-8 px-5 sm:px-8 lg:px-10">
           <p className="text-sm font-medium uppercase tracking-[0.28em] text-[#617A55]">
             Ramallah yoga, fitness, and dance studio
           </p>
@@ -33,16 +34,15 @@ export default function HomePage() {
             </Link>
           </div>
         </div>
-        <div className="relative min-h-[360px] overflow-hidden rounded-[2rem] bg-[#C7D6E8] p-6 sm:min-h-[480px]">
-          <div className="absolute inset-x-8 top-8 h-40 rounded-[2rem] bg-[#F7F6F0]/70" />
-          <div className="absolute bottom-8 left-8 right-20 h-56 rounded-[2rem] bg-[#D6E2B6]" />
-          <div className="absolute bottom-20 right-8 h-36 w-36 rounded-full bg-[#617A55]/80" />
-          <div className="relative flex h-full min-h-[312px] items-end">
-            <p className="max-w-xs rounded-[1.5rem] bg-[#F7F6F0]/85 p-5 text-sm leading-7 text-[#4f5d49] shadow-sm">
-              Soft placeholder for studio imagery: mats, candles, movement, and
-              the quiet texture of Ahlam Space.
-            </p>
-          </div>
+        <div className="relative mt-12 aspect-[2046/769] w-full overflow-hidden sm:mt-14 lg:mt-16">
+          <Image
+            src="/images/hero.png"
+            alt="استوديو مساحة أحلام أثناء جلسة يوغا وتأمل"
+            fill
+            priority
+            sizes="100vw"
+            className="object-cover object-center"
+          />
         </div>
       </section>
 
