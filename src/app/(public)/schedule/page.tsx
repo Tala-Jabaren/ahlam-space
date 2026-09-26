@@ -9,6 +9,7 @@ type ScheduleRow = {
   capacity: number
   booked_count: number
   status: string
+  location: string | null
   classes: {
     name: string
     category: string | null
@@ -21,7 +22,7 @@ export default async function SchedulePage() {
   const { data: sessions, error } = await supabase
     .from('class_sessions')
     .select(
-      'id, session_date, start_time, end_time, capacity, booked_count, status, classes(name, category, price)'
+      'id, session_date, start_time, end_time, capacity, booked_count, status, location, classes(name, category, price)'
     )
     .order('session_date', { ascending: true })
     .returns<ScheduleRow[]>()
@@ -85,6 +86,7 @@ export default async function SchedulePage() {
                         <BookSessionButton
                           sessionId={s.id}
                           initialRemaining={remaining}
+                          studioAddress={s.location}
                         />
                       </td>
                     </tr>

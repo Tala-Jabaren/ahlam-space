@@ -46,6 +46,7 @@ export default async function CoursesPage({
     .from('courses')
     .select('id, title, description, content_type, price, cover_image_url')
     .eq('is_active', true)
+    .order('created_at', { ascending: false })
     .returns<Course[]>()
 
   if (coursesError) {
@@ -72,7 +73,7 @@ export default async function CoursesPage({
   return (
     <main className="px-4 py-8 text-[#617A55] sm:px-6 lg:px-8" dir="rtl">
       <section className="mx-auto max-w-7xl">
-        <header>
+        <header className="border-b border-[#617A55]/15 pb-8 sm:pb-10">
           <p className="text-sm font-semibold uppercase tracking-[0.24em] text-[#617A55]/70">
             Member area
           </p>
@@ -80,8 +81,8 @@ export default async function CoursesPage({
             كورسات ومحاضرات
           </h1>
           <p className="mt-3 max-w-2xl text-base leading-8 text-[#617A55]/80 sm:text-lg">
-            محتوى مسجل من فيديوهات ومقالات لمرافقتك في رحلتك خارج أوقات الحصص
-            المباشرة.
+            اختاري الكورس المناسب، ثم حددي طريقة الدفع. تبقى طلبات الشراء قيد
+            الانتظار حتى يتم تأكيد الدفع يدويًا.
           </p>
         </header>
 
@@ -105,7 +106,9 @@ export default async function CoursesPage({
 
         {!coursesError && (courses ?? []).length === 0 && (
           <div className="mt-7 rounded-lg bg-[#C7D6E8]/40 p-8 text-center">
-            <p className="font-serif text-2xl">لا توجد كورسات متاحة حالياً.</p>
+            <p className="font-serif text-2xl">
+              لا توجد كورسات متاحة للشراء حاليًا.
+            </p>
           </div>
         )}
 
@@ -143,7 +146,7 @@ export default async function CoursesPage({
                       </p>
                     )}
 
-                    <div className="mt-auto flex items-center justify-between gap-4 border-t border-[#617A55]/15 pt-4 mt-5">
+                    <div className="mt-auto flex items-center justify-between gap-4 border-t border-[#617A55]/15 pt-4">
                       <p className="font-serif text-2xl font-semibold">
                         ₪{course.price}
                       </p>
