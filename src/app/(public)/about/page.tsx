@@ -1,38 +1,217 @@
+import Image from 'next/image'
+import Link from 'next/link'
+
+const services = [
+  {
+    title: 'جلسات فردية',
+    description: 'جلسات مخصصة حسب احتياجاتك وأهدافك.',
+    icon: (
+      <>
+        <path d="M12 22c4-4 7-7.5 7-12a7 7 0 0 0-14 0c0 4.5 3 8 7 12Z" />
+        <path d="M12 22V10" />
+        <path d="M8 14c2.5 0 4 1.5 4 4" />
+        <path d="M16 14c-2.5 0-4 1.5-4 4" />
+      </>
+    ),
+  },
+  {
+    title: 'كورسات ومحاضرات',
+    description:
+      'مساحات للتعلّم، الوعي والحركة وتطوير نمط حياة أكثر توازنًا.',
+    icon: (
+      <>
+        <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20" />
+        <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2Z" />
+        <path d="M8 7h8M8 11h6" />
+      </>
+    ),
+  },
+  {
+    title: 'حصص جماعية',
+    description: 'حصص يوغا وحركة ضمن أجواء مريحة وداعمة.',
+    icon: (
+      <>
+        <circle cx="12" cy="5" r="2.5" />
+        <path d="M12 8v5M8 21l4-8 4 8M5 14l7-2 7 2" />
+      </>
+    ),
+  },
+]
+
+function ServiceIcon({ children }: { children: React.ReactNode }) {
+  return (
+    <span className="grid size-12 place-items-center rounded-full bg-[#D6E2B6]/70 text-[#617A55]">
+      <svg
+        aria-hidden="true"
+        viewBox="0 0 24 24"
+        className="size-6"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="1.5"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      >
+        {children}
+      </svg>
+    </span>
+  )
+}
+
 export default function AboutPage() {
   return (
-    <div className="px-5 py-16 sm:px-8 lg:px-10">
-      <section className="mx-auto grid max-w-7xl gap-12 lg:grid-cols-[0.9fr_1.1fr] lg:items-center">
-        <div className="min-h-[360px] rounded-[2rem] bg-[#C7D6E8] p-6">
-          <div className="h-full min-h-[312px] rounded-[1.5rem] border border-white/60 bg-[#F7F6F0]/45" />
+    <div className="overflow-hidden bg-[#F7F6F0] text-[#25311f]" dir="rtl">
+      <section
+        className="mx-auto grid min-h-[680px] max-w-[1350px] px-5 sm:px-8 md:grid-cols-[minmax(0,0.82fr)_minmax(0,1fr)] md:gap-16 lg:gap-20 lg:px-10"
+        dir="ltr"
+      >
+        <div className="flex items-center py-14 sm:py-16">
+          <div className="max-w-2xl" dir="rtl">
+            <div className="flex items-center justify-end gap-4" dir="ltr">
+              <p className="text-xs font-semibold uppercase tracking-[0.24em] text-[#617A55]">
+                ABOUT AHLAM
+              </p>
+              <span className="h-px w-16 bg-[#617A55]/35" />
+            </div>
+
+            <h1 className="mt-8 font-serif text-5xl leading-tight text-[#25311f] sm:text-6xl">
+              من هي أحلام؟
+            </h1>
+            <p className="mt-5 font-serif text-xl leading-9 text-[#617A55] sm:text-2xl">
+              رحلة شغف نحو حياة أكثر توازنًا ووعيًا.
+            </p>
+            <p className="mt-7 max-w-xl text-base leading-8 text-[#4f5d49] sm:text-lg">
+              أحلام مدربة يوغا وحركة، تؤمن بأن العناية بالجسم والعقل ليست رفاهية،
+              بل أسلوب حياة. من خلال خبرتها وشغفها، تسعى لخلق مساحة تساعد كل
+              شخص على الحركة بوعي، التواصل مع نفسه، والوصول إلى توازن أكبر في
+              حياته اليومية.
+            </p>
+            <Link
+              href="#my-story"
+              className="mt-8 inline-flex min-h-12 items-center justify-center rounded-full bg-[#617A55] px-7 py-3 text-sm font-semibold text-[#F7F6F0] transition-colors hover:bg-[#617A55]/90"
+            >
+              اكتشفي رحلتي
+            </Link>
+          </div>
         </div>
-        <div className="space-y-6">
-          <p className="text-sm font-medium uppercase tracking-[0.28em] text-[#617A55]">
-            About the studio
-          </p>
-          <h1 className="font-serif text-5xl leading-tight text-[#25311f] sm:text-6xl">
-            A grounded space for returning to yourself.
-          </h1>
-          <p className="text-lg leading-8 text-[#4f5d49]">
-            Placeholder bio. This paragraph will be replaced with the
-            trainer&apos;s real background, certifications, and training
-            philosophy.
-          </p>
+
+        <div className="flex min-h-[520px] items-center justify-center py-8 md:min-h-[680px]">
+          <div className="relative aspect-[1/1.05] w-full max-w-[600px] overflow-hidden rounded-[24px] shadow-sm">
+            <Image
+              src="/images/about2.png"
+              alt="أحلام تؤدي وضعية يوغا في الاستوديو"
+              fill
+              priority
+              sizes="(min-width: 1350px) 600px, (min-width: 768px) 52vw, calc(100vw - 2.5rem)"
+              className="object-cover object-center"
+            />
+          </div>
         </div>
       </section>
 
-      <section className="mx-auto mt-16 grid max-w-7xl gap-6 md:grid-cols-3">
-        {['Warm', 'Intentional', 'Local'].map((value) => (
-          <div
-            key={value}
-            className="rounded-[1.5rem] bg-[#D6E2B6]/60 p-7 text-[#4f5d49]"
-          >
-            <h2 className="font-serif text-3xl text-[#617A55]">{value}</h2>
-            <p className="mt-3 leading-7">
-              Gentle editorial space for studio values, training philosophy,
-              and the feeling guests can expect when they arrive.
+      <section id="my-story" className="relative px-5 py-20 sm:px-8 lg:px-10 lg:py-28">
+        <div
+          aria-hidden="true"
+          className="absolute -right-10 bottom-4 hidden h-52 w-44 opacity-15 md:block"
+        >
+          <span className="absolute bottom-0 right-20 h-48 w-px rotate-12 bg-[#617A55]" />
+          <span className="absolute right-16 top-8 h-16 w-10 rotate-12 rounded-[100%_0_100%_0] bg-[#D6E2B6]" />
+          <span className="absolute right-24 top-24 h-16 w-10 -rotate-12 rounded-[0_100%_0_100%] bg-[#D6E2B6]" />
+          <span className="absolute right-10 top-36 h-14 w-9 rotate-45 rounded-[100%_0_100%_0] bg-[#D6E2B6]" />
+        </div>
+
+        <div className="mx-auto grid max-w-6xl gap-10 md:grid-cols-[0.65fr_1.35fr] md:items-start lg:gap-20">
+          <div>
+            <p className="text-xs font-semibold uppercase tracking-[0.24em] text-[#617A55]/70">
+              MY STORY
+            </p>
+            <h2 className="mt-3 font-serif text-4xl text-[#25311f] sm:text-5xl">
+              قصتي
+            </h2>
+            <span className="mt-5 block h-px w-16 bg-[#617A55]/35" />
+          </div>
+          <div className="max-w-3xl space-y-5 text-base leading-8 text-[#4f5d49] sm:text-lg">
+            <p>
+              بدأت رحلتي مع الحركة واليوغا كمساحة للبحث عن التوازن والهدوء، ومع
+              الوقت تحوّل هذا الشغف إلى رسالة أشاركها مع الآخرين.
+            </p>
+            <p>
+              أؤمن أن الحركة ليست فقط تمرينًا للجسم، بل فرصة لنفهم أنفسنا أكثر،
+              نخفف من ضغط الحياة اليومية، ونبني علاقة أهدأ وأكثر وعيًا مع
+              أجسادنا.
             </p>
           </div>
-        ))}
+        </div>
+      </section>
+
+      <section className="bg-[#D6E2B6]/40 px-5 py-16 sm:px-8 lg:px-10 lg:py-20">
+        <figure className="mx-auto max-w-4xl text-center">
+          <span aria-hidden="true" className="font-serif text-6xl leading-none text-[#617A55]/45">
+            “
+          </span>
+          <blockquote className="mt-2 font-serif text-3xl leading-relaxed text-[#25311f] sm:text-4xl">
+            الحركة بالنسبة إلي مش بس تمرين...
+            <br />
+            هي مساحة نرجع فيها لأنفسنا.
+          </blockquote>
+          <figcaption className="mt-6 text-sm font-semibold text-[#617A55]">
+            — أحلام
+          </figcaption>
+        </figure>
+      </section>
+
+      <section className="px-5 py-20 sm:px-8 lg:px-10 lg:py-28">
+        <div className="mx-auto max-w-7xl">
+          <div className="text-center">
+            <p className="text-xs font-semibold uppercase tracking-[0.24em] text-[#617A55]/70">
+              WHAT I OFFER
+            </p>
+            <h2 className="mt-3 font-serif text-4xl text-[#25311f] sm:text-5xl">
+              ماذا أقدّم؟
+            </h2>
+          </div>
+
+          <div className="mt-12 grid gap-5 md:grid-cols-3">
+            {services.map((service) => (
+              <article
+                key={service.title}
+                className="rounded-lg border border-[#617A55]/15 bg-[#F7F6F0] p-7 transition-transform duration-200 hover:-translate-y-1 hover:border-[#617A55]/30 sm:p-8"
+              >
+                <ServiceIcon>{service.icon}</ServiceIcon>
+                <h3 className="mt-6 font-serif text-2xl text-[#25311f]">
+                  {service.title}
+                </h3>
+                <p className="mt-3 leading-7 text-[#4f5d49]">
+                  {service.description}
+                </p>
+              </article>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      <section className="px-5 py-20 text-center sm:px-8 lg:px-10 lg:py-24">
+        <div className="mx-auto max-w-3xl">
+          <h2 className="font-serif text-4xl leading-tight text-[#25311f] sm:text-5xl">
+            جاهزة تبدأي رحلتك؟
+          </h2>
+          <p className="mt-4 text-base leading-8 text-[#4f5d49] sm:text-lg">
+            اكتشفي الحصص واختاري المساحة المناسبة إلك.
+          </p>
+          <div className="mt-8 flex flex-col justify-center gap-3 sm:flex-row">
+            <Link
+              href="/classes"
+              className="inline-flex min-h-12 items-center justify-center rounded-full bg-[#617A55] px-7 py-3 text-sm font-semibold text-[#F7F6F0] transition-colors hover:bg-[#617A55]/90"
+            >
+              استكشفي الحصص
+            </Link>
+            <Link
+              href="/classes"
+              className="inline-flex min-h-12 items-center justify-center rounded-full border border-[#617A55]/35 px-7 py-3 text-sm font-semibold text-[#617A55] transition-colors hover:bg-[#D6E2B6]/45"
+            >
+              احجزي الآن
+            </Link>
+          </div>
+        </div>
       </section>
     </div>
   )

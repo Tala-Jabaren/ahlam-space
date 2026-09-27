@@ -1,7 +1,6 @@
 import Link from 'next/link'
 import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
-import LogoutButton from './logout-button'
 
 type UpcomingBooking = {
   id: string
@@ -93,13 +92,10 @@ export default async function DashboardPage() {
   const profileName = profile?.full_name?.trim()
 
   return (
-    <main className="min-h-screen bg-[#F7F6F0] px-5 py-12 text-[#25311f] sm:px-8 lg:px-10">
+    <main className="px-4 py-8 text-[#617A55] sm:px-6 lg:px-8" dir="ltr">
       <section className="mx-auto grid max-w-5xl gap-8">
         <div className="rounded-[2rem] border border-[#617A55]/10 bg-white/70 p-6 shadow-sm sm:p-8">
           <div className="max-w-3xl space-y-4">
-            <p className="text-sm font-medium uppercase tracking-[0.28em] text-[#617A55]">
-              Member area
-            </p>
             <h1 className="font-serif text-5xl leading-tight sm:text-6xl">
               {profileName ? `Welcome, ${profileName}` : 'Welcome to Ahlam Space'}
             </h1>
@@ -111,11 +107,10 @@ export default async function DashboardPage() {
           <div className="mt-8 flex flex-col gap-3 sm:flex-row">
             <Link
               className="inline-flex min-h-11 items-center justify-center rounded-full bg-[#617A55] px-7 py-3 text-sm font-semibold text-white transition hover:bg-[#4f6645]"
-              href="/schedule"
+              href="/member-schedule"
             >
               Browse classes
             </Link>
-            <LogoutButton />
           </div>
         </div>
 
@@ -152,7 +147,7 @@ export default async function DashboardPage() {
                 </p>
                 <Link
                   className="mt-5 inline-flex min-h-11 items-center justify-center rounded-full bg-[#617A55] px-7 py-3 text-sm font-semibold text-white transition hover:bg-[#4f6645]"
-                  href="/schedule"
+                  href="/member-schedule"
                 >
                   Book your first class
                 </Link>
@@ -199,7 +194,7 @@ export default async function DashboardPage() {
             <div className="mt-6 grid gap-3">
               <Link
                 className="rounded-[1.5rem] bg-[#D6E2B6]/70 p-5 transition hover:bg-[#D6E2B6]"
-                href="/schedule"
+                href="/member-schedule"
               >
                 <span className="block font-serif text-2xl">
                   Browse classes

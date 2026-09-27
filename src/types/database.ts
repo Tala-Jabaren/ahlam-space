@@ -18,6 +18,7 @@ export type Database = {
         Row: {
           created_at: string | null
           id: string
+          payment_method: string | null
           payment_status: string
           reserved_until: string | null
           session_id: string
@@ -27,6 +28,7 @@ export type Database = {
         Insert: {
           created_at?: string | null
           id?: string
+          payment_method?: string | null
           payment_status?: string
           reserved_until?: string | null
           session_id: string
@@ -36,6 +38,7 @@ export type Database = {
         Update: {
           created_at?: string | null
           id?: string
+          payment_method?: string | null
           payment_status?: string
           reserved_until?: string | null
           session_id?: string
@@ -67,6 +70,7 @@ export type Database = {
           created_at: string | null
           end_time: string
           id: string
+          location: string | null
           session_date: string
           start_time: string
           status: string
@@ -78,6 +82,7 @@ export type Database = {
           created_at?: string | null
           end_time: string
           id?: string
+          location?: string | null
           session_date: string
           start_time: string
           status?: string
@@ -89,6 +94,7 @@ export type Database = {
           created_at?: string | null
           end_time?: string
           id?: string
+          location?: string | null
           session_date?: string
           start_time?: string
           status?: string
@@ -133,6 +139,75 @@ export type Database = {
           is_active?: boolean | null
           name?: string
           price?: number
+        }
+        Relationships: []
+      }
+      course_purchases: {
+        Row: {
+          course_id: string
+          created_at: string | null
+          id: string
+          payment_method: string | null
+          status: string
+          user_id: string
+        }
+        Insert: {
+          course_id: string
+          created_at?: string | null
+          id?: string
+          payment_method?: string | null
+          status?: string
+          user_id: string
+        }
+        Update: {
+          course_id?: string
+          created_at?: string | null
+          id?: string
+          payment_method?: string | null
+          status?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "course_purchases_course_id_fkey"
+            columns: ["course_id"]
+            isOneToOne: false
+            referencedRelation: "courses"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "course_purchases_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      courses: {
+        Row: {
+          created_at: string | null
+          description: string | null
+          id: string
+          is_active: boolean | null
+          price: number
+          title: string
+        }
+        Insert: {
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          is_active?: boolean | null
+          price: number
+          title: string
+        }
+        Update: {
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          is_active?: boolean | null
+          price?: number
+          title?: string
         }
         Relationships: []
       }
@@ -333,6 +408,7 @@ export type Database = {
       profiles: {
         Row: {
           created_at: string | null
+          city: string | null
           full_name: string | null
           id: string
           phone: string | null
@@ -340,6 +416,7 @@ export type Database = {
         }
         Insert: {
           created_at?: string | null
+          city?: string | null
           full_name?: string | null
           id: string
           phone?: string | null
@@ -347,6 +424,7 @@ export type Database = {
         }
         Update: {
           created_at?: string | null
+          city?: string | null
           full_name?: string | null
           id?: string
           phone?: string | null
@@ -362,6 +440,10 @@ export type Database = {
       book_class_session: {
         Args: { p_session_id: string; p_user_id: string }
         Returns: string
+      }
+      confirm_pending_booking: {
+        Args: { p_booking_id: string }
+        Returns: undefined
       }
     }
     Enums: {

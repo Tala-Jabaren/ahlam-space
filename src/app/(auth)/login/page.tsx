@@ -2,13 +2,31 @@
 
 import { useState } from 'react'
 import Link from 'next/link'
+import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 
 export default function LoginPage() {
+  const router = useRouter()
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [error, setError] = useState<string | null>(null)
   const [loading, setLoading] = useState(false)
+
+  function handleCreateAccount(event: React.MouseEvent<HTMLAnchorElement>) {
+    const requestedReturnTo = new URLSearchParams(window.location.search).get(
+      'returnTo'
+    )
+
+    if (
+      !requestedReturnTo?.startsWith('/') ||
+      requestedReturnTo.startsWith('//')
+    ) {
+      return
+    }
+
+    event.preventDefault()
+    router.push(`/sign-up?returnTo=${encodeURIComponent(requestedReturnTo)}`)
+  }
 
   async function handleLogin(e: React.FormEvent) {
     e.preventDefault()
@@ -28,7 +46,16 @@ export default function LoginPage() {
       return
     }
 
-    window.location.href = '/dashboard'
+    const requestedReturnTo = new URLSearchParams(window.location.search).get(
+      'returnTo'
+    )
+    const returnTo =
+      requestedReturnTo?.startsWith('/') && !requestedReturnTo.startsWith('//')
+        ? requestedReturnTo
+        : '/dashboard'
+
+    router.replace(returnTo)
+    router.refresh()
   }
 
   return (
@@ -94,6 +121,7 @@ export default function LoginPage() {
           <Link
             className="inline-flex min-h-11 items-center justify-center rounded-full px-4 font-medium text-[#617A55] underline-offset-4 transition hover:bg-[#D6E2B6]/50 hover:text-[#25311f] hover:underline"
             href="/sign-up"
+            onClick={handleCreateAccount}
           >
             Create an account
           </Link>

@@ -13,6 +13,25 @@ export default function SignUpPage() {
   const [loading, setLoading] = useState(false)
   const router = useRouter()
 
+  function getSafeReturnTo() {
+    const requestedReturnTo = new URLSearchParams(window.location.search).get(
+      'returnTo'
+    )
+
+    return requestedReturnTo?.startsWith('/') &&
+      !requestedReturnTo.startsWith('//')
+      ? requestedReturnTo
+      : null
+  }
+
+  function handleLoginLink(event: React.MouseEvent<HTMLAnchorElement>) {
+    const returnTo = getSafeReturnTo()
+    if (!returnTo) return
+
+    event.preventDefault()
+    router.push(`/login?returnTo=${encodeURIComponent(returnTo)}`)
+  }
+
   async function handleSignUp(e: React.FormEvent) {
     e.preventDefault()
     setError(null)
@@ -34,7 +53,15 @@ export default function SignUpPage() {
       return
     }
 
-    router.push('/login?message=Check your email to confirm your account')
+    const loginParams = new URLSearchParams({
+      message: 'Check your email to confirm your account',
+    })
+    const returnTo = getSafeReturnTo()
+    if (returnTo) {
+      loginParams.set('returnTo', returnTo)
+    }
+
+    router.push(`/login?${loginParams.toString()}`)
   }
 
   return (
@@ -108,6 +135,7 @@ export default function SignUpPage() {
           <Link
             className="inline-flex min-h-11 items-center justify-center rounded-full px-4 font-medium text-[#617A55] underline-offset-4 transition hover:bg-[#D6E2B6]/50 hover:text-[#25311f] hover:underline"
             href="/login"
+            onClick={handleLoginLink}
           >
             Login
           </Link>
