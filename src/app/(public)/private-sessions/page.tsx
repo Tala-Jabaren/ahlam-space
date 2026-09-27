@@ -1,5 +1,6 @@
 'use client'
 
+import Image from 'next/image'
 import { useRef, useState } from 'react'
 import { createClient } from '@/lib/supabase/client'
 
@@ -8,16 +9,19 @@ const SERVICES = [
     title: 'رحلة تيسير الشخصية',
     description:
       'برنامج مرافقة شخصية لمدة شهر كامل. خلال هذا البرنامج لن تكوني وحدك في رحلة التغيير، بل سأكون معك خطوة بخطوة، أتابع تقدمك، وأرسل لك يوميًا توجيهات، وتمارين، وتأملات، أو مهام بسيطة تناسب احتياجاتك وأهدافك. نهدف معًا إلى بناء عادات صحية، وتنظيم مختلف جوانب الحياة، وتعزيز الالتزام، حتى يصبح التغيير أسلوب حياة وليس مجرد مرحلة مؤقتة',
+    image: '/images/about2.png',
   },
   {
     title: 'جلسة العلاج بالصوت',
     description:
       'رحلة استرخاء عميقة باستخدام الطاسات التبتية وأدوات العلاج بالصوت، تساعد على تهدئة الجهاز العصبي، وتخفيف التوتر، وتعزيز الشعور',
+    image: '/member/yoga-class.png',
   },
   {
     title: 'جلسات فردية خاصة',
     description:
       'جلسات فردية مصممة بما يتناسب مع احتياجاتك، لنستكشف معًا التحديات التي تمرين بها، ونبني خطوات عملية تساعدك على الوصول إلى توازن نفسي وعاطفي أكبر. قد تشمل الجلسات العمل على إدارة الضغوط، تعزيز الثقة بالنفس، تنظيم المشاعر، اكتشاف الأنماط التي تعيقك، ووضع خطة تناسب أهدافك وظروفك.',
+    image: '/member/fitness-class.png',
   },
 ] as const
 
@@ -72,27 +76,39 @@ export default function PrivateSessionsPage() {
     >
       <h1>الجلسات الفردية</h1>
 
-      {SERVICES.map((service) => (
-        <section
-          key={service.title}
-          className="mb-8 rounded-[1.75rem] border border-[#617A55]/10 bg-white/70 p-6 shadow-sm"
-        >
-          <div className="mb-5 aspect-[4/3] rounded-[1.5rem] bg-[#D6E2B6]" />
-          <h2 className="font-serif text-3xl leading-tight text-[#25311f]">
-            {service.title}
-          </h2>
-          <p className="mt-4 leading-8 text-[#4f5d49]">
-            {service.description}
-          </p>
-          <button
-            className="mt-6 rounded-full bg-[#617A55] px-6 py-3 text-sm font-semibold text-white transition hover:bg-[#4f6645]"
-            type="button"
-            onClick={() => handleRequestClick(service.title)}
+      <div className="grid gap-6 xl:grid-cols-2 xl:justify-items-center">
+        {SERVICES.map((service) => (
+          <section
+            key={service.title}
+            className="flex h-auto w-full max-w-[620px] flex-col overflow-hidden rounded-[18px] border border-[#617A55]/[0.12] bg-white transition-transform duration-200 hover:-translate-y-[3px] sm:h-[190px] sm:flex-row"
           >
-            تواصلي لحجز هذه الجلسة
-          </button>
-        </section>
-      ))}
+            <div className="relative h-[210px] w-full shrink-0 sm:h-full sm:w-[190px]">
+              <Image
+                src={service.image}
+                alt=""
+                fill
+                sizes="(min-width: 640px) 190px, 100vw"
+                className="object-cover object-center"
+              />
+            </div>
+            <div className="flex min-w-0 flex-1 flex-col p-5">
+              <h2 className="font-serif text-2xl font-medium leading-tight text-[#25311f]">
+                {service.title}
+              </h2>
+              <p className="mt-2 line-clamp-2 text-sm leading-6 text-[#4f5d49]">
+                {service.description}
+              </p>
+              <button
+                className="mt-auto self-start rounded-full bg-[#D6E2B6] px-7 py-2.5 text-sm font-medium text-[#617A55] transition-colors hover:bg-[#cbd9a7]"
+                type="button"
+                onClick={() => handleRequestClick(service.title)}
+              >
+                احجزي جلسة
+              </button>
+            </div>
+          </section>
+        ))}
+      </div>
 
       <hr className="my-12 border-[#617A55]/15" />
 

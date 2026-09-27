@@ -1,15 +1,57 @@
 import type { Metadata } from 'next'
-import { Geist, Geist_Mono } from 'next/font/google'
+import localFont from 'next/font/local'
 import './globals.css'
 
-const geistSans = Geist({
-  variable: '--font-geist-sans',
-  subsets: ['latin'],
-})
-
-const geistMono = Geist_Mono({
-  variable: '--font-geist-mono',
-  subsets: ['latin'],
+const trueArabic = localFont({
+  variable: '--font-true-arabic',
+  display: 'swap',
+  src: [
+    {
+      path: '../../public/fonts/TrueArabic-Thin.otf',
+      weight: '100',
+      style: 'normal',
+    },
+    {
+      path: '../../public/fonts/TrueArabic-Extralight.otf',
+      weight: '200',
+      style: 'normal',
+    },
+    {
+      path: '../../public/fonts/TrueArabic-Light.otf',
+      weight: '300',
+      style: 'normal',
+    },
+    {
+      path: '../../public/fonts/TrueArabic-Regular.otf',
+      weight: '400',
+      style: 'normal',
+    },
+    {
+      path: '../../public/fonts/TrueArabic-Medium.otf',
+      weight: '500',
+      style: 'normal',
+    },
+    {
+      path: '../../public/fonts/TrueArabic-Semibold.otf',
+      weight: '600',
+      style: 'normal',
+    },
+    {
+      path: '../../public/fonts/TrueArabic-Bold.otf',
+      weight: '700',
+      style: 'normal',
+    },
+    {
+      path: '../../public/fonts/TrueArabic-Extrabold.otf',
+      weight: '800',
+      style: 'normal',
+    },
+    {
+      path: '../../public/fonts/TrueArabic-Black.otf',
+      weight: '900',
+      style: 'normal',
+    },
+  ],
 })
 
 export const metadata: Metadata = {
@@ -21,7 +63,7 @@ export default function RootLayout({ children }: LayoutProps<'/'>) {
   return (
     <html
       lang="en"
-      className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
+      className={`${trueArabic.variable} h-full antialiased`}
     >
       <body className="min-h-full flex flex-col">{children}</body>
     </html>
