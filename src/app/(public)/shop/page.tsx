@@ -66,25 +66,26 @@ export default async function ShopPage() {
           {products.map((product) => (
             <li
               key={product.id}
-              className="flex min-h-full flex-col rounded-[1.75rem] border border-[#617A55]/10 bg-white/70 p-5 shadow-sm"
+              className="min-h-full"
             >
-              <div className="aspect-[4/3] rounded-[1.5rem] bg-[#D6E2B6]" />
-              <h2 className="mt-5 font-serif text-3xl leading-tight text-[#25311f]">
-                <Link
-                  href={`/shop/${product.id}`}
-                  className="transition hover:text-[#617A55]"
-                >
+              <Link
+                href={`/shop/${product.id}`}
+                aria-label={`View ${product.name}`}
+                className="group flex min-h-full flex-col rounded-[1.75rem] border border-[#617A55]/10 bg-white/70 p-5 shadow-sm transition hover:border-[#617A55]/25 focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[#617A55]"
+              >
+                <div className="aspect-[4/3] rounded-[1.5rem] bg-[#D6E2B6]" />
+                <h2 className="mt-5 font-serif text-3xl leading-tight text-[#25311f] transition group-hover:text-[#617A55]">
                   {product.name}
-                </Link>
-              </h2>
-              {product.description && (
-                <p className="mt-4 flex-1 leading-7 text-[#4f5d49]">
-                  {product.description}
+                </h2>
+                {product.description && (
+                  <p className="mt-4 flex-1 leading-7 text-[#4f5d49]">
+                    {product.description}
+                  </p>
+                )}
+                <p className="mt-6 text-sm font-semibold uppercase tracking-[0.16em] text-[#617A55]">
+                  {formatPrice(product.price)}
                 </p>
-              )}
-              <p className="mt-6 text-sm font-semibold uppercase tracking-[0.16em] text-[#617A55]">
-                {formatPrice(product.price)}
-              </p>
+              </Link>
             </li>
           ))}
         </ul>
