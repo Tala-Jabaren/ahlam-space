@@ -1,5 +1,6 @@
 import { notFound } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
+import AddToCartButton from './add-to-cart-button'
 
 type Product = {
   id: string
@@ -115,6 +116,18 @@ export default async function ProductPage({ params }: ProductPageProps) {
                 <span className="font-semibold text-[#25311f]">SKU:</span>{' '}
                 {variant.sku ?? 'N/A'}
               </p>
+              <div className="mt-4">
+                <AddToCartButton
+                  productId={product.id}
+                  variantId={variant.id}
+                  name={product.name}
+                  price={product.price ?? 0}
+                  size={variant.size}
+                  color={variant.color}
+                  stock={variant.stock ?? 0}
+                  imageUrl={null}
+                />
+              </div>
             </li>
           ))}
         </ul>
