@@ -1,3 +1,4 @@
+import Image from 'next/image'
 import { notFound } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
 import AddToCartButton from './add-to-cart-button'
@@ -6,6 +7,7 @@ type Product = {
   id: string
   name: string
   description: string | null
+  image_url: string | null
   price: number | null
 }
 
@@ -38,7 +40,7 @@ export default async function ProductPage({ params }: ProductPageProps) {
 
   const { data: productData, error: productError } = await supabase
     .from('products')
-    .select('id, name, description, price')
+    .select('id, name, description, image_url, price')
     .eq('id', id)
     .eq('is_active', true)
     .maybeSingle()
@@ -61,7 +63,18 @@ export default async function ProductPage({ params }: ProductPageProps) {
     <div className="px-5 py-16 sm:px-8 lg:px-10">
       <section className="mx-auto grid max-w-7xl gap-10 lg:grid-cols-[0.9fr_1.1fr] lg:items-center">
         <div className="min-h-[340px] rounded-[2rem] bg-[#D6E2B6] p-6">
-          <div className="h-full min-h-[292px] rounded-[1.5rem] border border-white/60 bg-[#F7F6F0]/50" />
+          <div className="relative h-full min-h-[292px] overflow-hidden rounded-[1.5rem] border border-white/60 bg-[#F7F6F0]/50">
+            {product.image_url && (
+              <Image
+                src={product.image_url}
+                alt={`صورة ${product.name}`}
+                fill
+                sizes="(min-width: 1024px) 45vw, 100vw"
+                className="object-cover"
+                priority
+              />
+            )}
+          </div>
         </div>
         <div className="space-y-5">
           <p className="text-sm font-medium uppercase tracking-[0.28em] text-[#617A55]">
@@ -125,7 +138,7 @@ export default async function ProductPage({ params }: ProductPageProps) {
                   size={variant.size}
                   color={variant.color}
                   stock={variant.stock ?? 0}
-                  imageUrl={null}
+                  imageUrl={product.image_url}
                 />
               </div>
             </li>

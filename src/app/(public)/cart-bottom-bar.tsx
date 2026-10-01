@@ -1,5 +1,6 @@
 'use client'
 
+import { useEffect, useRef, useState } from 'react'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { useCart } from '@/lib/cart/cart-context'
@@ -7,6 +8,19 @@ import { useCart } from '@/lib/cart/cart-context'
 export default function CartBottomBar() {
   const pathname = usePathname()
   const { totalQuantity } = useCart()
+  const previousQuantity = useRef(totalQuantity)
+  const [showAddedMessage, setShowAddedMessage] = useState(false)
+
+  useEffect(() => {
+    if (totalQuantity > previousQuantity.current) {
+      setShowAddedMessage(true)
+      const timeout = window.setTimeout(() => setShowAddedMessage(false), 2200)
+      previousQuantity.current = totalQuantity
+      return () => window.clearTimeout(timeout)
+    }
+
+    previousQuantity.current = totalQuantity
+  }, [totalQuantity])
 
   if (totalQuantity === 0 || pathname === '/cart') {
     return null
@@ -15,7 +29,7 @@ export default function CartBottomBar() {
   return (
     <div
       dir="rtl"
-      className="fixed inset-x-4 bottom-4 z-50 mx-auto max-w-xl rounded-2xl border border-[#617A55]/15 bg-[#F7F6F0]/95 p-3 shadow-[0_8px_28px_rgba(37,49,31,0.14)] backdrop-blur sm:bottom-6"
+      className="fixed inset-x-4 bottom-4 z-50 mx-auto max-w-xl rounded-2xl border border-[#617A55]/15 bg-[#D6E2B6] p-3 shadow-[0_8px_28px_rgba(37,49,31,0.14)] sm:bottom-6"
     >
       <div className="flex items-center justify-between gap-4">
         <div className="flex min-w-0 items-center gap-3 text-[#25311f]">
@@ -39,7 +53,9 @@ export default function CartBottomBar() {
             </span>
           </span>
           <div className="min-w-0">
-            <p className="font-semibold text-[#25311f]">السلة</p>
+            <p className="font-semibold text-[#25311f]" role="status" aria-live="polite">
+              {showAddedMessage ? 'تمت الإضافة إلى السلة' : 'السلة'}
+            </p>
             <p className="text-sm text-[#617A55]">
               {totalQuantity} {totalQuantity === 1 ? 'منتج' : 'منتجات'}
             </p>

@@ -1,6 +1,5 @@
 'use client'
 
-import { useEffect, useState } from 'react'
 import { useCart } from '@/lib/cart/cart-context'
 
 type Props = {
@@ -12,6 +11,7 @@ type Props = {
   color: string | null
   stock: number
   imageUrl: string | null
+  compact?: boolean
 }
 
 export default function AddToCartButton({
@@ -23,17 +23,9 @@ export default function AddToCartButton({
   color,
   stock,
   imageUrl,
+  compact = false,
 }: Props) {
   const { addToCart } = useCart()
-  const [justAdded, setJustAdded] = useState(false)
-
-  useEffect(() => {
-    if (!justAdded) {
-      return
-    }
-    const timeout = window.setTimeout(() => setJustAdded(false), 2500)
-    return () => window.clearTimeout(timeout)
-  }, [justAdded])
 
   if (stock <= 0) {
     return (
@@ -54,7 +46,6 @@ export default function AddToCartButton({
       quantity: 1,
       image_url: imageUrl,
     })
-    setJustAdded(true)
   }
 
   return (
@@ -62,15 +53,10 @@ export default function AddToCartButton({
       <button
         type="button"
         onClick={handleAdd}
-        className="inline-flex min-h-11 items-center justify-center rounded-full bg-[#617A55] px-5 text-sm font-semibold text-white transition hover:bg-[#4f6645]"
+        className={`inline-flex items-center justify-center rounded-full bg-[#617A55] text-sm font-semibold text-white transition hover:bg-[#4f6645] ${compact ? 'min-h-10 px-4' : 'min-h-11 px-5'}`}
       >
         أضيفي إلى السلة
       </button>
-      {justAdded && (
-        <p className="text-sm font-medium text-[#617A55]">
-          تمت الإضافة إلى السلة
-        </p>
-      )}
     </div>
   )
 }
