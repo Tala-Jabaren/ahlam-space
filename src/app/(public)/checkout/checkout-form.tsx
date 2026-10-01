@@ -215,7 +215,7 @@ export default function CheckoutForm({
     setIsSubmitting(false)
     if (user) {
       window.setTimeout(() => {
-        router.replace(`/dashboard?order=${encodeURIComponent(newOrderId)}`)
+        router.replace('/orders')
       }, 1800)
     }
   }
@@ -243,8 +243,8 @@ export default function CheckoutForm({
           </p>
           <p className="mt-2 text-sm text-[#617A55]">
             {isGuest
-              ? 'سنتواصل معك عبر رقم الهاتف لتأكيد تفاصيل الطلب.'
-              : 'سيتم تحويلك إلى حسابك الآن.'}
+              ? 'سنتواصل معك عبر رقم الهاتف لمتابعة الدفع وتأكيد تفاصيل الطلب.'
+              : 'سيتم تحويلك إلى صفحة طلباتك الآن.'}
           </p>
         </section>
       </div>
