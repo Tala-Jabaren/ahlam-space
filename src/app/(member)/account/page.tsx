@@ -2,6 +2,15 @@ import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
 import AccountProfile from './account-profile'
 
+function splitName(fullName: string | null | undefined) {
+  const [firstName = '', ...lastNameParts] = fullName?.trim().split(/\s+/) ?? []
+
+  return {
+    firstName,
+    lastName: lastNameParts.join(' '),
+  }
+}
+
 export default async function AccountPage() {
   const supabase = await createClient()
   const {
@@ -25,6 +34,8 @@ export default async function AccountPage() {
   if (profileError) {
     console.error('Failed to load profile:', profileError.message)
   }
+
+  const profileName = splitName(profile?.full_name)
 
   return (
     <main className="px-4 py-8 text-[#617A55] sm:px-6 sm:py-10 lg:px-8" dir="rtl">
@@ -52,7 +63,8 @@ export default async function AccountPage() {
 
         <AccountProfile
           initialProfile={{
-            fullName: profile?.full_name ?? '',
+            firstName: profileName.firstName,
+            lastName: profileName.lastName,
             phone: profile?.phone ?? '',
             email: user.email ?? '',
             city: profile?.city ?? '',

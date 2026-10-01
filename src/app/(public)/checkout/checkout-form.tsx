@@ -95,7 +95,8 @@ export default function CheckoutForm({
   const [deliveryCity, setDeliveryCity] = useState('')
   const [deliveryStreet, setDeliveryStreet] = useState('')
   const [isGuest, setIsGuest] = useState(!isInitiallyLoggedIn)
-  const [guestName, setGuestName] = useState('')
+  const [guestFirstName, setGuestFirstName] = useState('')
+  const [guestLastName, setGuestLastName] = useState('')
   const [guestPhone, setGuestPhone] = useState('')
   const [guestEmail, setGuestEmail] = useState('')
   const [error, setError] = useState<string | null>(null)
@@ -114,8 +115,11 @@ export default function CheckoutForm({
     event.preventDefault()
     setError(null)
 
-    if (isGuest && (!guestName.trim() || !guestPhone.trim())) {
-      setError('أدخلي الاسم الكامل ورقم الهاتف لإتمام الطلب.')
+    if (
+      isGuest &&
+      (!guestFirstName.trim() || !guestLastName.trim() || !guestPhone.trim())
+    ) {
+      setError('أدخلي الاسم الأول واسم العائلة ورقم الهاتف لإتمام الطلب.')
       return
     }
 
@@ -176,7 +180,9 @@ export default function CheckoutForm({
         fulfillmentMethod === 'delivery'
           ? `${deliveryCity}، ${deliveryStreet.trim()}`
           : null,
-      p_guest_name: user ? null : guestName.trim(),
+      p_guest_name: user
+        ? null
+        : `${guestFirstName.trim()} ${guestLastName.trim()}`,
       p_guest_phone: user ? null : guestPhone.trim(),
       p_guest_email: user ? null : guestEmail.trim() || null,
     })
@@ -265,13 +271,24 @@ export default function CheckoutForm({
                 </h2>
                 <div className="mt-5 grid gap-4 sm:grid-cols-2">
                   <label className="grid gap-2 text-sm font-medium text-[#25311f]">
-                    الاسم الكامل
+                    الاسم الأول
                     <input
                       type="text"
-                      value={guestName}
-                      onChange={(event) => setGuestName(event.target.value)}
+                      value={guestFirstName}
+                      onChange={(event) => setGuestFirstName(event.target.value)}
                       required
-                      autoComplete="name"
+                      autoComplete="given-name"
+                      className="min-h-12 rounded-lg border border-[#617A55]/20 bg-[#F7F6F0] px-4 font-normal outline-none transition focus:border-[#617A55]"
+                    />
+                  </label>
+                  <label className="grid gap-2 text-sm font-medium text-[#25311f]">
+                    اسم العائلة
+                    <input
+                      type="text"
+                      value={guestLastName}
+                      onChange={(event) => setGuestLastName(event.target.value)}
+                      required
+                      autoComplete="family-name"
                       className="min-h-12 rounded-lg border border-[#617A55]/20 bg-[#F7F6F0] px-4 font-normal outline-none transition focus:border-[#617A55]"
                     />
                   </label>
@@ -287,7 +304,7 @@ export default function CheckoutForm({
                       className="min-h-12 rounded-lg border border-[#617A55]/20 bg-[#F7F6F0] px-4 font-normal outline-none transition focus:border-[#617A55]"
                     />
                   </label>
-                  <label className="grid gap-2 text-sm font-medium text-[#25311f] sm:col-span-2">
+                  <label className="grid gap-2 text-sm font-medium text-[#25311f]">
                     البريد الإلكتروني (اختياري)
                     <input
                       type="email"
