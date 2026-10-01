@@ -187,4 +187,7 @@ from anon;
 grant execute on function public.place_order(uuid, jsonb, text, text, text)
 to authenticated;
 
+-- Make the new five-argument signature visible to PostgREST immediately.
+notify pgrst, 'reload schema';
+
 commit;
