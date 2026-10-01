@@ -13,8 +13,7 @@ type FulfillmentMethod = 'delivery' | 'pickup'
 
 const subscribeToHydration = () => () => {}
 
-const deliveryCities = {
-  فلسطين: [
+const deliveryCities = [
     'القدس',
     'رام الله',
     'البيرة',
@@ -34,9 +33,6 @@ const deliveryCities = {
     'جباليا',
     'بيت لاهيا',
     'بيت حانون',
-    'مدينة أو بلدة أخرى في فلسطين',
-  ],
-  إسرائيل: [
     'الناصرة',
     'حيفا',
     'يافا',
@@ -70,9 +66,8 @@ const deliveryCities = {
     'إيلات',
     'نهاريا',
     'كريات شمونة',
-    'مدينة أو بلدة أخرى في إسرائيل',
-  ],
-} as const
+    'مدينة أو بلدة أخرى',
+] as const
 
 function formatPrice(price: number) {
   return new Intl.NumberFormat('en-US', {
@@ -350,14 +345,10 @@ export default function CheckoutForm({
                       className="min-h-12 rounded-lg border border-[#617A55]/20 bg-[#F7F6F0] px-4 font-normal outline-none transition focus:border-[#617A55]"
                     >
                       <option value="">اختاري المدينة</option>
-                      {Object.entries(deliveryCities).map(([country, cities]) => (
-                        <optgroup key={country} label={country}>
-                          {cities.map((city) => (
-                            <option key={city} value={city}>
-                              {city}
-                            </option>
-                          ))}
-                        </optgroup>
+                      {deliveryCities.map((city) => (
+                        <option key={city} value={city}>
+                          {city}
+                        </option>
                       ))}
                     </select>
                   </label>
