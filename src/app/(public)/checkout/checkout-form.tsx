@@ -90,6 +90,8 @@ export default function CheckoutForm() {
       p_items: rpcItems,
       p_fulfillment_method: fulfillmentMethod,
       p_payment_method: paymentMethod,
+      p_delivery_address:
+        fulfillmentMethod === 'delivery' ? deliveryAddress.trim() : null,
     })
 
     if (orderError) {
