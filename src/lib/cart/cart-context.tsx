@@ -13,6 +13,11 @@ export type CartItem = {
   image_url: string | null
 }
 
+type LastAddedItem = {
+  name: string
+  addedAt: number
+}
+
 type CartContextValue = {
   items: CartItem[]
   addToCart: (item: CartItem) => void
@@ -21,6 +26,7 @@ type CartContextValue = {
   clearCart: () => void
   totalPrice: number
   totalQuantity: number
+  lastAddedItem: LastAddedItem | null
 }
 
 const CART_STORAGE_KEY = 'ahlam-space-cart'
@@ -53,6 +59,9 @@ function writeCartToStorage(items: CartItem[]) {
 export function CartProvider({ children }: { children: React.ReactNode }) {
   const [items, setItems] = useState<CartItem[]>([])
   const [isHydrated, setIsHydrated] = useState(false)
+  const [lastAddedItem, setLastAddedItem] = useState<LastAddedItem | null>(
+    null
+  )
 
   // Load once on mount (client-only - localStorage doesn't exist during SSR,
   // and reading it during render would cause a hydration mismatch since the
@@ -86,6 +95,7 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
       }
       return [...current, item]
     })
+    setLastAddedItem({ name: item.name, addedAt: Date.now() })
   }
 
   function removeFromCart(variantId: string) {
@@ -123,6 +133,7 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
         clearCart,
         totalPrice,
         totalQuantity,
+        lastAddedItem,
       }}
     >
       {children}

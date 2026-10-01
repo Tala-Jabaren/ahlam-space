@@ -1,115 +1,60 @@
 import { createClient } from '@/lib/supabase/server'
-import AddToCartButton from './[id]/add-to-cart-button'
-
-type ProductVariant = {
-  id: string
-  size: string | null
-  color: string | null
-  stock: number | null
-}
-
-type Product = {
-  id: string
-  name: string
-  price: number | null
-  product_variants: ProductVariant[]
-}
-
-function formatPrice(price: number | null) {
-  if (price === null) {
-    return 'Price coming soon'
-  }
-
-  return new Intl.NumberFormat('en-US', {
-    style: 'currency',
-    currency: 'USD',
-  }).format(price)
-}
+import ShopGrid, { type ShopProduct } from './shop-grid'
 
 export default async function ShopPage() {
   const supabase = await createClient()
   const { data, error } = await supabase
     .from('products')
-    .select('id, name, price, product_variants(id, size, color, stock)')
+    .select('id, name, description, price, product_variants(id, size, color, stock)')
     .eq('is_active', true)
     .order('name', { ascending: true })
 
-  const products = (data ?? []) as Product[]
+  const products = (data ?? []) as ShopProduct[]
 
   return (
-    <div className="px-5 py-16 sm:px-8 lg:px-10">
-      <section className="mx-auto max-w-7xl">
-        <div className="grid gap-10 lg:grid-cols-[0.9fr_1.1fr] lg:items-end">
-          <div className="space-y-5">
-            <p className="text-sm font-medium uppercase tracking-[0.28em] text-[#617A55]">
-              Studio shop
-            </p>
-            <h1 className="font-serif text-5xl leading-tight text-[#25311f] sm:text-6xl">
-              Shop
-            </h1>
-            <p className="text-lg leading-8 text-[#4f5d49]">
-              Small objects for care, ritual, and warmth beyond the studio.
-            </p>
+    <div dir="rtl">
+      <section className="px-5 py-12 sm:px-8 sm:py-16 lg:px-10">
+        <div className="mx-auto grid max-w-7xl items-center gap-8 overflow-hidden rounded-[2rem] border border-[#617A55]/10 bg-white/70 lg:grid-cols-2">
+          <div className="relative isolate aspect-[16/11] overflow-hidden bg-gradient-to-br from-[#D6E2B6] via-[#F7F6F0] to-[#C7D6E8] lg:aspect-auto lg:h-full lg:min-h-[22rem]">
+            <div
+              aria-hidden="true"
+              className="absolute -left-10 -top-10 size-52 rounded-full bg-[#617A55]/10 blur-2xl"
+            />
+            <div
+              aria-hidden="true"
+              className="absolute bottom-6 right-10 size-28 rounded-full bg-white/50 blur-xl"
+            />
+            <div
+              aria-hidden="true"
+              className="absolute inset-x-0 bottom-10 flex justify-center"
+            >
+              <span className="block h-20 w-12 -rotate-6 rounded-[100%_0_100%_0] bg-[#617A55]/20" />
+              <span className="-ml-2 mt-10 block h-14 w-8 rotate-6 rounded-[0_100%_0_100%] bg-[#617A55]/10" />
+            </div>
           </div>
-          <div className="min-h-52 rounded-[2rem] bg-[#C7D6E8] p-5">
-            <div className="h-full min-h-44 rounded-[1.5rem] bg-[#F7F6F0]/55" />
+
+          <div className="space-y-5 px-6 py-8 sm:px-10 sm:py-10 lg:py-12">
+            <p className="text-sm font-medium uppercase tracking-[0.28em] text-[#617A55]">
+              AHLAM SHOP
+            </p>
+            <h1 className="font-serif text-4xl leading-tight text-[#25311f] sm:text-5xl">
+              أشياء صغيرة، صُنعت بعناية.
+            </h1>
+            <p className="text-base leading-8 text-[#4f5d49] sm:text-lg">
+              من زُلفة ومساحة أحلام، اختيارات تضيف ليومك دفئًا، توازنًا
+              ولحظات أهدأ.
+            </p>
           </div>
         </div>
       </section>
 
-      <section className="mx-auto mt-12 max-w-7xl">
-      {error && (
-        <div className="rounded-[1.75rem] bg-[#C7D6E8]/55 p-8 text-[#4f5d49]">
-          Unable to load products right now.
-        </div>
-      )}
-      {!error && products.length === 0 && (
-        <div className="rounded-[1.75rem] bg-[#C7D6E8]/55 p-8 text-[#4f5d49]">
-          No products available yet.
-        </div>
-      )}
-      {!error && products.length > 0 && (
-        <ul className="grid gap-6 sm:grid-cols-2 xl:grid-cols-3">
-          {products.map((product) => {
-            const variant =
-              product.product_variants.find((item) => (item.stock ?? 0) > 0) ??
-              product.product_variants[0]
-
-            return (
-              <li
-                key={product.id}
-                className="flex min-h-full flex-col rounded-[1.75rem] border border-[#617A55]/10 bg-white/70 p-5 shadow-sm"
-              >
-                <div className="aspect-[4/3] rounded-[1.5rem] bg-[#D6E2B6]" />
-                <h2 className="mt-5 font-serif text-3xl leading-tight text-[#25311f]">
-                  {product.name}
-                </h2>
-                <p className="mt-6 text-sm font-semibold uppercase tracking-[0.16em] text-[#617A55]">
-                  {formatPrice(product.price)}
-                </p>
-                <div className="mt-5">
-                  {variant ? (
-                    <AddToCartButton
-                      productId={product.id}
-                      variantId={variant.id}
-                      name={product.name}
-                      price={product.price ?? 0}
-                      size={variant.size}
-                      color={variant.color}
-                      stock={variant.stock ?? 0}
-                      imageUrl={null}
-                    />
-                  ) : (
-                    <span className="inline-flex min-h-11 items-center justify-center rounded-full bg-[#C7D6E8]/50 px-5 text-sm font-semibold text-[#617A55]/70">
-                      غير متوفر
-                    </span>
-                  )}
-                </div>
-              </li>
-            )
-          })}
-        </ul>
-      )}
+      <section className="mx-auto max-w-7xl px-5 pb-20 sm:px-8 lg:px-10">
+        {error && (
+          <div className="rounded-[1.5rem] bg-[#C7D6E8]/55 p-8 text-center text-[#4f5d49]">
+            تعذر تحميل المنتجات الآن.
+          </div>
+        )}
+        {!error && <ShopGrid products={products} />}
       </section>
     </div>
   )

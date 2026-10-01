@@ -3,7 +3,7 @@ import { createClient } from '@/lib/supabase/server'
 import { CartProvider } from '@/lib/cart/cart-context'
 import PublicNavLink from './public-nav-link'
 import CartNavLink from './cart-nav-link'
-import CartBottomBar from './cart-bottom-bar'
+import CartToast from './cart-toast'
 
 export default async function PublicLayout({
   children,
@@ -61,7 +61,7 @@ export default async function PublicLayout({
           </div>
         </nav>
         <main>{children}</main>
-        <CartBottomBar />
+        <CartToast />
         <footer className="border-t border-[#617A55]/15 px-5 py-10 sm:px-8 lg:px-10">
           <div className="mx-auto flex max-w-7xl flex-col gap-3 text-sm text-[#617A55] sm:flex-row sm:items-center sm:justify-between">
             <p>Ahlam Space, Ramallah</p>
