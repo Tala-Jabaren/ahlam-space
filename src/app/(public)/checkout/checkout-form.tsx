@@ -13,6 +13,67 @@ type FulfillmentMethod = 'delivery' | 'pickup'
 
 const subscribeToHydration = () => () => {}
 
+const deliveryCities = {
+  فلسطين: [
+    'القدس',
+    'رام الله',
+    'البيرة',
+    'نابلس',
+    'الخليل',
+    'بيت لحم',
+    'أريحا',
+    'جنين',
+    'طولكرم',
+    'قلقيلية',
+    'سلفيت',
+    'طوباس',
+    'غزة',
+    'خان يونس',
+    'رفح',
+    'دير البلح',
+    'جباليا',
+    'بيت لاهيا',
+    'بيت حانون',
+    'مدينة أو بلدة أخرى في فلسطين',
+  ],
+  إسرائيل: [
+    'الناصرة',
+    'حيفا',
+    'يافا',
+    'تل أبيب',
+    'عكا',
+    'اللد',
+    'الرملة',
+    'بئر السبع',
+    'أم الفحم',
+    'الطيبة',
+    'الطيرة',
+    'شفاعمرو',
+    'سخنين',
+    'عرابة',
+    'رهط',
+    'كفر قاسم',
+    'باقة الغربية',
+    'طمرة',
+    'كرمئيل',
+    'طبريا',
+    'صفد',
+    'نتانيا',
+    'هرتسليا',
+    'ريشون لتسيون',
+    'بيتح تكفا',
+    'حولون',
+    'بات يام',
+    'رحوفوت',
+    'عسقلان',
+    'أسدود',
+    'إيلات',
+    'نهاريا',
+    'كريات شمونة',
+    'مدينة أو بلدة أخرى في إسرائيل',
+  ],
+} as const
+
 function formatPrice(price: number) {
   return new Intl.NumberFormat('en-US', {
     style: 'currency',
@@ -36,7 +97,8 @@ export default function CheckoutForm({
     useState<FulfillmentMethod | null>(null)
   const [paymentMethod, setPaymentMethod] =
     useState<PaymentMethod | null>(null)
-  const [deliveryAddress, setDeliveryAddress] = useState('')
+  const [deliveryCity, setDeliveryCity] = useState('')
+  const [deliveryStreet, setDeliveryStreet] = useState('')
   const [isGuest, setIsGuest] = useState(!isInitiallyLoggedIn)
   const [guestName, setGuestName] = useState('')
   const [guestPhone, setGuestPhone] = useState('')
@@ -67,8 +129,11 @@ export default function CheckoutForm({
       return
     }
 
-    if (fulfillmentMethod === 'delivery' && !deliveryAddress.trim()) {
-      setError('أدخلي عنوان التوصيل.')
+    if (
+      fulfillmentMethod === 'delivery' &&
+      (!deliveryCity || !deliveryStreet.trim())
+    ) {
+      setError('اختاري المدينة وأدخلي البلدة أو الشارع.')
       return
     }
 
@@ -113,7 +178,9 @@ export default function CheckoutForm({
       p_fulfillment_method: fulfillmentMethod,
       p_payment_method: paymentMethod,
       p_delivery_address:
-        fulfillmentMethod === 'delivery' ? deliveryAddress.trim() : null,
+        fulfillmentMethod === 'delivery'
+          ? `${deliveryCity}، ${deliveryStreet.trim()}`
+          : null,
       p_guest_name: user ? null : guestName.trim(),
       p_guest_phone: user ? null : guestPhone.trim(),
       p_guest_email: user ? null : guestEmail.trim() || null,
@@ -273,17 +340,40 @@ export default function CheckoutForm({
               </div>
 
               {fulfillmentMethod === 'delivery' && (
-                <label className="mt-5 grid gap-2 text-sm font-medium text-[#25311f]">
-                  عنوان التوصيل
-                  <textarea
-                    value={deliveryAddress}
-                    onChange={(event) => setDeliveryAddress(event.target.value)}
-                    required
-                    rows={3}
-                    placeholder="المدينة، الشارع، ورقم المبنى"
-                    className="resize-none rounded-lg border border-[#617A55]/20 bg-[#F7F6F0] px-4 py-3 font-normal outline-none transition placeholder:text-[#617A55]/50 focus:border-[#617A55]"
-                  />
-                </label>
+                <div className="mt-5 grid gap-4 sm:grid-cols-2">
+                  <label className="grid gap-2 text-sm font-medium text-[#25311f]">
+                    المدينة
+                    <select
+                      value={deliveryCity}
+                      onChange={(event) => setDeliveryCity(event.target.value)}
+                      required
+                      className="min-h-12 rounded-lg border border-[#617A55]/20 bg-[#F7F6F0] px-4 font-normal outline-none transition focus:border-[#617A55]"
+                    >
+                      <option value="">اختاري المدينة</option>
+                      {Object.entries(deliveryCities).map(([country, cities]) => (
+                        <optgroup key={country} label={country}>
+                          {cities.map((city) => (
+                            <option key={city} value={city}>
+                              {city}
+                            </option>
+                          ))}
+                        </optgroup>
+                      ))}
+                    </select>
+                  </label>
+                  <label className="grid gap-2 text-sm font-medium text-[#25311f]">
+                    البلدة / الشارع
+                    <input
+                      type="text"
+                      value={deliveryStreet}
+                      onChange={(event) => setDeliveryStreet(event.target.value)}
+                      required
+                      autoComplete="street-address"
+                      placeholder="اسم البلدة، الشارع، ورقم المبنى"
+                      className="min-h-12 rounded-lg border border-[#617A55]/20 bg-[#F7F6F0] px-4 font-normal outline-none transition placeholder:text-[#617A55]/50 focus:border-[#617A55]"
+                    />
+                  </label>
+                </div>
               )}
             </section>
 
