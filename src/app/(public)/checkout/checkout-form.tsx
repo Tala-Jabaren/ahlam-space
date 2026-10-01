@@ -2,6 +2,7 @@
 
 import { useEffect, useState, useSyncExternalStore } from 'react'
 import { useRouter } from 'next/navigation'
+import { isAuthSessionMissingError } from '@supabase/supabase-js'
 import PaymentMethodSelector, {
   type PaymentMethod,
 } from '@/components/payment-method-selector'
@@ -19,7 +20,11 @@ function formatPrice(price: number) {
   }).format(price)
 }
 
-export default function CheckoutForm() {
+export default function CheckoutForm({
+  isInitiallyLoggedIn,
+}: {
+  isInitiallyLoggedIn: boolean
+}) {
   const router = useRouter()
   const { items, totalPrice, clearCart } = useCart()
   const isMounted = useSyncExternalStore(
@@ -32,6 +37,10 @@ export default function CheckoutForm() {
   const [paymentMethod, setPaymentMethod] =
     useState<PaymentMethod | null>(null)
   const [deliveryAddress, setDeliveryAddress] = useState('')
+  const [isGuest, setIsGuest] = useState(!isInitiallyLoggedIn)
+  const [guestName, setGuestName] = useState('')
+  const [guestPhone, setGuestPhone] = useState('')
+  const [guestEmail, setGuestEmail] = useState('')
   const [error, setError] = useState<string | null>(null)
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [orderId, setOrderId] = useState<string | null>(null)
@@ -47,6 +56,11 @@ export default function CheckoutForm() {
   async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault()
     setError(null)
+
+    if (isGuest && (!guestName.trim() || !guestPhone.trim())) {
+      setError('أدخلي الاسم الكامل ورقم الهاتف لإتمام الطلب.')
+      return
+    }
 
     if (!fulfillmentMethod) {
       setError('اختاري طريقة استلام الطلب.')
@@ -75,8 +89,16 @@ export default function CheckoutForm() {
       error: userError,
     } = await supabase.auth.getUser()
 
-    if (userError || !user) {
-      router.replace('/login?returnTo=%2Fcheckout')
+    if (userError && !isAuthSessionMissingError(userError)) {
+      setError('تعذر التحقق من بيانات الطلب. حاولي مرة أخرى.')
+      setIsSubmitting(false)
+      return
+    }
+
+    if (!user && !isGuest) {
+      setIsGuest(true)
+      setError('انتهت جلسة تسجيل الدخول. أدخلي بيانات التواصل لإتمام الطلب كزائرة.')
+      setIsSubmitting(false)
       return
     }
 
@@ -86,12 +108,15 @@ export default function CheckoutForm() {
     }))
 
     const { data, error: orderError } = await supabase.rpc('place_order', {
-      p_user_id: user.id,
+      p_user_id: user?.id ?? null,
       p_items: rpcItems,
       p_fulfillment_method: fulfillmentMethod,
       p_payment_method: paymentMethod,
       p_delivery_address:
         fulfillmentMethod === 'delivery' ? deliveryAddress.trim() : null,
+      p_guest_name: user ? null : guestName.trim(),
+      p_guest_phone: user ? null : guestPhone.trim(),
+      p_guest_email: user ? null : guestEmail.trim() || null,
     })
 
     if (orderError) {
@@ -120,9 +145,11 @@ export default function CheckoutForm() {
     clearCart()
     setOrderId(newOrderId)
     setIsSubmitting(false)
-    window.setTimeout(() => {
-      router.replace(`/dashboard?order=${encodeURIComponent(newOrderId)}`)
-    }, 1800)
+    if (user) {
+      window.setTimeout(() => {
+        router.replace(`/dashboard?order=${encodeURIComponent(newOrderId)}`)
+      }, 1800)
+    }
   }
 
   if (!isMounted || (items.length === 0 && !orderId)) {
@@ -147,7 +174,9 @@ export default function CheckoutForm() {
             رقم الطلب: <span dir="ltr">{orderId}</span>
           </p>
           <p className="mt-2 text-sm text-[#617A55]">
-            سيتم تحويلك إلى حسابك الآن.
+            {isGuest
+              ? 'سنتواصل معك عبر رقم الهاتف لتأكيد تفاصيل الطلب.'
+              : 'سيتم تحويلك إلى حسابك الآن.'}
           </p>
         </section>
       </div>
@@ -167,6 +196,50 @@ export default function CheckoutForm() {
           onSubmit={handleSubmit}
         >
           <div className="space-y-8">
+            {isGuest && (
+              <section className="rounded-lg border border-[#617A55]/15 bg-white p-5 sm:p-7">
+                <h2 className="text-xl font-semibold text-[#25311f]">
+                  معلومات التواصل
+                </h2>
+                <div className="mt-5 grid gap-4 sm:grid-cols-2">
+                  <label className="grid gap-2 text-sm font-medium text-[#25311f]">
+                    الاسم الكامل
+                    <input
+                      type="text"
+                      value={guestName}
+                      onChange={(event) => setGuestName(event.target.value)}
+                      required
+                      autoComplete="name"
+                      className="min-h-12 rounded-lg border border-[#617A55]/20 bg-[#F7F6F0] px-4 font-normal outline-none transition focus:border-[#617A55]"
+                    />
+                  </label>
+                  <label className="grid gap-2 text-sm font-medium text-[#25311f]">
+                    رقم الهاتف
+                    <input
+                      type="tel"
+                      value={guestPhone}
+                      onChange={(event) => setGuestPhone(event.target.value)}
+                      required
+                      autoComplete="tel"
+                      inputMode="tel"
+                      className="min-h-12 rounded-lg border border-[#617A55]/20 bg-[#F7F6F0] px-4 font-normal outline-none transition focus:border-[#617A55]"
+                    />
+                  </label>
+                  <label className="grid gap-2 text-sm font-medium text-[#25311f] sm:col-span-2">
+                    البريد الإلكتروني (اختياري)
+                    <input
+                      type="email"
+                      value={guestEmail}
+                      onChange={(event) => setGuestEmail(event.target.value)}
+                      autoComplete="email"
+                      dir="ltr"
+                      className="min-h-12 rounded-lg border border-[#617A55]/20 bg-[#F7F6F0] px-4 text-right font-normal outline-none transition focus:border-[#617A55]"
+                    />
+                  </label>
+                </div>
+              </section>
+            )}
+
             <section className="rounded-lg border border-[#617A55]/15 bg-white p-5 sm:p-7">
               <h2 className="text-xl font-semibold text-[#25311f]">
                 طريقة الاستلام
