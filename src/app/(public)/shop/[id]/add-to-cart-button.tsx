@@ -12,6 +12,7 @@ type Props = {
   stock: number
   imageUrl: string | null
   className?: string
+  compact?: boolean
 }
 
 export default function AddToCartButton({
@@ -24,6 +25,7 @@ export default function AddToCartButton({
   stock,
   imageUrl,
   className,
+  compact = false,
 }: Props) {
   const { addToCart } = useCart()
 
@@ -59,7 +61,7 @@ export default function AddToCartButton({
       onClick={handleAdd}
       className={
         className ??
-        'inline-flex min-h-11 items-center justify-center rounded-full bg-[#617A55] px-5 text-sm font-semibold text-white transition hover:bg-[#4f6645]'
+        `inline-flex items-center justify-center rounded-full bg-[#617A55] text-sm font-semibold text-white transition hover:bg-[#4f6645] ${compact ? 'min-h-10 px-4' : 'min-h-11 px-5'}`
       }
     >
       أضيفي إلى السلة
