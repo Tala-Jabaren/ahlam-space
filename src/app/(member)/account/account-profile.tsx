@@ -4,7 +4,8 @@ import { FormEvent, ReactNode, useState } from 'react'
 import { createClient } from '@/lib/supabase/client'
 
 type ProfileValues = {
-  fullName: string
+  firstName: string
+  lastName: string
   phone: string
   email: string
   city: string
@@ -41,10 +42,22 @@ const fields: Array<{
   icon: ReactNode
 }> = [
   {
-    key: 'fullName',
-    label: 'الاسم الكامل',
+    key: 'firstName',
+    label: 'الاسم الأول',
     type: 'text',
-    placeholder: 'تالا جبارين',
+    placeholder: 'تالا',
+    icon: (
+      <>
+        <path d="M20 21a8 8 0 0 0-16 0" />
+        <circle cx="12" cy="7" r="4" />
+      </>
+    ),
+  },
+  {
+    key: 'lastName',
+    label: 'اسم العائلة',
+    type: 'text',
+    placeholder: 'جبارين',
     icon: (
       <>
         <path d="M20 21a8 8 0 0 0-16 0" />
@@ -137,7 +150,7 @@ export default function AccountProfile({ initialProfile }: AccountProfileProps) 
 
     const { error: profileError } = await supabase.from('profiles').upsert({
       id: user.id,
-      full_name: draft.fullName.trim(),
+      full_name: `${draft.firstName.trim()} ${draft.lastName.trim()}`,
       phone: draft.phone.trim(),
       city: draft.city.trim(),
     })
@@ -149,7 +162,8 @@ export default function AccountProfile({ initialProfile }: AccountProfileProps) 
     }
 
     const nextProfile = {
-      fullName: draft.fullName.trim(),
+      firstName: draft.firstName.trim(),
+      lastName: draft.lastName.trim(),
       phone: draft.phone.trim(),
       email: draft.email.trim(),
       city: draft.city.trim(),
@@ -240,7 +254,11 @@ export default function AccountProfile({ initialProfile }: AccountProfileProps) 
                       }))
                     }
                     placeholder={field.placeholder}
-                    required={field.key === 'fullName' || field.key === 'email'}
+                    required={
+                      field.key === 'firstName' ||
+                      field.key === 'lastName' ||
+                      field.key === 'email'
+                    }
                     className="mt-2 min-h-12 w-full rounded-lg border border-[#617A55]/20 bg-[#F7F6F0] px-4 text-base text-[#617A55] outline-none transition placeholder:text-[#617A55]/35 focus:border-[#617A55]/55 focus:ring-2 focus:ring-[#D6E2B6]"
                   />
                 ) : (

@@ -7,6 +7,7 @@ import MemberNavLink from './member-nav-link'
 const navItems = [
   { href: '/member-schedule', label: 'الحصص', icon: '□' },
   { href: '/bookings', label: 'حجوزاتي', icon: '◇' },
+  { href: '/orders', label: 'طلباتي', icon: '▣' },
   { href: '/courses', label: 'كورسات ومحاضرات', icon: '▤' },
   { href: '/shop', label: 'المتجر', icon: '▱' },
   { href: '/account', label: 'حسابي', icon: '○' },
@@ -125,7 +126,7 @@ export default async function MemberLayout({
       </div>
 
       <nav
-        className="fixed inset-x-0 bottom-0 z-50 grid grid-cols-5 border-t border-[#617A55]/15 bg-[#F7F6F0]/95 px-1 pb-[max(0.5rem,env(safe-area-inset-bottom))] pt-2 backdrop-blur md:hidden"
+        className="fixed inset-x-0 bottom-0 z-50 grid grid-cols-6 border-t border-[#617A55]/15 bg-[#F7F6F0]/95 px-1 pb-[max(0.5rem,env(safe-area-inset-bottom))] pt-2 backdrop-blur md:hidden"
         aria-label="تنقل الجوال"
       >
         {navItems.map((item) => (

@@ -1,5 +1,6 @@
 'use client'
 
+import { useSyncExternalStore } from 'react'
 import Link from 'next/link'
 import { useCart } from '@/lib/cart/cart-context'
 
@@ -10,8 +11,17 @@ function formatPrice(price: number) {
   }).format(price)
 }
 
+const subscribeToLocation = () => () => {}
+
 export default function CartPage() {
   const { items, removeFromCart, updateQuantity, totalPrice } = useCart()
+  const checkoutMessage = useSyncExternalStore(
+    subscribeToLocation,
+    () =>
+      new URLSearchParams(window.location.search).get('message') ===
+      'empty-checkout',
+    () => false
+  )
 
   return (
     <div className="px-5 py-16 sm:px-8 lg:px-10">
@@ -22,6 +32,12 @@ export default function CartPage() {
         <h1 className="mt-3 font-serif text-5xl leading-tight text-[#25311f] sm:text-6xl">
           Cart
         </h1>
+
+        {checkoutMessage && (
+          <p className="mt-6 rounded-lg bg-[#C7D6E8]/45 p-4 text-sm text-[#25311f]" dir="rtl">
+            أضيفي منتجًا إلى السلة قبل متابعة إتمام الطلب.
+          </p>
+        )}
 
         {items.length === 0 ? (
           <div className="mt-10 rounded-[1.75rem] bg-[#C7D6E8]/55 p-8 text-[#4f5d49]">

@@ -8,7 +8,8 @@ import { createClient } from '@/lib/supabase/client'
 export default function SignUpPage() {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
-  const [fullName, setFullName] = useState('')
+  const [firstName, setFirstName] = useState('')
+  const [lastName, setLastName] = useState('')
   const [error, setError] = useState<string | null>(null)
   const [loading, setLoading] = useState(false)
   const router = useRouter()
@@ -42,7 +43,7 @@ export default function SignUpPage() {
       email,
       password,
       options: {
-        data: { full_name: fullName },
+        data: { full_name: `${firstName.trim()} ${lastName.trim()}` },
       },
     })
 
@@ -80,18 +81,32 @@ export default function SignUpPage() {
         </div>
 
         <form className="mt-8 grid gap-5" onSubmit={handleSignUp}>
-          <label className="grid gap-2 text-sm font-medium text-[#617A55]">
-            Full name
-            <input
-              className="min-h-11 rounded-2xl border border-[#617A55]/20 bg-[#F7F6F0] px-4 py-3 text-[#25311f] outline-none transition placeholder:text-[#617A55]/55 focus:border-[#617A55]"
-              type="text"
-              placeholder="Full name"
-              value={fullName}
-              onChange={(e) => setFullName(e.target.value)}
-              required
-              autoComplete="name"
-            />
-          </label>
+          <div className="grid gap-4 sm:grid-cols-2">
+            <label className="grid gap-2 text-sm font-medium text-[#617A55]">
+              First name
+              <input
+                className="min-h-11 rounded-2xl border border-[#617A55]/20 bg-[#F7F6F0] px-4 py-3 text-[#25311f] outline-none transition placeholder:text-[#617A55]/55 focus:border-[#617A55]"
+                type="text"
+                placeholder="First name"
+                value={firstName}
+                onChange={(e) => setFirstName(e.target.value)}
+                required
+                autoComplete="given-name"
+              />
+            </label>
+            <label className="grid gap-2 text-sm font-medium text-[#617A55]">
+              Last name
+              <input
+                className="min-h-11 rounded-2xl border border-[#617A55]/20 bg-[#F7F6F0] px-4 py-3 text-[#25311f] outline-none transition placeholder:text-[#617A55]/55 focus:border-[#617A55]"
+                type="text"
+                placeholder="Last name"
+                value={lastName}
+                onChange={(e) => setLastName(e.target.value)}
+                required
+                autoComplete="family-name"
+              />
+            </label>
+          </div>
           <label className="grid gap-2 text-sm font-medium text-[#617A55]">
             Email
             <input
