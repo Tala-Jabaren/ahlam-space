@@ -1,5 +1,6 @@
 import type { Metadata } from 'next'
 import localFont from 'next/font/local'
+import { CartProvider } from '@/lib/cart/cart-context'
 import './globals.css'
 
 const trueArabic = localFont({
@@ -65,7 +66,9 @@ export default function RootLayout({ children }: LayoutProps<'/'>) {
       lang="en"
       className={`${trueArabic.variable} h-full antialiased`}
     >
-      <body className="min-h-full flex flex-col">{children}</body>
+      <body className="min-h-full flex flex-col">
+        <CartProvider>{children}</CartProvider>
+      </body>
     </html>
   )
 }

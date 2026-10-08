@@ -2,6 +2,7 @@
 
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
+import { useCart } from '@/lib/cart/cart-context'
 
 export default function LogoutButton({
   variant = 'default',
@@ -9,9 +10,11 @@ export default function LogoutButton({
   variant?: 'default' | 'sidebar'
 }) {
   const router = useRouter()
+  const { clearCart } = useCart()
 
   async function handleLogout() {
     const supabase = createClient()
+    clearCart()
     await supabase.auth.signOut()
     router.push('/login')
     router.refresh()

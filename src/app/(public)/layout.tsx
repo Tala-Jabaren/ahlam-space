@@ -1,6 +1,5 @@
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase/server'
-import { CartProvider } from '@/lib/cart/cart-context'
 import PublicNavLink from './public-nav-link'
 import CartNavLink from './cart-nav-link'
 import CartToast from './cart-toast'
@@ -16,8 +15,7 @@ export default async function PublicLayout({
   } = await supabase.auth.getUser()
 
   return (
-    <CartProvider>
-      <div className="min-h-screen bg-[#F7F6F0] text-[#25311f]">
+    <div className="min-h-screen bg-[#F7F6F0] text-[#25311f]">
         <nav className="sticky top-0 z-50 mx-auto flex max-w-7xl flex-col gap-5 border-b border-[#617A55]/15 bg-[#F7F6F0]/90 px-5 py-5 backdrop-blur sm:px-8 lg:flex-row lg:items-center lg:justify-between lg:px-10">
           <Link
             href="/"
@@ -68,7 +66,6 @@ export default async function PublicLayout({
             <p>Yoga, fitness, dance, and mindful daily rituals.</p>
           </div>
         </footer>
-      </div>
-    </CartProvider>
+    </div>
   )
 }
