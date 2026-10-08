@@ -3,9 +3,7 @@
 import { useEffect, useState, useSyncExternalStore } from 'react'
 import { useRouter } from 'next/navigation'
 import { isAuthSessionMissingError } from '@supabase/supabase-js'
-import PaymentMethodSelector, {
-  type PaymentMethod,
-} from '@/components/payment-method-selector'
+import PaymentConfirmationBlock from '@/components/payment-confirmation-block'
 import { useCart } from '@/lib/cart/cart-context'
 import { createClient } from '@/lib/supabase/client'
 
@@ -90,8 +88,6 @@ export default function CheckoutForm({
   )
   const [fulfillmentMethod, setFulfillmentMethod] =
     useState<FulfillmentMethod | null>(null)
-  const [paymentMethod, setPaymentMethod] =
-    useState<PaymentMethod | null>(null)
   const [deliveryCity, setDeliveryCity] = useState('')
   const [deliveryStreet, setDeliveryStreet] = useState('')
   const [isGuest, setIsGuest] = useState(!isInitiallyLoggedIn)
@@ -102,6 +98,8 @@ export default function CheckoutForm({
   const [error, setError] = useState<string | null>(null)
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [orderId, setOrderId] = useState<string | null>(null)
+  const [orderReference, setOrderReference] = useState<string | null>(null)
+  const [orderTotal, setOrderTotal] = useState<number | null>(null)
 
   useEffect(() => {
     if (!isMounted || items.length > 0 || orderId) {
@@ -133,11 +131,6 @@ export default function CheckoutForm({
       (!deliveryCity || !deliveryStreet.trim())
     ) {
       setError('اختاري المدينة وأدخلي البلدة أو الشارع.')
-      return
-    }
-
-    if (!paymentMethod || paymentMethod === 'card_gateway') {
-      setError('اختاري طريقة دفع متاحة.')
       return
     }
 
@@ -175,7 +168,7 @@ export default function CheckoutForm({
       p_user_id: user?.id ?? null,
       p_items: rpcItems,
       p_fulfillment_method: fulfillmentMethod,
-      p_payment_method: paymentMethod,
+      p_payment_method: 'bank_transfer',
       p_delivery_address:
         fulfillmentMethod === 'delivery'
           ? `${deliveryCity}، ${deliveryStreet.trim()}`
@@ -209,15 +202,12 @@ export default function CheckoutForm({
       return
     }
 
-    const newOrderId = data as string
+    const result = data as { id: string; reference: string; total: number }
     clearCart()
-    setOrderId(newOrderId)
+    setOrderId(result.id)
+    setOrderReference(result.reference)
+    setOrderTotal(result.total)
     setIsSubmitting(false)
-    if (user) {
-      window.setTimeout(() => {
-        router.replace('/orders')
-      }, 1800)
-    }
   }
 
   if (!isMounted || (items.length === 0 && !orderId)) {
@@ -228,7 +218,7 @@ export default function CheckoutForm({
     )
   }
 
-  if (orderId) {
+  if (orderId && orderReference && orderTotal !== null) {
     return (
       <div className="px-5 py-20 sm:px-8" dir="rtl">
         <section className="mx-auto max-w-xl rounded-lg border border-[#617A55]/15 bg-white p-8 text-center shadow-sm">
@@ -238,14 +228,25 @@ export default function CheckoutForm({
           <h1 className="mt-5 text-3xl font-semibold text-[#25311f]">
             تم استلام طلبك بنجاح
           </h1>
-          <p className="mt-3 leading-7 text-[#617A55]">
-            رقم الطلب: <span dir="ltr">{orderId}</span>
-          </p>
-          <p className="mt-2 text-sm text-[#617A55]">
+          <p className="mt-3 text-sm text-[#617A55]">
             {isGuest
-              ? 'سنتواصل معك عبر رقم الهاتف لمتابعة الدفع وتأكيد تفاصيل الطلب.'
-              : 'سيتم تحويلك إلى صفحة طلباتك الآن.'}
+              ? 'سنتواصل معك عبر رقم الهاتف لمتابعة تأكيد الطلب.'
+              : 'يمكنك متابعة حالة الطلب من صفحة طلباتي.'}
           </p>
+
+          <div className="mt-6 text-right">
+            <PaymentConfirmationBlock amount={orderTotal} reference={orderReference} />
+          </div>
+
+          {!isGuest && (
+            <button
+              type="button"
+              onClick={() => router.replace('/orders')}
+              className="mt-6 inline-flex min-h-11 items-center justify-center rounded-full bg-[#617A55] px-6 py-3 text-sm font-semibold text-white transition hover:bg-[#526849]"
+            >
+              عرض طلباتي
+            </button>
+          )}
         </section>
       </div>
     )
@@ -386,14 +387,13 @@ export default function CheckoutForm({
             </section>
 
             <section className="rounded-lg border border-[#617A55]/15 bg-white p-5 sm:p-7">
-              <h2 className="mb-5 text-xl font-semibold text-[#25311f]">
+              <h2 className="text-xl font-semibold text-[#25311f]">
                 طريقة الدفع
               </h2>
-              <PaymentMethodSelector
-                value={paymentMethod}
-                onChange={setPaymentMethod}
-                name="checkout-payment-method"
-              />
+              <p className="mt-2 text-sm leading-6 text-[#617A55]">
+                الدفع عبر حوالة بنكية فقط حاليًا. سنعرض تفاصيل التحويل ورمز
+                المرجع الخاص بطلبك بعد التأكيد.
+              </p>
             </section>
           </div>
 

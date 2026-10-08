@@ -202,7 +202,7 @@ export default async function ClassesPage({
                                     <BookSessionButton
                                       sessionId={session.id}
                                       initialRemaining={remaining}
-                                      studioAddress={session.location}
+                                      price={session.classes?.price ?? 0}
                                       showRemaining={false}
                                       autoOpen={isRequested && Boolean(user)}
                                       isAuthenticated={Boolean(user)}

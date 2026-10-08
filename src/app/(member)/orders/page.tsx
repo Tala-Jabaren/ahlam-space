@@ -1,6 +1,7 @@
 import Link from 'next/link'
 import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
+import PaymentConfirmationBlock from '@/components/payment-confirmation-block'
 
 type OrderStatus =
   | 'pending'
@@ -17,6 +18,7 @@ type OrderRow = {
   fulfillment_method: 'delivery' | 'pickup' | null
   delivery_address: string | null
   total: number
+  reference: string | null
   order_items: Array<{
     id: string
     quantity: number
@@ -81,7 +83,7 @@ export default async function MyOrdersPage() {
   const { data: orders, error } = await supabase
     .from('orders')
     .select(
-      'id, created_at, status, fulfillment_method, delivery_address, total, order_items(id, quantity, unit_price, product_variants(size, color, products(name)))'
+      'id, created_at, status, fulfillment_method, delivery_address, total, reference, order_items(id, quantity, unit_price, product_variants(size, color, products(name)))'
     )
     .eq('user_id', user.id)
     .order('created_at', { ascending: false })
@@ -202,6 +204,15 @@ export default async function MyOrdersPage() {
                       </strong>
                     </div>
                   </div>
+
+                  {order.status === 'pending' && order.reference && (
+                    <div className="mt-5">
+                      <PaymentConfirmationBlock
+                        amount={order.total}
+                        reference={order.reference}
+                      />
+                    </div>
+                  )}
                 </div>
               </article>
             ))}

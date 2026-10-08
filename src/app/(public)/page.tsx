@@ -331,7 +331,7 @@ export default async function HomePage() {
                       <BookSessionButton
                         sessionId={session.id}
                         initialRemaining={remaining}
-                        studioAddress={session.location}
+                        price={session.classes?.price ?? 0}
                         showRemaining={false}
                         isAuthenticated={Boolean(user)}
                       />
