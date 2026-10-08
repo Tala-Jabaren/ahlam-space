@@ -62,12 +62,15 @@ export default function ShopCatalog({
     <div className="bg-[#F7F6F0] pb-16" dir="rtl">
       <section className="overflow-hidden border-b border-[#617A55]/10 bg-[#D6E2B6]/35">
         <div className="mx-auto grid min-h-[300px] max-w-7xl lg:grid-cols-[1.05fr_0.95fr]">
-          <div aria-hidden="true" className="relative min-h-56 overflow-hidden bg-[#C7D6E8]/45 lg:min-h-full">
-            <div className="absolute inset-x-[12%] bottom-0 h-[72%] rounded-t-[50%] bg-[#F7F6F0]/75" />
-            <div className="absolute bottom-[18%] left-[20%] h-28 w-28 rounded-full bg-[#D6E2B6]" />
-            <div className="absolute bottom-[16%] left-[36%] h-36 w-24 rounded-t-full bg-[#617A55]/55" />
-            <div className="absolute bottom-[15%] right-[21%] h-24 w-32 rounded-t-[60%] bg-[#F7F6F0]" />
-            <div className="absolute right-[16%] top-[8%] h-44 w-20 -rotate-[24deg] rounded-[100%_0_100%_0] bg-[#617A55]/25" />
+          <div className="relative min-h-56 overflow-hidden bg-[#C7D6E8]/45 lg:min-h-full">
+            <Image
+              src="/images/shop-hero-v2.png"
+              alt="منتجات العناية والعافية من مساحة أحلام"
+              fill
+              priority
+              sizes="(min-width: 1024px) 55vw, 100vw"
+              className="object-cover object-center"
+            />
           </div>
 
           <div className="flex flex-col justify-center px-5 py-10 sm:px-10 lg:px-14">
