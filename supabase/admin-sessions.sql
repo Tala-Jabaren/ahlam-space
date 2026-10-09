@@ -43,5 +43,9 @@ begin
 end;
 $$;
 
+drop policy if exists "Admins can view all courses" on public.courses;
+create policy "Admins can view all courses" on public.courses
+  for select to authenticated using (public.is_admin());
+
 notify pgrst, 'reload schema';
 commit;
