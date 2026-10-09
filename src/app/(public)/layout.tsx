@@ -65,6 +65,16 @@ export default async function PublicLayout({
             <p>Ahlam Space, Ramallah</p>
             <p>Yoga, fitness, dance, and mindful daily rituals.</p>
           </div>
+          <nav
+            aria-label="السياسات والشروط"
+            dir="rtl"
+            className="mx-auto mt-6 flex max-w-7xl flex-wrap gap-x-6 gap-y-2 border-t border-[#617A55]/15 pt-4 text-sm text-[#617A55]"
+          >
+            <Link href="/legal/terms" className="inline-flex min-h-11 items-center underline-offset-4 hover:underline">شروط الاستخدام</Link>
+            <Link href="/legal/privacy" className="inline-flex min-h-11 items-center underline-offset-4 hover:underline">سياسة الخصوصية</Link>
+            <Link href="/legal/cancellation" className="inline-flex min-h-11 items-center underline-offset-4 hover:underline">سياسة الإلغاء والاسترجاع</Link>
+            <Link href="/legal/delivery" className="inline-flex min-h-11 items-center underline-offset-4 hover:underline">سياسة التوصيل والدفع</Link>
+          </nav>
         </footer>
     </div>
   )
