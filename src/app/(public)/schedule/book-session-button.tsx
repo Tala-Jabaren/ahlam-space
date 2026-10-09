@@ -14,7 +14,7 @@ type Props = {
   isAuthenticated?: boolean
 }
 
-type BookingState = 'idle' | 'booking' | 'success' | 'full' | 'error'
+type BookingState = 'idle' | 'booking' | 'success' | 'full' | 'too_late' | 'error'
 
 export default function BookSessionButton({
   sessionId,
@@ -56,7 +56,13 @@ export default function BookSessionButton({
     })
 
     if (error) {
-      setState(error.message === 'SESSION_FULL_OR_UNAVAILABLE' ? 'full' : 'error')
+      if (error.message === 'SESSION_FULL_OR_UNAVAILABLE') {
+        setState('full')
+      } else if (error.message === 'TOO_LATE_FOR_BANK_TRANSFER') {
+        setState('too_late')
+      } else {
+        setState('error')
+      }
       return
     }
 
@@ -148,6 +154,16 @@ export default function BookSessionButton({
 
       {state === 'full' && (
         <p className="text-sm text-red-600">عذرًا، هذه الحصة ممتلئة</p>
+      )}
+      {state === 'too_late' && (
+        <p className="text-sm text-red-600">
+          عذرًا، لم يعد هناك وقت كافٍ لإتمام الحوالة البنكية قبل بدء هذه
+          الحصة. يرجى{' '}
+          <a href="/contact" className="underline">
+            التواصل معنا
+          </a>{' '}
+          مباشرة لترتيب الحجز.
+        </p>
       )}
       {state === 'error' && (
         <p className="text-sm text-red-600">

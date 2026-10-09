@@ -20,12 +20,14 @@
 --   product_variants(id, product_id, size, color, stock, sku)
 --   profiles(id, full_name, phone, role, created_at)  -- role already has 'admin'
 --
--- Existing functions this builds on (unchanged by this file except place_order,
--- which gets a new v4 overload - see section 6):
---   book_class_session(p_session_id, p_user_id)
---   confirm_pending_booking(p_booking_id)
+-- Existing functions this builds on:
+--   book_class_session(p_session_id, p_user_id) - REPLACED by section 8 below
+--     (new hold window + expired-hold cleanup; see that section for the
+--     confirmed-live behavior it replaces)
+--   confirm_pending_booking(p_booking_id) - unchanged
 --   place_order(p_user_id, p_items, p_fulfillment_method, p_payment_method,
---               p_delivery_address, p_guest_name, p_guest_phone, p_guest_email)  -- v3, confirmed live
+--               p_delivery_address, p_guest_name, p_guest_phone, p_guest_email)
+--     -- v3 confirmed live; replaced by the v4 overload in section 7
 
 begin;
 
@@ -43,6 +45,11 @@ as $$
 $$;
 -- Test: select public.generate_payment_reference(); -- expect 'AS-1000', 'AS-1001', ...
 
+-- Each ADD CONSTRAINT below is wrapped in a DO block that checks
+-- pg_constraint first, since Postgres has no "ADD CONSTRAINT IF NOT
+-- EXISTS" for unique constraints - without this guard, re-running this
+-- file a second time would fail here on "constraint already exists".
+
 alter table public.bookings
   add column if not exists reference text,
   add column if not exists paid_at timestamptz;
@@ -50,8 +57,16 @@ alter table public.bookings
   alter column reference set default public.generate_payment_reference();
 update public.bookings set reference = public.generate_payment_reference()
   where reference is null;
-alter table public.bookings
-  add constraint bookings_reference_unique unique (reference);
+do $$
+begin
+  if not exists (
+    select 1 from pg_constraint where conname = 'bookings_reference_unique'
+  ) then
+    alter table public.bookings
+      add constraint bookings_reference_unique unique (reference);
+  end if;
+end;
+$$;
 
 alter table public.course_purchases
   add column if not exists reference text,
@@ -60,8 +75,16 @@ alter table public.course_purchases
   alter column reference set default public.generate_payment_reference();
 update public.course_purchases set reference = public.generate_payment_reference()
   where reference is null;
-alter table public.course_purchases
-  add constraint course_purchases_reference_unique unique (reference);
+do $$
+begin
+  if not exists (
+    select 1 from pg_constraint where conname = 'course_purchases_reference_unique'
+  ) then
+    alter table public.course_purchases
+      add constraint course_purchases_reference_unique unique (reference);
+  end if;
+end;
+$$;
 
 alter table public.orders
   add column if not exists reference text,
@@ -70,8 +93,16 @@ alter table public.orders
   alter column reference set default public.generate_payment_reference();
 update public.orders set reference = public.generate_payment_reference()
   where reference is null;
-alter table public.orders
-  add constraint orders_reference_unique unique (reference);
+do $$
+begin
+  if not exists (
+    select 1 from pg_constraint where conname = 'orders_reference_unique'
+  ) then
+    alter table public.orders
+      add constraint orders_reference_unique unique (reference);
+  end if;
+end;
+$$;
 
 -- =============================================================================
 -- 2. is_admin()
@@ -186,27 +217,73 @@ language plpgsql
 security definer
 set search_path = public, pg_temp
 as $$
+declare
+  v_booking_status text;
+  v_reserved_until timestamptz;
+  v_session_id uuid;
+  v_updated_count integer;
 begin
   if not public.is_admin() then
     raise exception 'FORBIDDEN';
   end if;
 
   if p_kind = 'booking' then
+    select status, reserved_until, session_id
+      into v_booking_status, v_reserved_until, v_session_id
+    from public.bookings
+    where id = p_id
+    for update;
+
+    if not found or v_booking_status = 'cancelled' then
+      raise exception 'NOT_FOUND_OR_ALREADY_PROCESSED';
+    end if;
+
+    if v_reserved_until is not null and v_reserved_until < now() then
+      -- The hold had already lapsed. Before honoring a late payment,
+      -- re-verify under lock that the session genuinely still has room -
+      -- normal booking flow can never let booked_count exceed capacity,
+      -- but an admin editing a session's capacity downward after this
+      -- hold was placed could make it so. If that's happened, don't
+      -- confirm into an oversold class.
+      perform 1 from public.class_sessions
+        where id = v_session_id and booked_count > capacity
+        for update;
+
+      if found then
+        raise exception 'SESSION_FULL';
+      end if;
+    end if;
+
     -- Same update shape/idempotency pattern as confirm_pending_booking, but
     -- callable by an admin regardless of whose booking it is (that function's
     -- own "user_id = auth.uid()" check is specific to self-service auto-confirm
     -- and doesn't apply here).
     update public.bookings
       set status = 'confirmed', payment_status = 'paid', paid_at = now()
-      where id = p_id and paid_at is null;
+      where id = p_id and paid_at is null and status <> 'cancelled';
+    get diagnostics v_updated_count = row_count;
+
+    if v_updated_count = 0 then
+      raise exception 'NOT_FOUND_OR_ALREADY_PROCESSED';
+    end if;
   elsif p_kind = 'course' then
     update public.course_purchases
       set status = 'paid', paid_at = now()
       where id = p_id and paid_at is null;
+    get diagnostics v_updated_count = row_count;
+
+    if v_updated_count = 0 then
+      raise exception 'NOT_FOUND_OR_ALREADY_PROCESSED';
+    end if;
   elsif p_kind = 'order' then
     update public.orders
       set status = 'paid', paid_at = now()
       where id = p_id and paid_at is null and status <> 'cancelled';
+    get diagnostics v_updated_count = row_count;
+
+    if v_updated_count = 0 then
+      raise exception 'NOT_FOUND_OR_ALREADY_PROCESSED';
+    end if;
   else
     raise exception 'INVALID_KIND:%', p_kind;
   end if;
@@ -216,8 +293,13 @@ $$;
 revoke all on function public.admin_confirm_payment(text, uuid) from public, anon;
 grant execute on function public.admin_confirm_payment(text, uuid) to authenticated;
 -- Test (as admin): select admin_confirm_payment('booking', '<a pending booking id>');
---   then re-run the same call - second call must be a no-op (paid_at unchanged).
+--   then re-run the same call - second call must raise
+--   NOT_FOUND_OR_ALREADY_PROCESSED (paid_at stays unchanged).
 -- Test (as non-admin authenticated user): expect FORBIDDEN.
+-- Test (p_id that doesn't exist, or a cancelled booking/order):
+--   expect NOT_FOUND_OR_ALREADY_PROCESSED.
+-- Test (a booking whose reserved_until has passed, on a session where
+--   capacity was since reduced below booked_count): expect SESSION_FULL.
 
 -- =============================================================================
 -- 5. admin_cancel_order(p_order_id) - unpaid/pending orders only, restores
@@ -496,11 +578,17 @@ begin
     group by (item.value ->> 'variant_id')::uuid
     order by (item.value ->> 'variant_id')::uuid
   loop
+    -- Requiring p.is_active here (not just a valid variant) means a
+    -- deactivated product can't be ordered even if someone already had it
+    -- in their cart - reuses OUT_OF_STOCK rather than a new error code,
+    -- since from the buyer's point of view it's the same outcome: this
+    -- item isn't available for purchase right now.
     select pv.id, pv.stock, p.price
       into v_variant_id, v_stock, v_unit_price
     from public.product_variants as pv
     join public.products as p on p.id = pv.product_id
     where pv.id = v_item.variant_id
+      and p.is_active = true
     for update of pv;
 
     if not found or v_stock < v_item.quantity then
@@ -597,6 +685,187 @@ grant execute on function public.place_order(
   uuid, jsonb, text, text, text, text, text, text
 ) to authenticated, anon;
 
+-- =============================================================================
+-- 8. book_class_session: bank-transfer hold window + expired-hold cleanup
+-- =============================================================================
+--
+-- Current behavior before this section (verified live, not assumed): every
+-- booking gets a flat 15-minute hold ("reserved_until" = created_at + 15
+-- minutes), set in the one INSERT at the bottom of the original
+-- book_class_session. booked_count on class_sessions is incremented the
+-- moment a booking is created (pending or not) and was NEVER decremented
+-- anywhere - confirmed by checking live booking rows, where every
+-- reserved_until was exactly 15 minutes after created_at, and there was no
+-- function anywhere that reduced booked_count. So an abandoned pending
+-- booking silently and permanently ate a seat forever.
+--
+-- New behavior: bank transfer needs real time to send and be confirmed, so
+-- the hold is now 24 hours - but never later than 2 hours before the class
+-- starts, since a hold that outlives the class itself is meaningless. If a
+-- class is already less than 2 hours away, there's no safe window left for
+-- a transfer to clear and an admin to confirm it before the class starts,
+-- so the booking is rejected outright with TOO_LATE_FOR_BANK_TRANSFER
+-- rather than being handed a hold it can never realistically complete in
+-- time (the UI should tell the user to pay another way or contact the
+-- studio directly for same-day bookings).
+--
+-- Session start is computed as (session_date + start_time) interpreted in
+-- Asia/Jerusalem local time - this project formats booking/order times in
+-- that zone elsewhere (see src/app/(member)/orders/page.tsx), so it's taken
+-- as the studio's operating timezone here too.
+
+-- Internal helper: cancels this session's pending bookings whose hold has
+-- lapsed and gives their seats back. Not exposed over the API (no grant to
+-- anon/authenticated below) - called from book_class_session (scoped to one
+-- session, opportunistically, on every booking attempt) and from
+-- expire_unpaid_bookings (scoped globally, for a scheduled/admin sweep).
+-- Returns the number of bookings it expired.
+create or replace function public.expire_stale_bookings_for_session(p_session_id uuid)
+returns integer
+language plpgsql
+security definer
+set search_path = public, pg_temp
+as $$
+declare
+  v_expired_count integer;
+begin
+  update public.bookings
+    set status = 'cancelled'
+    where session_id = p_session_id
+      and status = 'pending'
+      and reserved_until < now();
+  get diagnostics v_expired_count = row_count;
+
+  if v_expired_count > 0 then
+    update public.class_sessions
+      set booked_count = greatest(0, booked_count - v_expired_count)
+      where id = p_session_id;
+  end if;
+
+  return v_expired_count;
+end;
+$$;
+revoke all on function public.expire_stale_bookings_for_session(uuid)
+  from public, anon, authenticated;
+
+create or replace function public.book_class_session(p_session_id uuid, p_user_id uuid)
+returns uuid
+language plpgsql
+security definer
+set search_path = public, pg_temp
+as $$
+declare
+  v_booking_id uuid;
+  v_session_date date;
+  v_start_time time;
+  v_class_start timestamptz;
+  v_hold_until timestamptz;
+begin
+  if p_user_id is distinct from auth.uid() then
+    raise exception 'FORBIDDEN';
+  end if;
+
+  perform 1 from class_sessions
+    where id = p_session_id
+    for update;
+
+  -- Release any pending holds on this session whose window has already
+  -- passed, so they stop occupying a seat before capacity is checked below.
+  perform public.expire_stale_bookings_for_session(p_session_id);
+
+  select session_date, start_time into v_session_date, v_start_time
+  from class_sessions
+  where id = p_session_id;
+
+  if not found then
+    raise exception 'SESSION_FULL_OR_UNAVAILABLE';
+  end if;
+
+  v_class_start := (v_session_date + v_start_time) at time zone 'Asia/Jerusalem';
+
+  if v_class_start - interval '2 hours' <= now() then
+    raise exception 'TOO_LATE_FOR_BANK_TRANSFER';
+  end if;
+
+  v_hold_until := least(now() + interval '24 hours', v_class_start - interval '2 hours');
+
+  update class_sessions
+    set booked_count = booked_count + 1
+    where id = p_session_id
+      and booked_count < capacity
+      and status = 'scheduled';
+
+  if not found then
+    raise exception 'SESSION_FULL_OR_UNAVAILABLE';
+  end if;
+
+  insert into bookings (session_id, user_id, status, reserved_until)
+  values (p_session_id, p_user_id, 'pending', v_hold_until)
+  returning id into v_booking_id;
+
+  return v_booking_id;
+end;
+$$;
+-- Test (book a session >2h out): expect success, reserved_until =
+--   min(now()+24h, class_start-2h) - for a class far in the future, that's
+--   roughly 24h from now; for one 3h away, roughly 1h from now.
+-- Test (book a session <2h out, or already started): expect
+--   TOO_LATE_FOR_BANK_TRANSFER.
+-- Test (manually set an existing pending booking's reserved_until to the
+--   past, then book that same session again): the first booking should
+--   flip to 'cancelled' and the session's booked_count should drop by 1
+--   before the new booking is counted.
+
+-- Global sweep, for an admin-triggered manual run or a pg_cron schedule -
+-- same security model as expire_unpaid_orders (see section 6): admins via
+-- the API, or direct database access (pg_cron/SQL editor) where auth.uid()
+-- is null. anon is never granted EXECUTE, so the anonymous API role can't
+-- reach this regardless of the auth.uid() check inside.
+create or replace function public.expire_unpaid_bookings()
+returns integer
+language plpgsql
+security definer
+set search_path = public, pg_temp
+as $$
+declare
+  v_session_id uuid;
+  v_total integer := 0;
+begin
+  if auth.uid() is not null and not public.is_admin() then
+    raise exception 'FORBIDDEN';
+  end if;
+
+  for v_session_id in
+    select distinct b.session_id
+    from public.bookings as b
+    where b.status = 'pending' and b.reserved_until < now()
+    order by b.session_id
+  loop
+    perform 1 from public.class_sessions where id = v_session_id for update;
+    v_total := v_total + public.expire_stale_bookings_for_session(v_session_id);
+  end loop;
+
+  return v_total;
+end;
+$$;
+
+revoke all on function public.expire_unpaid_bookings() from public, anon;
+grant execute on function public.expire_unpaid_bookings() to authenticated;
+-- Test (as admin, with a throwaway pending booking whose reserved_until you
+--   backdate first): select expire_unpaid_bookings(); expect it in the
+--   returned count, status = 'cancelled', and class_sessions.booked_count
+--   reduced by 1.
+-- Test (as non-admin authenticated user): expect FORBIDDEN.
+
+-- Scheduled run via pg_cron - commented out on purpose, same as
+-- expire_unpaid_orders above. Uncomment once pg_cron is confirmed enabled.
+--
+-- select cron.schedule(
+--   'expire-unpaid-bookings-hourly',
+--   '0 * * * *',
+--   $$ select public.expire_unpaid_bookings(); $$
+-- );
+
 -- Make all of the above visible to PostgREST immediately.
 notify pgrst, 'reload schema';
 
@@ -611,6 +880,9 @@ commit;
 --
 -- admin_confirm_payment(p_kind, p_id)
 --   supabase.rpc('admin_confirm_payment', { p_kind: 'booking' | 'course' | 'order', p_id: uuid })
+--   errors: FORBIDDEN, INVALID_KIND:<kind>, NOT_FOUND_OR_ALREADY_PROCESSED
+--   (not found, already paid, or a cancelled booking/order), SESSION_FULL
+--   (booking only - hold had lapsed and the session no longer has room)
 --
 -- admin_cancel_order(p_order_id)
 --   supabase.rpc('admin_cancel_order', { p_order_id: uuid })
@@ -628,3 +900,15 @@ commit;
 --     p_delivery_address, p_guest_name, p_guest_phone, p_guest_email
 --   })
 --   -> { id: uuid, reference: string, total: number }
+--
+-- book_class_session(p_session_id, p_user_id) - same call shape as before,
+-- only the hold window and error set changed
+--   supabase.rpc('book_class_session', { p_session_id: uuid, p_user_id: uuid })
+--   -> uuid (booking id)
+--   errors: FORBIDDEN, SESSION_FULL_OR_UNAVAILABLE, TOO_LATE_FOR_BANK_TRANSFER
+--   (new - class starts in under 2 hours, no safe window left for a transfer
+--   to clear and be confirmed in time)
+--
+-- expire_unpaid_bookings() - admin-triggered manual run, or via the
+-- commented-out pg_cron schedule in section 8 once uncommented
+--   supabase.rpc('expire_unpaid_bookings')  -> integer (bookings expired)
