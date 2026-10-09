@@ -1,5 +1,6 @@
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase/server'
+import PaymentConfirmationBlock from '@/components/payment-confirmation-block'
 import PurchaseCourseButton from './purchase-course-button'
 
 type Course = {
@@ -16,6 +17,7 @@ type PurchaseStatus = 'pending' | 'paid'
 type CoursePurchase = {
   course_id: string
   status: PurchaseStatus
+  reference: string | null
 }
 
 function contentTypeLabel(type: Course['content_type']) {
@@ -54,7 +56,7 @@ export default async function CoursesPage({
   if (user) {
     const { data, error: purchasesError } = await supabase
       .from('course_purchases')
-      .select('course_id, status')
+      .select('course_id, status, reference')
       .eq('user_id', user.id)
       .returns<CoursePurchase[]>()
 
@@ -65,10 +67,16 @@ export default async function CoursesPage({
     purchases = data ?? []
   }
 
-  const purchaseByCourseId = new Map<string, PurchaseStatus>()
+  const purchaseByCourseId = new Map<
+    string,
+    { status: PurchaseStatus; reference: string | null }
+  >()
   for (const purchase of purchases) {
-    if (purchaseByCourseId.get(purchase.course_id) !== 'paid') {
-      purchaseByCourseId.set(purchase.course_id, purchase.status)
+    if (purchaseByCourseId.get(purchase.course_id)?.status !== 'paid') {
+      purchaseByCourseId.set(purchase.course_id, {
+        status: purchase.status,
+        reference: purchase.reference,
+      })
     }
   }
 
@@ -114,7 +122,8 @@ export default async function CoursesPage({
         {!coursesError && (courses ?? []).length > 0 && (
           <div className="mt-8 grid gap-6 sm:grid-cols-2 xl:grid-cols-3">
             {(courses ?? []).map((course) => {
-              const status = purchaseByCourseId.get(course.id)
+              const purchase = purchaseByCourseId.get(course.id)
+              const status = purchase?.status
 
               return (
                 <article
@@ -175,9 +184,18 @@ export default async function CoursesPage({
                       )}
 
                       {user && !status && (
-                        <PurchaseCourseButton courseId={course.id} />
+                        <PurchaseCourseButton courseId={course.id} price={course.price} />
                       )}
                     </div>
+
+                    {user && status === 'pending' && purchase?.reference && (
+                      <div className="mt-4">
+                        <PaymentConfirmationBlock
+                          amount={course.price}
+                          reference={purchase.reference}
+                        />
+                      </div>
+                    )}
                   </div>
                 </article>
               )

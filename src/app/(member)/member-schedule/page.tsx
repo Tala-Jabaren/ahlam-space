@@ -189,7 +189,7 @@ export default async function MemberSchedulePage() {
                         <BookSessionButton
                           sessionId={session.id}
                           initialRemaining={remaining}
-                          studioAddress={session.location}
+                          price={session.classes?.price ?? 0}
                           showRemaining={false}
                         />
                       </div>

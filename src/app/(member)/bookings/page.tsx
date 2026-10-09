@@ -2,12 +2,14 @@ import Image from 'next/image'
 import Link from 'next/link'
 import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
+import PaymentConfirmationBlock from '@/components/payment-confirmation-block'
 import CancelBookingButton from './cancel-booking-button'
 
 type BookingRow = {
   id: string
   status: string
   payment_status: string
+  reference: string | null
   class_sessions: {
     id: string
     session_date: string
@@ -18,6 +20,7 @@ type BookingRow = {
       name: string
       description: string | null
       category: string | null
+      price: number | null
     } | null
   } | null
 }
@@ -104,7 +107,7 @@ export default async function MyBookingsPage({
   const { data: bookings, error } = await supabase
     .from('bookings')
     .select(
-      'id, status, payment_status, class_sessions(id, session_date, start_time, end_time, location, classes(name, description, category))'
+      'id, status, payment_status, reference, class_sessions(id, session_date, start_time, end_time, location, classes(name, description, category, price))'
     )
     .eq('user_id', user.id)
     .order('session_date', {
@@ -294,6 +297,17 @@ export default async function MyBookingsPage({
                           <CancelBookingButton bookingId={booking.id} />
                         )}
                       </div>
+
+                      {booking.payment_status === 'unpaid' &&
+                        booking.reference &&
+                        booking.status !== 'cancelled' && (
+                          <div className="mt-5">
+                            <PaymentConfirmationBlock
+                              amount={classInfo?.price ?? 0}
+                              reference={booking.reference}
+                            />
+                          </div>
+                        )}
                     </div>
                   </div>
                 </article>
