@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect, useRef, useState } from 'react'
+import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import PaymentConfirmationBlock from '@/components/payment-confirmation-block'
 import { createClient } from '@/lib/supabase/client'
@@ -132,14 +133,26 @@ export default function BookSessionButton({
       {state === 'success' && reference ? (
         <PaymentConfirmationBlock amount={price} reference={reference} />
       ) : (
-        <button
-          type="button"
-          onClick={handleBook}
-          disabled={state === 'booking' || remaining <= 0}
-          className="rounded-full bg-[#617A55] px-4 py-1.5 text-sm font-medium text-white transition-colors hover:bg-[#4f6446] disabled:cursor-not-allowed disabled:opacity-50"
-        >
-          {state === 'booking' ? 'جارٍ الحجز...' : 'احجزي هذه الحصة'}
-        </button>
+        <>
+          <button
+            type="button"
+            onClick={handleBook}
+            disabled={state === 'booking' || remaining <= 0}
+            className="rounded-full bg-[#617A55] px-4 py-1.5 text-sm font-medium text-white transition-colors hover:bg-[#4f6446] disabled:cursor-not-allowed disabled:opacity-50"
+          >
+            {state === 'booking' ? 'جارٍ الحجز...' : 'احجزي هذه الحصة'}
+          </button>
+          <p className="text-xs leading-5 text-[#617A55]/70">
+            بالمتابعة أنت توافق على{' '}
+            <Link href="/legal/terms" className="underline">
+              الشروط
+            </Link>{' '}
+            و
+            <Link href="/legal/cancellation" className="underline">
+              سياسة الإلغاء
+            </Link>
+          </p>
+        </>
       )}
 
       {state === 'full' && (

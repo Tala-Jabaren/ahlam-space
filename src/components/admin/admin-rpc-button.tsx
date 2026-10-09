@@ -19,6 +19,24 @@ type AdminRpcButtonProps = {
   disabled?: boolean
 }
 
+const KNOWN_ERROR_MESSAGES: Record<string, string> = {
+  FORBIDDEN: 'ليست لديك صلاحية لتنفيذ هذا الإجراء.',
+  NOT_FOUND_OR_ALREADY_PROCESSED:
+    'لم يتم العثور على العنصر أو تمت معالجته مسبقاً.',
+  SESSION_FULL: 'لا يوجد مقعد متاح في هذه الحصة.',
+}
+
+function errorMessageFor(rawMessage: string): string {
+  if (rawMessage.startsWith('INVALID_KIND')) {
+    return 'نوع العنصر غير صالح.'
+  }
+
+  return (
+    KNOWN_ERROR_MESSAGES[rawMessage] ??
+    'تعذر تنفيذ العملية. تأكدي من الصلاحيات وحاولي مرة أخرى.'
+  )
+}
+
 export default function AdminRpcButton({
   rpcName,
   args,
@@ -46,7 +64,7 @@ export default function AdminRpcButton({
     if (error) {
       console.error(`${rpcName} failed:`, error.message)
       setIsError(true)
-      setMessage('تعذر تنفيذ العملية. تأكدي من الصلاحيات وحاولي مرة أخرى.')
+      setMessage(errorMessageFor(error.message))
       setIsPending(false)
       return
     }

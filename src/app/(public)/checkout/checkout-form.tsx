@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect, useState, useSyncExternalStore } from 'react'
+import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { isAuthSessionMissingError } from '@supabase/supabase-js'
 import PaymentConfirmationBlock from '@/components/payment-confirmation-block'
@@ -440,6 +441,16 @@ export default function CheckoutForm({
             >
               {isSubmitting ? 'جارٍ تأكيد الطلب...' : 'تأكيد الطلب'}
             </button>
+            <p className="mt-3 text-center text-xs leading-6 text-[#617A55]/70">
+              بالمتابعة أنت توافق على{' '}
+              <Link href="/legal/terms" className="underline">
+                الشروط
+              </Link>{' '}
+              و
+              <Link href="/legal/cancellation" className="underline">
+                سياسة الإلغاء
+              </Link>
+            </p>
           </aside>
         </form>
       </div>
