@@ -45,6 +45,8 @@ create sequence if not exists public.payment_reference_seq start with 1000;
 create or replace function public.generate_payment_reference()
 returns text
 language sql
+security definer
+set search_path = public, pg_temp
 as $$
   select 'AS-' || nextval('public.payment_reference_seq')::text;
 $$;
@@ -444,7 +446,8 @@ grant execute on function public.expire_unpaid_orders(int) to authenticated;
 
 -- =============================================================================
 -- 7. place_order v4: bank-transfer-only + guest-checkout abuse protection
---    (the v1/v2/v3 files in the repo root are left untouched)
+--    (place-order-function*.sql v1-v4 at the repo root have been deleted -
+--    see the SOURCE OF TRUTH note at the top of this file)
 -- =============================================================================
 
 drop function if exists public.place_order(
@@ -911,6 +914,119 @@ create trigger course_purchases_enforce_insert
 --   those submitted values.
 -- Test (as admin, or auth.uid() is null - e.g. SQL editor/service role):
 --   an insert with an explicit status/paid_at/reference must be left as-is.
+
+-- =============================================================================
+-- 10. confirm_pending_booking / cancel_booking review
+-- =============================================================================
+--
+-- confirm_pending_booking(p_booking_id): checked for remaining callers before
+-- considering dropping it (it was the pre-section-8 "TEMPORARY until Phase 7"
+-- auto-confirm, callable by any logged-in user to confirm their own booking
+-- without an admin ever touching it - a real pay-nothing hole once bank
+-- transfer became the only payment method). NOT dropped: book-session-
+-- button.tsx on *this* branch no longer calls it (section 8's rewrite
+-- removed that call), but feature/admin-ui and feature/legal-pages - not
+-- yet merged into main - still carry the old book-session-button.tsx that
+-- does call it. Dropping the function now would break booking on those
+-- branches until they're merged. Revisit dropping (or at least revoking
+-- EXECUTE from authenticated) once all three branches are merged and the
+-- rewritten book-session-button.tsx is the only version left in main.
+--
+-- cancel_booking(p_booking_id, p_user_id): read from cancel-booking-
+-- function.sql at the repo root (no other copy of it exists). Checked two
+-- things:
+--   (a) double-decrement safety - correct as-is. It captures the booking's
+--       PRE-update status, updates status to 'cancelled' unconditionally,
+--       then only decrements class_sessions.booked_count if that captured
+--       status was not already 'cancelled'. A booking already cancelled
+--       (including one swept by expire_stale_bookings_for_session) is never
+--       double-decremented. No fix needed here.
+--   (b) the 24-hour rule is present but timezone-wrong, the same bug
+--       book_class_session had before section 8: "v_session_date +
+--       v_start_time" produces a timezone-naive timestamp, and comparing
+--       that directly to "now() + interval '24 hours'" (timestamptz) makes
+--       Postgres cast it using the database session's own timezone setting,
+--       not explicitly Asia/Jerusalem. If that setting isn't Asia/Jerusalem
+--       (commonly UTC on a hosted Postgres), the real cutoff silently shifts
+--       by the UTC/Asia-Jerusalem offset. Corrected below using the same
+--       "at time zone 'Asia/Jerusalem'" conversion as section 8. Also added
+--       "pg_temp" to search_path to match every other SECURITY DEFINER
+--       function in this file - not a behavior change, just closing the
+--       same search_path gap the rest of this file already guards against.
+
+create or replace function public.cancel_booking(
+  p_booking_id uuid,
+  p_user_id uuid
+)
+returns boolean
+language plpgsql
+security definer
+set search_path = public, pg_temp
+as $$
+declare
+  v_session_id uuid;
+  v_booking_status text;
+  v_session_date date;
+  v_start_time time;
+  v_session_start timestamptz;
+begin
+  select
+    bookings.session_id,
+    bookings.status
+  into
+    v_session_id,
+    v_booking_status
+  from public.bookings
+  where bookings.id = p_booking_id
+    and bookings.user_id = p_user_id
+  for update;
+
+  if not found then
+    raise exception 'NOT_YOUR_BOOKING';
+  end if;
+
+  select
+    class_sessions.session_date,
+    class_sessions.start_time
+  into
+    v_session_date,
+    v_start_time
+  from public.class_sessions
+  where class_sessions.id = v_session_id
+  for update;
+
+  if not found then
+    raise exception 'SESSION_NOT_FOUND';
+  end if;
+
+  v_session_start := (v_session_date + v_start_time) at time zone 'Asia/Jerusalem';
+
+  if v_session_start <= now() + interval '24 hours' then
+    raise exception 'CANCELLATION_WINDOW_PASSED';
+  end if;
+
+  update public.bookings
+  set status = 'cancelled'
+  where id = p_booking_id;
+
+  if v_booking_status <> 'cancelled' then
+    update public.class_sessions
+    set booked_count = greatest(booked_count - 1, 0)
+    where id = v_session_id;
+  end if;
+
+  return true;
+end;
+$$;
+-- Test (as the booking's owner, class >24h away): expect true, status ->
+--   'cancelled', booked_count down by exactly 1.
+-- Test (call it again on the same now-cancelled booking, still >24h away):
+--   expect true again (idempotent no-op on status), but booked_count must
+--   NOT decrement a second time.
+-- Test (<24h before class start, by Asia/Jerusalem wall-clock time): expect
+--   CANCELLATION_WINDOW_PASSED - including a case that would have wrongly
+--   passed under the old UTC-assuming comparison.
+-- Test (someone else's booking id): expect NOT_YOUR_BOOKING.
 
 -- Make all of the above visible to PostgREST immediately.
 notify pgrst, 'reload schema';
