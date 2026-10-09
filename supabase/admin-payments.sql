@@ -130,13 +130,9 @@ $$;
 
 -- =============================================================================
 -- 3. RLS: admin SELECT + UPDATE on the 8 named tables, nothing loosened for
---    non-admins. ENABLE ROW LEVEL SECURITY is idempotent (safe to re-run even
---    if already on). For products/product_variants/profiles, a defensive
---    public/own-row read policy is added alongside the admin policy so that
---    if RLS was not already enabled on these, turning it on here does not
---    silently break existing public shop browsing or profile reads - if a
---    same-purpose policy already exists under a different name, this is a
---    harmless, redundant, equally-permissive addition (RLS policies are OR'd).
+--    non-admins. RLS is already enabled on every table with its own public
+--    policies already in place under other names - ENABLE ROW LEVEL SECURITY
+--    here is just idempotent confirmation, not a first-time enablement.
 -- =============================================================================
 
 alter table public.bookings enable row level security;
@@ -180,9 +176,6 @@ create policy "Admins can update all session requests" on public.session_request
   for update to authenticated using (public.is_admin()) with check (public.is_admin());
 
 alter table public.products enable row level security;
-drop policy if exists "Public can view active products" on public.products;
-create policy "Public can view active products" on public.products
-  for select to anon, authenticated using (is_active = true);
 drop policy if exists "Admins can view all products" on public.products;
 create policy "Admins can view all products" on public.products
   for select to authenticated using (public.is_admin());
@@ -191,9 +184,6 @@ create policy "Admins can update all products" on public.products
   for update to authenticated using (public.is_admin()) with check (public.is_admin());
 
 alter table public.product_variants enable row level security;
-drop policy if exists "Public can view product variants" on public.product_variants;
-create policy "Public can view product variants" on public.product_variants
-  for select to anon, authenticated using (true);
 drop policy if exists "Admins can view all product variants" on public.product_variants;
 create policy "Admins can view all product variants" on public.product_variants
   for select to authenticated using (public.is_admin());
@@ -202,9 +192,6 @@ create policy "Admins can update all product variants" on public.product_variant
   for update to authenticated using (public.is_admin()) with check (public.is_admin());
 
 alter table public.profiles enable row level security;
-drop policy if exists "Users can view own profile" on public.profiles;
-create policy "Users can view own profile" on public.profiles
-  for select to authenticated using (id = auth.uid());
 drop policy if exists "Admins can view all profiles" on public.profiles;
 create policy "Admins can view all profiles" on public.profiles
   for select to authenticated using (public.is_admin());
@@ -872,37 +859,58 @@ grant execute on function public.expire_unpaid_bookings() to authenticated;
 -- );
 
 -- =============================================================================
--- 9. course_purchases: force payment_method = 'bank_transfer' server-side
+-- 9. course_purchases: lock down client INSERT to pending/bank_transfer only
 -- =============================================================================
 --
--- purchase-course-button.tsx inserts into course_purchases directly from the
--- client (not through a SECURITY DEFINER function like bookings/orders), and
--- currently always sends payment_method: 'bank_transfer' itself - but nothing
--- server-side enforced that. Per src/types/database.ts, payment_method is
--- nullable and optional on Insert with no default visible anywhere in this
--- repo's SQL, so an omitted or tampered value would otherwise fall through
--- to NULL or whatever the client sent. This trigger makes the server
--- authoritative instead of trusting the client-supplied value.
+-- SECURITY FIX: the existing policy "Users can create their own purchase
+-- requests" on course_purchases only checks auth.uid() = user_id - it does
+-- NOT restrict which columns a normal user's insert can set. That means a
+-- logged-in user could insert a row with status = 'paid' (or a forged
+-- paid_at / reference) directly through the API and get a course for free
+-- without ever going through admin_confirm_payment. This trigger closes
+-- that hole by forcing every non-admin client insert back to the only
+-- state a real new purchase can start in, regardless of what the request
+-- body contains.
+--
+-- bookings, orders and order_items do NOT need an equivalent trigger: they
+-- have no client-facing INSERT policy at all (verified in the live policy
+-- list) - every row in those three tables is created exclusively through
+-- book_class_session / place_order, both SECURITY DEFINER functions that
+-- already set status/payment_method themselves, so there is no direct-
+-- INSERT path for a client to forge those columns on.
 
-create or replace function public.enforce_course_purchase_payment_method()
+drop function if exists public.enforce_course_purchase_payment_method();
+
+create or replace function public.enforce_course_purchase_insert()
 returns trigger
 language plpgsql
 set search_path = public, pg_temp
 as $$
 begin
-  new.payment_method := 'bank_transfer';
+  if auth.uid() is not null and not public.is_admin() then
+    new.status := 'pending';
+    new.paid_at := null;
+    new.payment_method := 'bank_transfer';
+    new.reference := public.generate_payment_reference();
+  end if;
+
   return new;
 end;
 $$;
 
 drop trigger if exists course_purchases_force_payment_method on public.course_purchases;
-create trigger course_purchases_force_payment_method
+drop trigger if exists course_purchases_enforce_insert on public.course_purchases;
+create trigger course_purchases_enforce_insert
   before insert on public.course_purchases
   for each row
-  execute function public.enforce_course_purchase_payment_method();
--- Test: insert a course_purchases row (as an authenticated user, via the API)
---   without a payment_method, or with any other value - the stored row must
---   end up with payment_method = 'bank_transfer' either way.
+  execute function public.enforce_course_purchase_insert();
+-- Test (as a normal authenticated user): insert a course_purchases row with
+--   status = 'paid' (and/or a made-up paid_at/reference) - the stored row
+--   must come back with status = 'pending', paid_at = null, payment_method
+--   = 'bank_transfer', and a fresh AS-#### reference, ignoring every one of
+--   those submitted values.
+-- Test (as admin, or auth.uid() is null - e.g. SQL editor/service role):
+--   an insert with an explicit status/paid_at/reference must be left as-is.
 
 -- Make all of the above visible to PostgREST immediately.
 notify pgrst, 'reload schema';
@@ -951,7 +959,8 @@ commit;
 -- commented-out pg_cron schedule in section 8 once uncommented
 --   supabase.rpc('expire_unpaid_bookings')  -> integer (bookings expired)
 --
--- course_purchases.payment_method - always ends up 'bank_transfer' once
--- stored, enforced server-side by a BEFORE INSERT trigger (section 9). The
--- client's insert can still pass payment_method: 'bank_transfer' as before,
--- it's just no longer load-bearing.
+-- course_purchases insert - status/paid_at/payment_method/reference are all
+-- forced server-side for non-admin inserts by a BEFORE INSERT trigger
+-- (section 9): status = 'pending', paid_at = null, payment_method =
+-- 'bank_transfer', reference = a fresh generate_payment_reference() value,
+-- no matter what the client's insert body contains.
