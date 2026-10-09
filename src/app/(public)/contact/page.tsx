@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import { useT } from '@/i18n/i18n-context'
 
 type ContactResponse = {
   success?: boolean
@@ -8,6 +9,7 @@ type ContactResponse = {
 }
 
 export default function ContactPage() {
+  const { t, dir } = useT()
   const [name, setName] = useState('')
   const [email, setEmail] = useState('')
   const [message, setMessage] = useState('')
@@ -30,35 +32,32 @@ export default function ContactPage() {
       const result = (await response.json()) as ContactResponse
 
       if (!response.ok || !result.success) {
-        setStatus(result.error ?? 'Unable to send message.')
+        setStatus(result.error ?? t.contact.genericError)
         return
       }
 
       setName('')
       setEmail('')
       setMessage('')
-      setStatus('Message sent.')
+      setStatus(t.contact.sentMessage)
     } catch {
-      setStatus('Unable to send message.')
+      setStatus(t.contact.genericError)
     } finally {
       setLoading(false)
     }
   }
 
   return (
-    <div className="px-5 py-16 sm:px-8 lg:px-10">
+    <div className="px-5 py-16 sm:px-8 lg:px-10" dir={dir}>
       <section className="mx-auto grid max-w-7xl gap-12 lg:grid-cols-[0.85fr_1.15fr]">
         <div className="space-y-6">
           <p className="text-sm font-medium uppercase tracking-[0.28em] text-[#617A55]">
-            Contact
+            {t.contact.eyebrow}
           </p>
           <h1 className="font-serif text-5xl leading-tight text-[#25311f] sm:text-6xl">
-            Tell us what you&apos;re looking for.
+            {t.contact.heading}
           </h1>
-          <p className="text-lg leading-8 text-[#4f5d49]">
-            Ask about classes, private sessions, products, or finding the right
-            place to begin.
-          </p>
+          <p className="text-lg leading-8 text-[#4f5d49]">{t.contact.paragraph}</p>
           <div className="min-h-64 rounded-[2rem] bg-[#C7D6E8] p-5">
             <div className="h-full min-h-56 rounded-[1.5rem] bg-[#F7F6F0]/55" />
           </div>
@@ -70,11 +69,11 @@ export default function ContactPage() {
         >
           <div className="grid gap-5">
             <label className="grid gap-2 text-sm font-medium text-[#617A55]">
-              Name
+              {t.contact.nameLabel}
               <input
                 className="rounded-2xl border border-[#617A55]/20 bg-[#F7F6F0] px-4 py-3 text-[#25311f] outline-none transition placeholder:text-[#617A55]/55 focus:border-[#617A55]"
                 type="text"
-                placeholder="Name"
+                placeholder={t.contact.namePlaceholder}
                 value={name}
                 onChange={(e) => setName(e.target.value)}
                 required
@@ -82,11 +81,11 @@ export default function ContactPage() {
               />
             </label>
             <label className="grid gap-2 text-sm font-medium text-[#617A55]">
-              Email
+              {t.contact.emailLabel}
               <input
                 className="rounded-2xl border border-[#617A55]/20 bg-[#F7F6F0] px-4 py-3 text-[#25311f] outline-none transition placeholder:text-[#617A55]/55 focus:border-[#617A55]"
                 type="email"
-                placeholder="Email"
+                placeholder={t.contact.emailPlaceholder}
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 required
@@ -94,10 +93,10 @@ export default function ContactPage() {
               />
             </label>
             <label className="grid gap-2 text-sm font-medium text-[#617A55]">
-              Message
+              {t.contact.messageLabel}
               <textarea
                 className="min-h-40 rounded-2xl border border-[#617A55]/20 bg-[#F7F6F0] px-4 py-3 text-[#25311f] outline-none transition placeholder:text-[#617A55]/55 focus:border-[#617A55]"
-                placeholder="Message"
+                placeholder={t.contact.messagePlaceholder}
                 value={message}
                 onChange={(e) => setMessage(e.target.value)}
                 required
@@ -108,7 +107,7 @@ export default function ContactPage() {
               type="submit"
               disabled={loading}
             >
-              {loading ? 'Sending...' : 'Send message'}
+              {loading ? t.contact.sending : t.contact.send}
             </button>
           </div>
           {status && (

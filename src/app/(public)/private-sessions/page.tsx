@@ -3,33 +3,31 @@
 import Image from 'next/image'
 import { useRef, useState } from 'react'
 import { createClient } from '@/lib/supabase/client'
+import { useT } from '@/i18n/i18n-context'
+import { ar } from '@/i18n/ar'
 
-const SERVICES = [
-  {
-    title: 'رحلة تيسير الشخصية',
-    description:
-      'برنامج مرافقة شخصية لمدة شهر كامل. خلال هذا البرنامج لن تكوني وحدك في رحلة التغيير، بل سأكون معك خطوة بخطوة، أتابع تقدمك، وأرسل لك يوميًا توجيهات، وتمارين، وتأملات، أو مهام بسيطة تناسب احتياجاتك وأهدافك. نهدف معًا إلى بناء عادات صحية، وتنظيم مختلف جوانب الحياة، وتعزيز الالتزام، حتى يصبح التغيير أسلوب حياة وليس مجرد مرحلة مؤقتة',
-    image: '/images/about2.png',
-  },
-  {
-    title: 'جلسة العلاج بالصوت',
-    description:
-      'رحلة استرخاء عميقة باستخدام الطاسات التبتية وأدوات العلاج بالصوت، تساعد على تهدئة الجهاز العصبي، وتخفيف التوتر، وتعزيز الشعور',
-    image: '/member/yoga-class.png',
-  },
-  {
-    title: 'جلسات فردية خاصة',
-    description:
-      'جلسات فردية مصممة بما يتناسب مع احتياجاتك، لنستكشف معًا التحديات التي تمرين بها، ونبني خطوات عملية تساعدك على الوصول إلى توازن نفسي وعاطفي أكبر. قد تشمل الجلسات العمل على إدارة الضغوط، تعزيز الثقة بالنفس، تنظيم المشاعر، اكتشاف الأنماط التي تعيقك، ووضع خطة تناسب أهدافك وظروفك.',
-    image: '/member/fitness-class.png',
-  },
+const SERVICE_IMAGES = [
+  '/images/about2.png',
+  '/member/yoga-class.png',
+  '/member/fitness-class.png',
 ] as const
 
 type SubmitStatus = 'idle' | 'submitting' | 'success' | 'error'
 
 export default function PrivateSessionsPage() {
+  const { t, dir } = useT()
+  // `value` is always the Arabic title, regardless of the active language -
+  // it's what gets stored in session_requests.session_type, and the owner
+  // needs one consistent value per service there no matter which language
+  // the visitor filled the form in. `title`/`description` are the localized
+  // display text only.
+  const SERVICES = t.privateSessions.services.map((service, index) => ({
+    ...service,
+    image: SERVICE_IMAGES[index],
+    value: ar.privateSessions.services[index].title,
+  }))
   const formRef = useRef<HTMLFormElement>(null)
-  const [sessionType, setSessionType] = useState<string>(SERVICES[0].title)
+  const [sessionType, setSessionType] = useState<string>(SERVICES[0].value)
   const [fullName, setFullName] = useState('')
   const [phone, setPhone] = useState('')
   const [email, setEmail] = useState('')
@@ -37,8 +35,8 @@ export default function PrivateSessionsPage() {
   const [status, setStatus] = useState<SubmitStatus>('idle')
   const [errorMessage, setErrorMessage] = useState<string | null>(null)
 
-  function handleRequestClick(serviceTitle: string) {
-    setSessionType(serviceTitle)
+  function handleRequestClick(serviceValue: string) {
+    setSessionType(serviceValue)
     formRef.current?.scrollIntoView({ behavior: 'smooth' })
   }
 
@@ -71,15 +69,15 @@ export default function PrivateSessionsPage() {
 
   return (
     <div
-      dir="rtl"
+      dir={dir}
       className="mx-auto max-w-7xl px-5 py-16 text-[#25311f] sm:px-8 lg:px-10 [&_h1]:mb-10 [&_h1]:font-serif [&_h1]:text-5xl [&_h1]:leading-tight [&_h1]:text-[#25311f] [&_form>h2]:font-serif [&_form>h2]:text-4xl [&_form>h2]:text-[#25311f]"
     >
-      <h1>الجلسات الفردية</h1>
+      <h1>{t.privateSessions.heading}</h1>
 
       <div className="grid gap-6 xl:grid-cols-2 xl:justify-items-center">
         {SERVICES.map((service) => (
           <section
-            key={service.title}
+            key={service.value}
             className="flex h-auto w-full max-w-[620px] flex-col overflow-hidden rounded-[18px] border border-[#617A55]/[0.12] bg-white transition-transform duration-200 hover:-translate-y-[3px] sm:h-[190px] sm:flex-row"
           >
             <div className="relative h-[210px] w-full shrink-0 sm:h-full sm:w-[190px]">
@@ -101,9 +99,9 @@ export default function PrivateSessionsPage() {
               <button
                 className="mt-auto self-start rounded-full bg-[#D6E2B6] px-7 py-2.5 text-sm font-medium text-[#617A55] transition-colors hover:bg-[#cbd9a7]"
                 type="button"
-                onClick={() => handleRequestClick(service.title)}
+                onClick={() => handleRequestClick(service.value)}
               >
-                احجزي جلسة
+                {t.privateSessions.requestButton}
               </button>
             </div>
           </section>
@@ -117,10 +115,10 @@ export default function PrivateSessionsPage() {
         onSubmit={handleSubmit}
         className="mx-auto max-w-3xl rounded-[2rem] border border-[#617A55]/10 bg-white/70 p-6 shadow-sm sm:p-8"
       >
-        <h2>طلب حجز جلسة</h2>
+        <h2>{t.privateSessions.formHeading}</h2>
 
         <div className="mt-6 grid gap-2 text-sm font-medium text-[#617A55]">
-          <label htmlFor="session_type">نوع الجلسة</label>
+          <label htmlFor="session_type">{t.privateSessions.sessionTypeLabel}</label>
           <select
             className="rounded-2xl border border-[#617A55]/20 bg-[#F7F6F0] px-4 py-3 text-[#25311f] outline-none transition focus:border-[#617A55]"
             id="session_type"
@@ -128,7 +126,7 @@ export default function PrivateSessionsPage() {
             onChange={(e) => setSessionType(e.target.value)}
           >
             {SERVICES.map((service) => (
-              <option key={service.title} value={service.title}>
+              <option key={service.value} value={service.value}>
                 {service.title}
               </option>
             ))}
@@ -136,7 +134,7 @@ export default function PrivateSessionsPage() {
         </div>
 
         <div className="mt-5 grid gap-2 text-sm font-medium text-[#617A55]">
-          <label htmlFor="full_name">الاسم الكامل</label>
+          <label htmlFor="full_name">{t.privateSessions.fullNameLabel}</label>
           <input
             className="rounded-2xl border border-[#617A55]/20 bg-[#F7F6F0] px-4 py-3 text-[#25311f] outline-none transition focus:border-[#617A55]"
             id="full_name"
@@ -148,7 +146,7 @@ export default function PrivateSessionsPage() {
         </div>
 
         <div className="mt-5 grid gap-2 text-sm font-medium text-[#617A55]">
-          <label htmlFor="phone">رقم الهاتف</label>
+          <label htmlFor="phone">{t.privateSessions.phoneLabel}</label>
           <input
             className="rounded-2xl border border-[#617A55]/20 bg-[#F7F6F0] px-4 py-3 text-[#25311f] outline-none transition focus:border-[#617A55]"
             id="phone"
@@ -160,7 +158,7 @@ export default function PrivateSessionsPage() {
         </div>
 
         <div className="mt-5 grid gap-2 text-sm font-medium text-[#617A55]">
-          <label htmlFor="email">البريد الإلكتروني</label>
+          <label htmlFor="email">{t.privateSessions.emailLabel}</label>
           <input
             className="rounded-2xl border border-[#617A55]/20 bg-[#F7F6F0] px-4 py-3 text-[#25311f] outline-none transition focus:border-[#617A55]"
             id="email"
@@ -171,13 +169,13 @@ export default function PrivateSessionsPage() {
         </div>
 
         <div className="mt-5 grid gap-2 text-sm font-medium text-[#617A55]">
-          <label htmlFor="message">رسالة</label>
+          <label htmlFor="message">{t.privateSessions.messageLabel}</label>
           <textarea
             className="min-h-36 rounded-2xl border border-[#617A55]/20 bg-[#F7F6F0] px-4 py-3 text-[#25311f] outline-none transition placeholder:text-[#617A55]/55 focus:border-[#617A55]"
             id="message"
             value={message}
             onChange={(e) => setMessage(e.target.value)}
-            placeholder="أخبريني أكثر عن اهتمامك بهذه الجلسة"
+            placeholder={t.privateSessions.messagePlaceholder}
           />
         </div>
 
@@ -186,16 +184,15 @@ export default function PrivateSessionsPage() {
           type="submit"
           disabled={status === 'submitting'}
         >
-          {status === 'submitting' ? 'جارٍ الإرسال...' : 'إرسال الطلب'}
+          {status === 'submitting' ? t.privateSessions.submitting : t.privateSessions.submit}
         </button>
 
-        {status === 'success' && (
-          <p>تم إرسال طلبك بنجاح، سنتواصل معك قريبًا.</p>
-        )}
+        {status === 'success' && <p>{t.privateSessions.successMessage}</p>}
         {status === 'error' && (
           <p>
-            حدث خطأ أثناء إرسال الطلب
-            {errorMessage ? `: ${errorMessage}` : ''}. حاولي مرة أخرى.
+            {t.privateSessions.errorPrefix}
+            {errorMessage ? `: ${errorMessage}` : ''}
+            {t.privateSessions.errorSuffix}
           </p>
         )}
       </form>

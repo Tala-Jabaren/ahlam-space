@@ -1,6 +1,7 @@
 'use client'
 
 import { useCart } from '@/lib/cart/cart-context'
+import { useT } from '@/i18n/i18n-context'
 
 type Props = {
   productId: string
@@ -28,6 +29,7 @@ export default function AddToCartButton({
   compact = false,
 }: Props) {
   const { addToCart } = useCart()
+  const { t } = useT()
 
   if (stock <= 0) {
     return (
@@ -37,7 +39,7 @@ export default function AddToCartButton({
           'inline-flex min-h-11 items-center justify-center rounded-full bg-[#C7D6E8]/50 px-5 text-sm font-semibold text-[#617A55]/70'
         }
       >
-        غير متوفر
+        {t.shop.addToCart.unavailable}
       </span>
     )
   }
@@ -64,7 +66,7 @@ export default function AddToCartButton({
         `inline-flex items-center justify-center rounded-full bg-[#617A55] text-sm font-semibold text-white transition hover:bg-[#4f6645] ${compact ? 'min-h-10 px-4' : 'min-h-11 px-5'}`
       }
     >
-      أضيفي إلى السلة
+      {t.shop.addToCart.addToCart}
     </button>
   )
 }

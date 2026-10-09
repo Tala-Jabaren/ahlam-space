@@ -1,6 +1,7 @@
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase/server'
 import PaymentConfirmationBlock from '@/components/payment-confirmation-block'
+import { getT } from '@/i18n/get-t'
 import PurchaseCourseButton from './purchase-course-button'
 
 type Course = {
@@ -20,10 +21,6 @@ type CoursePurchase = {
   reference: string | null
 }
 
-function contentTypeLabel(type: Course['content_type']) {
-  return type === 'video' ? 'فيديو' : 'مقال'
-}
-
 export default async function CoursesPage({
   searchParams,
 }: {
@@ -31,6 +28,11 @@ export default async function CoursesPage({
 }) {
   const { error: errorParam } = await searchParams
   const supabase = await createClient()
+  const { t, dir } = await getT()
+
+  function contentTypeLabel(type: Course['content_type']) {
+    return type === 'video' ? t.courses.list.contentTypeVideo : t.courses.list.contentTypeArticle
+  }
   const {
     data: { user },
     error: userError,
@@ -81,41 +83,37 @@ export default async function CoursesPage({
   }
 
   return (
-    <main className="px-4 py-8 text-[#617A55] sm:px-6 lg:px-8" dir="rtl">
+    <main className="px-4 py-8 text-[#617A55] sm:px-6 lg:px-8" dir={dir}>
       <section className="mx-auto max-w-7xl">
         <header className="border-b border-[#617A55]/15 pb-8 sm:pb-10">
           <h1 className="font-serif text-4xl leading-tight sm:text-5xl">
-            كورسات ومحاضرات
+            {t.courses.list.heading}
           </h1>
           <p className="mt-3 max-w-2xl text-base leading-8 text-[#617A55]/80 sm:text-lg">
-            اختاري الكورس المناسب، ثم حددي طريقة الدفع. تبقى طلبات الشراء قيد
-            الانتظار حتى يتم تأكيد الدفع يدويًا.
+            {t.courses.list.subtitle}
           </p>
         </header>
 
         {errorParam === 'access_denied' && (
           <div className="mt-6 rounded-lg bg-[#C7D6E8]/55 p-5 text-center text-sm leading-6">
-            لا يمكنك الوصول إلى هذا المحتوى بعد، يجب إتمام الشراء وتأكيد الدفع
-            أولاً.
+            {t.courses.list.accessDeniedNotice}
           </div>
         )}
         {errorParam === 'not_found' && (
           <div className="mt-6 rounded-lg bg-[#C7D6E8]/55 p-5 text-center text-sm leading-6">
-            هذا الكورس غير متاح حاليًا.
+            {t.courses.list.notFoundNotice}
           </div>
         )}
 
         {coursesError && (
           <div className="mt-7 rounded-lg bg-[#C7D6E8]/55 p-6 text-center">
-            تعذر تحميل الكورسات الآن.
+            {t.courses.list.loadError}
           </div>
         )}
 
         {!coursesError && (courses ?? []).length === 0 && (
           <div className="mt-7 rounded-lg bg-[#C7D6E8]/40 p-8 text-center">
-            <p className="font-serif text-2xl">
-              لا توجد كورسات متاحة للشراء حاليًا.
-            </p>
+            <p className="font-serif text-2xl">{t.courses.list.empty}</p>
           </div>
         )}
 
@@ -139,7 +137,7 @@ export default async function CoursesPage({
                         className="h-full w-full object-cover"
                       />
                     )}
-                    <span className="absolute left-4 top-4 rounded-full bg-[#F7F6F0]/95 px-3 py-1 text-xs font-semibold shadow-sm">
+                    <span className="absolute start-4 top-4 rounded-full bg-[#F7F6F0]/95 px-3 py-1 text-xs font-semibold shadow-sm">
                       {contentTypeLabel(course.content_type)}
                     </span>
                   </div>
@@ -164,7 +162,7 @@ export default async function CoursesPage({
                           href="/login?returnTo=%2Fcourses"
                           className="inline-flex min-h-11 items-center justify-center rounded-lg bg-[#617A55] px-6 py-3 text-sm font-semibold text-[#F7F6F0] transition hover:bg-[#617A55]/85"
                         >
-                          سجلي دخول لتشتري
+                          {t.courses.list.loginToBuy}
                         </Link>
                       )}
 
@@ -173,13 +171,13 @@ export default async function CoursesPage({
                           href={`/courses/${course.id}`}
                           className="inline-flex min-h-11 items-center justify-center rounded-lg bg-[#617A55] px-6 py-3 text-sm font-semibold text-[#F7F6F0] transition hover:bg-[#617A55]/85"
                         >
-                          مشاهدة الآن
+                          {t.courses.list.watchNow}
                         </Link>
                       )}
 
                       {user && status === 'pending' && (
                         <span className="inline-flex min-h-11 items-center rounded-full bg-[#C7D6E8] px-5 text-sm font-semibold text-[#617A55]">
-                          بانتظار تأكيد الدفع
+                          {t.courses.list.pendingPayment}
                         </span>
                       )}
 
