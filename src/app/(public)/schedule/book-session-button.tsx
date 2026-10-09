@@ -66,20 +66,10 @@ export default function BookSessionButton({
       return
     }
 
-    const { error: paymentMethodError } = await supabase
-      .from('bookings')
-      .update({ payment_method: 'bank_transfer' })
-      .eq('id', bookingId)
-
-    if (paymentMethodError) {
-      console.error(
-        'booking payment_method update failed:',
-        paymentMethodError.message
-      )
-    }
-
-    // Bookings now stay pending/unpaid until an admin confirms the bank
-    // transfer (admin_confirm_payment) - no more auto-confirm here.
+    // payment_method is now set atomically inside book_class_session's own
+    // INSERT, so there's no follow-up update call here anymore. Bookings
+    // stay pending/unpaid until an admin confirms the bank transfer
+    // (admin_confirm_payment) - no auto-confirm here.
     const { data: bookingRow, error: refError } = await supabase
       .from('bookings')
       .select('reference')

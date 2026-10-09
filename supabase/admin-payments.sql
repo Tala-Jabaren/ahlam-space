@@ -6,6 +6,11 @@
 -- single session; it is written to be safely re-runnable (every object uses
 -- IF NOT EXISTS / CREATE OR REPLACE / DROP POLICY IF EXISTS).
 --
+-- SOURCE OF TRUTH: public.place_order lives ONLY in this file (section 7).
+-- The place-order-function*.sql files that used to sit at the repo root
+-- (v1-v4) have been deleted - do not recreate them; edit this file instead
+-- and re-run it.
+--
 -- Real schema this was written against (verified live, not assumed):
 --   bookings(id, session_id, user_id, status, payment_status, reserved_until,
 --            created_at, payment_method)
@@ -799,8 +804,8 @@ begin
     raise exception 'SESSION_FULL_OR_UNAVAILABLE';
   end if;
 
-  insert into bookings (session_id, user_id, status, reserved_until)
-  values (p_session_id, p_user_id, 'pending', v_hold_until)
+  insert into bookings (session_id, user_id, status, reserved_until, payment_method)
+  values (p_session_id, p_user_id, 'pending', v_hold_until, 'bank_transfer')
   returning id into v_booking_id;
 
   return v_booking_id;
@@ -866,6 +871,39 @@ grant execute on function public.expire_unpaid_bookings() to authenticated;
 --   $$ select public.expire_unpaid_bookings(); $$
 -- );
 
+-- =============================================================================
+-- 9. course_purchases: force payment_method = 'bank_transfer' server-side
+-- =============================================================================
+--
+-- purchase-course-button.tsx inserts into course_purchases directly from the
+-- client (not through a SECURITY DEFINER function like bookings/orders), and
+-- currently always sends payment_method: 'bank_transfer' itself - but nothing
+-- server-side enforced that. Per src/types/database.ts, payment_method is
+-- nullable and optional on Insert with no default visible anywhere in this
+-- repo's SQL, so an omitted or tampered value would otherwise fall through
+-- to NULL or whatever the client sent. This trigger makes the server
+-- authoritative instead of trusting the client-supplied value.
+
+create or replace function public.enforce_course_purchase_payment_method()
+returns trigger
+language plpgsql
+set search_path = public, pg_temp
+as $$
+begin
+  new.payment_method := 'bank_transfer';
+  return new;
+end;
+$$;
+
+drop trigger if exists course_purchases_force_payment_method on public.course_purchases;
+create trigger course_purchases_force_payment_method
+  before insert on public.course_purchases
+  for each row
+  execute function public.enforce_course_purchase_payment_method();
+-- Test: insert a course_purchases row (as an authenticated user, via the API)
+--   without a payment_method, or with any other value - the stored row must
+--   end up with payment_method = 'bank_transfer' either way.
+
 -- Make all of the above visible to PostgREST immediately.
 notify pgrst, 'reload schema';
 
@@ -912,3 +950,8 @@ commit;
 -- expire_unpaid_bookings() - admin-triggered manual run, or via the
 -- commented-out pg_cron schedule in section 8 once uncommented
 --   supabase.rpc('expire_unpaid_bookings')  -> integer (bookings expired)
+--
+-- course_purchases.payment_method - always ends up 'bank_transfer' once
+-- stored, enforced server-side by a BEFORE INSERT trigger (section 9). The
+-- client's insert can still pass payment_method: 'bank_transfer' as before,
+-- it's just no longer load-bearing.
