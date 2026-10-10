@@ -74,7 +74,7 @@ export default function LoginPage() {
         requestedReturnTo?.startsWith('/') &&
         !requestedReturnTo.startsWith('//')
           ? requestedReturnTo
-          : '/dashboard'
+          : '/member-schedule'
 
       router.replace(returnTo)
       router.refresh()

@@ -88,12 +88,6 @@ export default async function AboutPage() {
             <p className="mt-7 max-w-xl text-base leading-8 text-[#4f5d49] sm:text-lg">
               {t.about.paragraph}
             </p>
-            <Link
-              href="#my-story"
-              className="mt-8 inline-flex min-h-12 items-center justify-center rounded-full bg-[#617A55] px-7 py-3 text-sm font-semibold text-[#F7F6F0] transition-colors hover:bg-[#617A55]/90"
-            >
-              {t.about.ctaDiscoverStory}
-            </Link>
           </div>
         </div>
 
@@ -158,10 +152,7 @@ export default async function AboutPage() {
       <section className="px-5 py-20 sm:px-8 lg:px-10 lg:py-28">
         <div className="mx-auto max-w-7xl">
           <div className="text-center">
-            <p className="text-xs font-semibold uppercase tracking-[0.24em] text-[#617A55]/70">
-              WHAT I OFFER
-            </p>
-            <h2 className="mt-3 font-serif text-4xl text-[#25311f] sm:text-5xl">
+            <h2 className="font-serif text-4xl text-[#25311f] sm:text-5xl">
               {t.about.offerHeading}
             </h2>
           </div>
@@ -199,12 +190,6 @@ export default async function AboutPage() {
               className="inline-flex min-h-12 items-center justify-center rounded-full bg-[#617A55] px-7 py-3 text-sm font-semibold text-[#F7F6F0] transition-colors hover:bg-[#617A55]/90"
             >
               {t.about.ctaExplore}
-            </Link>
-            <Link
-              href="/classes"
-              className="inline-flex min-h-12 items-center justify-center rounded-full border border-[#617A55]/35 px-7 py-3 text-sm font-semibold text-[#617A55] transition-colors hover:bg-[#D6E2B6]/45"
-            >
-              {t.about.ctaBookNow}
             </Link>
           </div>
         </div>
