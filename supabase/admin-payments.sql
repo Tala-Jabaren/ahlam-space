@@ -30,7 +30,7 @@
 --   book_class_session(p_session_id, p_user_id) - REPLACED by section 8 below
 --     (new hold window + expired-hold cleanup; see that section for the
 --     confirmed-live behavior it replaces)
---   confirm_pending_booking(p_booking_id) - unchanged
+--   confirm_pending_booking(p_booking_id) - DROPPED by section 10 below
 --   place_order(p_user_id, p_items, p_fulfillment_method, p_payment_method,
 --               p_delivery_address, p_guest_name, p_guest_phone, p_guest_email)
 --     -- v3 confirmed live; replaced by the v4 overload in section 7
@@ -920,18 +920,18 @@ create trigger course_purchases_enforce_insert
 -- 10. confirm_pending_booking / cancel_booking review
 -- =============================================================================
 --
--- confirm_pending_booking(p_booking_id): checked for remaining callers before
--- considering dropping it (it was the pre-section-8 "TEMPORARY until Phase 7"
--- auto-confirm, callable by any logged-in user to confirm their own booking
--- without an admin ever touching it - a real pay-nothing hole once bank
--- transfer became the only payment method). NOT dropped: book-session-
--- button.tsx on *this* branch no longer calls it (section 8's rewrite
--- removed that call), but feature/admin-ui and feature/legal-pages - not
--- yet merged into main - still carry the old book-session-button.tsx that
--- does call it. Dropping the function now would break booking on those
--- branches until they're merged. Revisit dropping (or at least revoking
--- EXECUTE from authenticated) once all three branches are merged and the
--- rewritten book-session-button.tsx is the only version left in main.
+-- confirm_pending_booking(p_booking_id): it was the pre-section-8
+-- "TEMPORARY until Phase 7" auto-confirm, callable by any logged-in user to
+-- confirm their own booking without an admin ever touching it - a real
+-- pay-nothing hole once bank transfer became the only payment method. An
+-- earlier round of this file left it in place because feature/admin-ui and
+-- feature/legal-pages still carried the old book-session-button.tsx that
+-- called it, and dropping it then would have broken booking on those
+-- branches. Both have since been merged into main along with this file's
+-- own section 8 rewrite, which is the only book-session-button.tsx left -
+-- re-checked just now and there is no caller anywhere in the app. Dropped
+-- below.
+drop function if exists public.confirm_pending_booking(uuid);
 --
 -- cancel_booking(p_booking_id, p_user_id): previously defined only in
 -- cancel-booking-function.sql at the repo root - that file is now deleted,
