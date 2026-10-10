@@ -9,11 +9,11 @@ export const en: typeof ar = {
     siteName: 'Ahlam Space',
     defaultTitle: 'Ahlam Space | Yoga, Movement & Balance in Ramallah',
     defaultDescription:
-      'Ahlam Space in Ramallah: group yoga and movement classes, private sessions, courses & workshops, and a shop of thoughtfully chosen products for a more balanced life.',
+      'Ahlam Space in Ramallah: group yoga and movement classes, private sessions, lectures, and a shop of thoughtfully chosen products for a more balanced life.',
     home: {
       title: 'Ahlam Space | Yoga, Movement & Balance in Ramallah',
       description:
-        'A space for movement, awareness, and balance. Book yoga and movement classes, or discover private sessions, courses, and the Ahlam Space shop.',
+        'A space for movement, awareness, and balance. Book yoga and movement classes, or discover private sessions, lectures, and the Ahlam Space shop.',
     },
     about: {
       title: 'Who is Ahlam? | Ahlam Space',
@@ -26,9 +26,9 @@ export const en: typeof ar = {
         'Explore yoga, fitness, and dance classes, then choose the upcoming session that suits you.',
     },
     courses: {
-      title: 'Courses & Workshops | Ahlam Space',
+      title: 'Lectures | Ahlam Space',
       description:
-        'Choose the right course from Ahlam Space’s courses and workshops for awareness, movement, and a more balanced lifestyle.',
+        'Choose the right course from Ahlam Space’s lectures for awareness, movement, and a more balanced lifestyle.',
     },
     shop: {
       title: 'Shop | Ahlam Space',
@@ -49,7 +49,7 @@ export const en: typeof ar = {
     home: 'Home',
     about: 'About',
     classes: 'Classes',
-    courses: 'Courses & Workshops',
+    courses: 'Lectures',
     privateSessions: 'Private Sessions',
     shop: 'Shop',
     contact: 'Contact',
@@ -84,7 +84,7 @@ export const en: typeof ar = {
         description: 'Sessions tailored to your needs and goals.',
       },
       {
-        title: 'Courses & Workshops',
+        title: 'Lectures',
         description:
           'A range of programs for awareness, movement, and a more balanced lifestyle.',
       },
@@ -141,7 +141,7 @@ export const en: typeof ar = {
         description: 'Sessions tailored to your needs and goals.',
       },
       {
-        title: 'Courses & Workshops',
+        title: 'Lectures',
         description:
           'Spaces for learning, awareness, movement, and a more balanced lifestyle.',
       },
@@ -171,6 +171,18 @@ export const en: typeof ar = {
     availableSeatsLabel: 'Available spots',
     seatsAvailableOf: 'spots available of',
   },
+  memberSchedule: {
+    eyebrow: 'Classes for the next two weeks',
+    heading: 'Class Schedule',
+    sessionsAvailable: 'classes available',
+    loadError: 'Unable to load classes right now.',
+    empty: 'No upcoming classes available in the next two weeks.',
+    timeLabel: 'Time',
+    locationLabel: 'Location',
+    capacityLabel: 'Capacity',
+    instructorLabel: 'Instructor',
+    instructorName: 'Ahlam',
+  },
   schedule: {
     bookButtonIdle: 'Book This Class',
     bookButtonLoading: 'Booking...',
@@ -188,7 +200,7 @@ export const en: typeof ar = {
   },
   courses: {
     list: {
-      heading: 'Courses & Workshops',
+      heading: 'Lectures',
       subtitle:
         'Choose the right course, then pick a payment method. Purchases stay pending until payment is manually confirmed.',
       accessDeniedNotice:
@@ -203,7 +215,7 @@ export const en: typeof ar = {
       pendingPayment: 'Awaiting payment confirmation',
     },
     detail: {
-      eyebrow: 'Courses & Workshops',
+      eyebrow: 'Lectures',
       videoUnsupported: 'Your browser doesn’t support video playback.',
       videoLoadError: 'Unable to load the video right now, try reloading the page.',
       noArticleContent: 'No content yet.',

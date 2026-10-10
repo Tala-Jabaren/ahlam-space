@@ -185,12 +185,6 @@ export default async function HomePage() {
               >
                 {t.home.heroCtaExplore}
               </Link>
-              <Link
-                href="/classes"
-                className="inline-flex min-h-12 items-center justify-center rounded-full border border-[#617A55]/40 px-7 py-3 text-sm font-semibold text-[#617A55] transition-colors hover:bg-[#D6E2B6]/45"
-              >
-                {t.home.heroCtaBookNow}
-              </Link>
             </div>
           </div>
         </div>
