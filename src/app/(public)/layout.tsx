@@ -45,7 +45,7 @@ export default async function PublicLayout({
               <CartNavLink />
               <Link
                 className="inline-flex min-h-11 items-center justify-center rounded-full bg-[#617A55] px-6 py-3 text-sm font-semibold text-white shadow-sm transition hover:bg-[#4f6645]"
-                href={user ? '/dashboard' : '/login'}
+                href={user ? '/member-schedule' : '/login'}
               >
                 {user ? t.nav.account : t.nav.login}
               </Link>
