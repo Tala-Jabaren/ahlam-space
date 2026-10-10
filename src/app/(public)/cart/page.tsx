@@ -4,49 +4,54 @@ import { useSyncExternalStore } from 'react'
 import Link from 'next/link'
 import { useCart } from '@/lib/cart/cart-context'
 
-function formatPrice(price: number) {
-  return new Intl.NumberFormat('en-US', {
-    style: 'currency',
-    currency: 'USD',
-  }).format(price)
-}
+import { useT } from '@/i18n/i18n-context'
+import { checkoutAr } from '@/i18n/checkout-ar'
 
 const subscribeToLocation = () => () => {}
 
 export default function CartPage() {
+  const { t, locale, dir } = useT()
+  const c = t.checkout ?? checkoutAr
+  const formatPrice = (price: number) =>
+    new Intl.NumberFormat(locale === 'ar' ? 'ar' : 'en-US', {
+      style: 'currency',
+      currency: 'ILS',
+    }).format(price)
+  const formatNumber = (value: number) =>
+    new Intl.NumberFormat(locale === 'ar' ? 'ar' : 'en-US').format(value)
   const { items, removeFromCart, updateQuantity, totalPrice } = useCart()
   const checkoutMessage = useSyncExternalStore(
     subscribeToLocation,
     () =>
       new URLSearchParams(window.location.search).get('message') ===
       'empty-checkout',
-    () => false
+    () => false,
   )
 
   return (
-    <div className="px-5 py-16 sm:px-8 lg:px-10">
+    <div className="px-5 py-16 text-start sm:px-8 lg:px-10" dir={dir}>
       <section className="mx-auto max-w-5xl">
         <p className="text-sm font-medium uppercase tracking-[0.28em] text-[#617A55]">
-          Studio shop
+          {c.cart.eyebrow}
         </p>
         <h1 className="mt-3 font-serif text-5xl leading-tight text-[#25311f] sm:text-6xl">
-          Cart
+          {c.cart.title}
         </h1>
 
         {checkoutMessage && (
-          <p className="mt-6 rounded-lg bg-[#C7D6E8]/45 p-4 text-sm text-[#25311f]" dir="rtl">
-            أضيفي منتجًا إلى السلة قبل متابعة إتمام الطلب.
+          <p className="mt-6 rounded-lg bg-[#C7D6E8]/45 p-4 text-sm text-[#25311f]">
+            {c.cart.emptyNotice}
           </p>
         )}
 
         {items.length === 0 ? (
           <div className="mt-10 rounded-[1.75rem] bg-[#C7D6E8]/55 p-8 text-[#4f5d49]">
-            <p>سلتك فارغة حاليًا.</p>
+            <p>{c.cart.empty}</p>
             <Link
               href="/shop"
               className="mt-5 inline-flex min-h-11 items-center justify-center rounded-full bg-[#617A55] px-6 py-3 text-sm font-semibold text-white transition hover:bg-[#4f6645]"
             >
-              تصفحي المتجر
+              {c.cart.browse}
             </Link>
           </div>
         ) : (
@@ -88,20 +93,20 @@ export default function CartPage() {
                           updateQuantity(item.variant_id, item.quantity - 1)
                         }
                         disabled={item.quantity <= 1}
-                        aria-label="إنقاص الكمية"
+                        aria-label={c.cart.decrease}
                         className="grid size-9 place-items-center rounded-full border border-[#617A55]/20 text-lg transition hover:bg-[#D6E2B6]/50 disabled:cursor-not-allowed disabled:opacity-40"
                       >
                         −
                       </button>
                       <span className="min-w-6 text-center font-semibold text-[#25311f]">
-                        {item.quantity}
+                        {formatNumber(item.quantity)}
                       </span>
                       <button
                         type="button"
                         onClick={() =>
                           updateQuantity(item.variant_id, item.quantity + 1)
                         }
-                        aria-label="زيادة الكمية"
+                        aria-label={c.cart.increase}
                         className="grid size-9 place-items-center rounded-full border border-[#617A55]/20 text-lg transition hover:bg-[#D6E2B6]/50"
                       >
                         +
@@ -114,7 +119,7 @@ export default function CartPage() {
                     onClick={() => removeFromCart(item.variant_id)}
                     className="self-start text-sm font-medium text-[#617A55]/70 underline transition hover:text-[#617A55] sm:self-center"
                   >
-                    إزالة
+                    {c.cart.remove}
                   </button>
                 </li>
               ))}
@@ -122,13 +127,13 @@ export default function CartPage() {
 
             <div className="mt-10 flex flex-col items-end gap-4 border-t border-[#617A55]/15 pt-8">
               <p className="font-serif text-3xl text-[#25311f]">
-                الإجمالي: {formatPrice(totalPrice)}
+                {c.cart.total}: {formatPrice(totalPrice)}
               </p>
               <Link
                 href="/checkout"
                 className="inline-flex min-h-11 items-center justify-center rounded-full bg-[#617A55] px-7 py-3 text-sm font-semibold text-white shadow-sm transition hover:bg-[#4f6645]"
               >
-                متابعة الشراء
+                {c.cart.continue}
               </Link>
             </div>
           </>

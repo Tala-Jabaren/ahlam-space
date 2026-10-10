@@ -8,84 +8,39 @@ import PaymentConfirmationBlock from '@/components/payment-confirmation-block'
 import { useCart } from '@/lib/cart/cart-context'
 import { createClient } from '@/lib/supabase/client'
 
+import { useT } from '@/i18n/i18n-context'
+import {
+  checkoutAr,
+  checkoutErrorMessage,
+  localizeValidation,
+} from '@/i18n/checkout-ar'
+
 type FulfillmentMethod = 'delivery' | 'pickup'
 
 const subscribeToHydration = () => () => {}
 
-const deliveryCities = [
-    'القدس',
-    'رام الله',
-    'البيرة',
-    'نابلس',
-    'الخليل',
-    'بيت لحم',
-    'أريحا',
-    'جنين',
-    'طولكرم',
-    'قلقيلية',
-    'سلفيت',
-    'طوباس',
-    'غزة',
-    'خان يونس',
-    'رفح',
-    'دير البلح',
-    'جباليا',
-    'بيت لاهيا',
-    'بيت حانون',
-    'الناصرة',
-    'حيفا',
-    'يافا',
-    'تل أبيب',
-    'عكا',
-    'اللد',
-    'الرملة',
-    'بئر السبع',
-    'أم الفحم',
-    'الطيبة',
-    'الطيرة',
-    'شفاعمرو',
-    'سخنين',
-    'عرابة',
-    'رهط',
-    'كفر قاسم',
-    'باقة الغربية',
-    'طمرة',
-    'كرمئيل',
-    'طبريا',
-    'صفد',
-    'نتانيا',
-    'هرتسليا',
-    'ريشون لتسيون',
-    'بيتح تكفا',
-    'حولون',
-    'بات يام',
-    'رحوفوت',
-    'عسقلان',
-    'أسدود',
-    'إيلات',
-    'نهاريا',
-    'كريات شمونة',
-    'مدينة أو بلدة أخرى',
-] as const
-
-function formatPrice(price: number) {
-  return new Intl.NumberFormat('en-US', {
-    style: 'currency',
-    currency: 'USD',
-  }).format(price)
-}
+const deliveryCities = checkoutAr.cities
 
 export default function CheckoutForm({
   isInitiallyLoggedIn,
 }: {
   isInitiallyLoggedIn: boolean
 }) {
+  const { t, locale, dir } = useT()
+  const c = t.checkout ?? checkoutAr
+  const formatPrice = (price: number) =>
+    new Intl.NumberFormat(locale === 'ar' ? 'ar' : 'en-US', {
+      style: 'currency',
+      currency: 'ILS',
+    }).format(price)
+  const formatNumber = (value: number) =>
+    new Intl.NumberFormat(locale === 'ar' ? 'ar' : 'en-US').format(value)
   const router = useRouter()
   const { items, totalPrice, clearCart } = useCart()
   const isMounted = useSyncExternalStore(
     subscribeToHydration,
     () => true,
-    () => false
+    () => false,
   )
   const [fulfillmentMethod, setFulfillmentMethod] =
     useState<FulfillmentMethod | null>(null)
@@ -118,12 +73,12 @@ export default function CheckoutForm({
       isGuest &&
       (!guestFirstName.trim() || !guestLastName.trim() || !guestPhone.trim())
     ) {
-      setError('أدخلي الاسم الأول واسم العائلة ورقم الهاتف لإتمام الطلب.')
+      setError('GUEST_INFO_REQUIRED')
       return
     }
 
     if (!fulfillmentMethod) {
-      setError('اختاري طريقة استلام الطلب.')
+      setError('FULFILLMENT_REQUIRED')
       return
     }
 
@@ -131,7 +86,7 @@ export default function CheckoutForm({
       fulfillmentMethod === 'delivery' &&
       (!deliveryCity || !deliveryStreet.trim())
     ) {
-      setError('اختاري المدينة وأدخلي البلدة أو الشارع.')
+      setError('DELIVERY_REQUIRED')
       return
     }
 
@@ -141,102 +96,92 @@ export default function CheckoutForm({
     }
 
     setIsSubmitting(true)
-    const supabase = createClient()
-    const {
-      data: { user },
-      error: userError,
-    } = await supabase.auth.getUser()
+    try {
+      const supabase = createClient()
+      const {
+        data: { user },
+        error: userError,
+      } = await supabase.auth.getUser()
 
-    if (userError && !isAuthSessionMissingError(userError)) {
-      setError('تعذر التحقق من بيانات الطلب. حاولي مرة أخرى.')
-      setIsSubmitting(false)
-      return
-    }
-
-    if (!user && !isGuest) {
-      setIsGuest(true)
-      setError('انتهت جلسة تسجيل الدخول. أدخلي بيانات التواصل لإتمام الطلب كزائرة.')
-      setIsSubmitting(false)
-      return
-    }
-
-    const rpcItems = items.map((item) => ({
-      variant_id: item.variant_id,
-      quantity: item.quantity,
-    }))
-
-    const { data, error: orderError } = await supabase.rpc('place_order', {
-      p_user_id: user?.id ?? null,
-      p_items: rpcItems,
-      p_fulfillment_method: fulfillmentMethod,
-      p_payment_method: 'bank_transfer',
-      p_delivery_address:
-        fulfillmentMethod === 'delivery'
-          ? `${deliveryCity}، ${deliveryStreet.trim()}`
-          : null,
-      p_guest_name: user
-        ? null
-        : `${guestFirstName.trim()} ${guestLastName.trim()}`,
-      p_guest_phone: user ? null : guestPhone.trim(),
-      p_guest_email: user ? null : guestEmail.trim() || null,
-    })
-
-    if (orderError) {
-      const stockMatch = orderError.message.match(
-        /OUT_OF_STOCK:([0-9a-f-]{36})/i
-      )
-
-      if (stockMatch) {
-        const unavailableItem = items.find(
-          (item) => item.variant_id === stockMatch[1]
-        )
-        setError(
-          unavailableItem
-            ? `عذرًا، ${unavailableItem.name} لم يعد متوفرًا بالكمية المطلوبة.`
-            : 'عذرًا، أحد المنتجات لم يعد متوفرًا بالكمية المطلوبة.'
-        )
-      } else {
-        setError('حدث خطأ أثناء تأكيد الطلب. حاولي مرة أخرى.')
+      if (userError && !isAuthSessionMissingError(userError)) {
+        setError('AUTH_CHECK_FAILED')
+        setIsSubmitting(false)
+        return
       }
 
-      setIsSubmitting(false)
-      return
-    }
+      if (!user && !isGuest) {
+        setIsGuest(true)
+        setError('SESSION_EXPIRED')
+        setIsSubmitting(false)
+        return
+      }
 
-    const result = data as { id: string; reference: string; total: number }
-    clearCart()
-    setOrderId(result.id)
-    setOrderReference(result.reference)
-    setOrderTotal(result.total)
-    setIsSubmitting(false)
+      const rpcItems = items.map((item) => ({
+        variant_id: item.variant_id,
+        quantity: item.quantity,
+      }))
+
+      const { data, error: orderError } = await supabase.rpc('place_order', {
+        p_user_id: user?.id ?? null,
+        p_items: rpcItems,
+        p_fulfillment_method: fulfillmentMethod,
+        p_payment_method: 'bank_transfer',
+        p_delivery_address:
+          fulfillmentMethod === 'delivery'
+            ? `${deliveryCity}، ${deliveryStreet.trim()}`
+            : null,
+        p_guest_name: user
+          ? null
+          : `${guestFirstName.trim()} ${guestLastName.trim()}`,
+        p_guest_phone: user ? null : guestPhone.trim(),
+        p_guest_email: user ? null : guestEmail.trim() || null,
+      })
+
+      if (orderError) {
+        setError(orderError.message)
+        setIsSubmitting(false)
+        return
+      }
+
+      const result = data as { id: string; reference: string; total: number }
+      clearCart()
+      setOrderId(result.id)
+      setOrderReference(result.reference)
+      setOrderTotal(result.total)
+      setIsSubmitting(false)
+    } catch {
+      setError('generic')
+      setIsSubmitting(false)
+    }
   }
 
   if (!isMounted || (items.length === 0 && !orderId)) {
     return (
-      <div className="grid min-h-[50vh] place-items-center px-5" dir="rtl">
-        <p className="text-[#617A55]">جارٍ تجهيز صفحة الدفع...</p>
+      <div className="grid min-h-[50vh] place-items-center px-5" dir={dir}>
+        <p className="text-[#617A55]">{c.order.loading}</p>
       </div>
     )
   }
 
   if (orderId && orderReference && orderTotal !== null) {
     return (
-      <div className="px-5 py-20 sm:px-8" dir="rtl">
+      <div className="px-5 py-20 sm:px-8" dir={dir}>
         <section className="mx-auto max-w-xl rounded-lg border border-[#617A55]/15 bg-white p-8 text-center shadow-sm">
           <div className="mx-auto grid size-12 place-items-center rounded-full bg-[#D6E2B6] text-2xl text-[#617A55]">
             ✓
           </div>
           <h1 className="mt-5 text-3xl font-semibold text-[#25311f]">
-            تم استلام طلبك بنجاح
+            {c.order.received}
           </h1>
           <p className="mt-3 text-sm text-[#617A55]">
-            {isGuest
-              ? 'سنتواصل معك عبر رقم الهاتف لمتابعة تأكيد الطلب.'
-              : 'يمكنك متابعة حالة الطلب من صفحة طلباتي.'}
+            {isGuest ? c.order.guestSuccess : c.order.memberSuccess}
           </p>
 
-          <div className="mt-6 text-right">
-            <PaymentConfirmationBlock amount={orderTotal} reference={orderReference} />
+          <div className="mt-6 text-start">
+            <PaymentConfirmationBlock
+              amount={orderTotal}
+              reference={orderReference}
+            />
           </div>
 
           {!isGuest && (
@@ -245,7 +190,7 @@ export default function CheckoutForm({
               onClick={() => router.replace('/orders')}
               className="mt-6 inline-flex min-h-11 items-center justify-center rounded-full bg-[#617A55] px-6 py-3 text-sm font-semibold text-white transition hover:bg-[#526849]"
             >
-              عرض طلباتي
+              {c.order.viewOrders}
             </button>
           )}
         </section>
@@ -254,48 +199,53 @@ export default function CheckoutForm({
   }
 
   return (
-    <div className="bg-[#F7F6F0] px-5 py-12 sm:px-8 lg:px-10" dir="rtl">
+    <div className="bg-[#F7F6F0] px-5 py-12 sm:px-8 lg:px-10" dir={dir}>
       <div className="mx-auto max-w-6xl">
-        <p className="text-sm font-medium text-[#617A55]">إتمام الطلب</p>
+        <p className="text-sm font-medium text-[#617A55]">{c.order.eyebrow}</p>
         <h1 className="mt-2 text-4xl font-semibold text-[#25311f] sm:text-5xl">
-          مراجعة وتأكيد الطلب
+          {c.order.title}
         </h1>
 
         <form
           className="mt-10 grid items-start gap-8 lg:grid-cols-[minmax(0,1fr)_minmax(320px,0.72fr)]"
+          key={locale}
+          onInvalid={(event) => localizeValidation(event.target, c)}
+          onInput={(event) => localizeValidation(event.target, c, true)}
           onSubmit={handleSubmit}
         >
           <div className="space-y-8">
             {isGuest && (
               <section className="rounded-lg border border-[#617A55]/15 bg-white p-5 sm:p-7">
                 <h2 className="text-xl font-semibold text-[#25311f]">
-                  معلومات التواصل
+                  {c.order.contact}
                 </h2>
                 <div className="mt-5 grid gap-4 sm:grid-cols-2">
                   <label className="grid gap-2 text-sm font-medium text-[#25311f]">
-                    الاسم الأول
+                    {c.order.firstName}
                     <input
                       type="text"
                       value={guestFirstName}
-                      onChange={(event) => setGuestFirstName(event.target.value)}
+                      onChange={(event) =>
+                        setGuestFirstName(event.target.value)
+                      }
                       required
                       autoComplete="given-name"
-                      className="min-h-12 rounded-lg border border-[#617A55]/20 bg-[#F7F6F0] px-4 font-normal outline-none transition focus:border-[#617A55]"
+                      className="min-h-12 min-w-0 w-full rounded-lg border border-[#617A55]/20 bg-[#F7F6F0] px-4 font-normal outline-none transition focus:border-[#617A55]"
                     />
                   </label>
                   <label className="grid gap-2 text-sm font-medium text-[#25311f]">
-                    اسم العائلة
+                    {c.order.lastName}
                     <input
                       type="text"
                       value={guestLastName}
                       onChange={(event) => setGuestLastName(event.target.value)}
                       required
                       autoComplete="family-name"
-                      className="min-h-12 rounded-lg border border-[#617A55]/20 bg-[#F7F6F0] px-4 font-normal outline-none transition focus:border-[#617A55]"
+                      className="min-h-12 min-w-0 w-full rounded-lg border border-[#617A55]/20 bg-[#F7F6F0] px-4 font-normal outline-none transition focus:border-[#617A55]"
                     />
                   </label>
                   <label className="grid gap-2 text-sm font-medium text-[#25311f]">
-                    رقم الهاتف
+                    {c.order.phone}
                     <input
                       type="tel"
                       value={guestPhone}
@@ -303,18 +253,18 @@ export default function CheckoutForm({
                       required
                       autoComplete="tel"
                       inputMode="tel"
-                      className="min-h-12 rounded-lg border border-[#617A55]/20 bg-[#F7F6F0] px-4 font-normal outline-none transition focus:border-[#617A55]"
+                      className="min-h-12 min-w-0 w-full rounded-lg border border-[#617A55]/20 bg-[#F7F6F0] px-4 font-normal outline-none transition focus:border-[#617A55]"
                     />
                   </label>
                   <label className="grid gap-2 text-sm font-medium text-[#25311f]">
-                    البريد الإلكتروني (اختياري)
+                    {c.order.email}
                     <input
                       type="email"
                       value={guestEmail}
                       onChange={(event) => setGuestEmail(event.target.value)}
                       autoComplete="email"
                       dir="ltr"
-                      className="min-h-12 rounded-lg border border-[#617A55]/20 bg-[#F7F6F0] px-4 text-right font-normal outline-none transition focus:border-[#617A55]"
+                      className="min-h-12 min-w-0 w-full rounded-lg border border-[#617A55]/20 bg-[#F7F6F0] px-4 text-start font-normal outline-none transition focus:border-[#617A55]"
                     />
                   </label>
                 </div>
@@ -323,13 +273,13 @@ export default function CheckoutForm({
 
             <section className="rounded-lg border border-[#617A55]/15 bg-white p-5 sm:p-7">
               <h2 className="text-xl font-semibold text-[#25311f]">
-                طريقة الاستلام
+                {c.order.fulfillment}
               </h2>
               <div className="mt-5 grid gap-3 sm:grid-cols-2">
                 {(
                   [
-                    ['delivery', 'توصيل'],
-                    ['pickup', 'استلام من الاستوديو'],
+                    ['delivery', c.order.delivery],
+                    ['pickup', c.order.pickup],
                   ] as const
                 ).map(([value, label]) => (
                   <label
@@ -356,31 +306,34 @@ export default function CheckoutForm({
               {fulfillmentMethod === 'delivery' && (
                 <div className="mt-5 grid gap-4 sm:grid-cols-2">
                   <label className="grid gap-2 text-sm font-medium text-[#25311f]">
-                    المدينة
+                    {c.order.city}
                     <select
+                      aria-label={c.order.city}
                       value={deliveryCity}
                       onChange={(event) => setDeliveryCity(event.target.value)}
                       required
-                      className="min-h-12 rounded-lg border border-[#617A55]/20 bg-[#F7F6F0] px-4 font-normal outline-none transition focus:border-[#617A55]"
+                      className="min-h-12 min-w-0 w-full rounded-lg border border-[#617A55]/20 bg-[#F7F6F0] px-4 font-normal outline-none transition focus:border-[#617A55]"
                     >
-                      <option value="">اختاري المدينة</option>
-                      {deliveryCities.map((city) => (
+                      <option value="">{c.order.chooseCity}</option>
+                      {deliveryCities.map((city, index) => (
                         <option key={city} value={city}>
-                          {city}
+                          {c.cities[index]}
                         </option>
                       ))}
                     </select>
                   </label>
                   <label className="grid gap-2 text-sm font-medium text-[#25311f]">
-                    البلدة / الشارع
+                    {c.order.street}
                     <input
                       type="text"
                       value={deliveryStreet}
-                      onChange={(event) => setDeliveryStreet(event.target.value)}
+                      onChange={(event) =>
+                        setDeliveryStreet(event.target.value)
+                      }
                       required
                       autoComplete="street-address"
-                      placeholder="اسم البلدة، الشارع، ورقم المبنى"
-                      className="min-h-12 rounded-lg border border-[#617A55]/20 bg-[#F7F6F0] px-4 font-normal outline-none transition placeholder:text-[#617A55]/50 focus:border-[#617A55]"
+                      placeholder={c.order.streetPlaceholder}
+                      className="min-h-12 min-w-0 w-full rounded-lg border border-[#617A55]/20 bg-[#F7F6F0] px-4 font-normal outline-none transition placeholder:text-[#617A55]/50 focus:border-[#617A55]"
                     />
                   </label>
                 </div>
@@ -389,33 +342,39 @@ export default function CheckoutForm({
 
             <section className="rounded-lg border border-[#617A55]/15 bg-white p-5 sm:p-7">
               <h2 className="text-xl font-semibold text-[#25311f]">
-                طريقة الدفع
+                {c.order.payment}
               </h2>
               <p className="mt-2 text-sm leading-6 text-[#617A55]">
-                الدفع عبر حوالة بنكية فقط حاليًا. سنعرض تفاصيل التحويل ورمز
-                المرجع الخاص بطلبك بعد التأكيد.
+                {c.order.paymentDescription}
               </p>
             </section>
           </div>
 
           <aside className="rounded-lg border border-[#617A55]/15 bg-white p-5 sm:p-7 lg:sticky lg:top-28">
-            <h2 className="text-xl font-semibold text-[#25311f]">ملخص الطلب</h2>
+            <h2 className="text-xl font-semibold text-[#25311f]">
+              {c.order.summary}
+            </h2>
             <ul className="mt-5 divide-y divide-[#617A55]/10">
               {items.map((item) => (
                 <li key={item.variant_id} className="py-4 first:pt-0">
                   <div className="flex justify-between gap-4">
                     <div className="min-w-0">
-                      <h3 className="font-medium text-[#25311f]">{item.name}</h3>
+                      <h3 className="font-medium text-[#25311f]">
+                        {item.name}
+                      </h3>
                       {(item.size || item.color) && (
                         <p className="mt-1 text-sm text-[#617A55]">
                           {[item.size, item.color].filter(Boolean).join(' · ')}
                         </p>
                       )}
                       <p className="mt-1 text-sm text-[#617A55]">
-                        الكمية: {item.quantity}
+                        {c.order.quantity}: {formatNumber(item.quantity)}
                       </p>
                     </div>
-                    <p className="shrink-0 font-medium text-[#25311f]" dir="ltr">
+                    <p
+                      className="shrink-0 font-medium text-[#25311f]"
+                      dir="ltr"
+                    >
                       {formatPrice(item.price * item.quantity)}
                     </p>
                   </div>
@@ -424,13 +383,16 @@ export default function CheckoutForm({
             </ul>
 
             <div className="mt-4 flex items-center justify-between border-t border-[#617A55]/15 pt-5 text-lg font-semibold text-[#25311f]">
-              <span>الإجمالي</span>
+              <span>{c.cart.total}</span>
               <span dir="ltr">{formatPrice(totalPrice)}</span>
             </div>
 
             {error && (
-              <p className="mt-5 rounded-lg bg-[#C7D6E8]/45 p-4 text-sm leading-6 text-[#25311f]">
-                {error}
+              <p
+                role="alert"
+                className="mt-5 rounded-lg bg-[#C7D6E8]/45 p-4 text-sm leading-6 text-[#25311f]"
+              >
+                {checkoutErrorMessage(error, c, items)}
               </p>
             )}
 
@@ -439,16 +401,16 @@ export default function CheckoutForm({
               disabled={isSubmitting}
               className="mt-6 inline-flex min-h-12 w-full items-center justify-center rounded-full bg-[#617A55] px-6 py-3 font-semibold text-white transition hover:bg-[#526849] disabled:cursor-not-allowed disabled:opacity-60"
             >
-              {isSubmitting ? 'جارٍ تأكيد الطلب...' : 'تأكيد الطلب'}
+              {isSubmitting ? c.order.confirming : c.order.confirm}
             </button>
             <p className="mt-3 text-center text-xs leading-6 text-[#617A55]/70">
-              بالمتابعة أنت توافق على{' '}
+              {c.consent.prefix}{' '}
               <Link href="/legal/terms" className="underline">
-                الشروط
+                {c.consent.terms}
               </Link>{' '}
-              و
+              {c.consent.and}{' '}
               <Link href="/legal/cancellation" className="underline">
-                سياسة الإلغاء
+                {c.consent.cancellation}
               </Link>
             </p>
           </aside>

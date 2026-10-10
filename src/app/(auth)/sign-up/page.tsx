@@ -5,18 +5,30 @@ import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 
+import { useT } from '@/i18n/i18n-context'
+import {
+  checkoutAr,
+  authErrorMessage,
+  localizeValidation,
+} from '@/i18n/checkout-ar'
+
 export default function SignUpPage() {
+  const { t, locale, dir } = useT()
+  const c = t.checkout ?? checkoutAr
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [firstName, setFirstName] = useState('')
   const [lastName, setLastName] = useState('')
-  const [error, setError] = useState<string | null>(null)
+  const [error, setError] = useState<{
+    code?: string
+    message?: string
+  } | null>(null)
   const [loading, setLoading] = useState(false)
   const router = useRouter()
 
   function getSafeReturnTo() {
     const requestedReturnTo = new URLSearchParams(window.location.search).get(
-      'returnTo'
+      'returnTo',
     )
 
     return requestedReturnTo?.startsWith('/') &&
@@ -38,56 +50,70 @@ export default function SignUpPage() {
     setError(null)
     setLoading(true)
 
-    const supabase = createClient()
-    const { error } = await supabase.auth.signUp({
-      email,
-      password,
-      options: {
-        data: { full_name: `${firstName.trim()} ${lastName.trim()}` },
-      },
-    })
+    try {
+      const supabase = createClient()
+      const { error } = await supabase.auth.signUp({
+        email,
+        password,
+        options: {
+          data: { full_name: `${firstName.trim()} ${lastName.trim()}` },
+        },
+      })
 
-    setLoading(false)
+      setLoading(false)
 
-    if (error) {
-      setError(error.message)
-      return
+      if (error) {
+        setError(error)
+        return
+      }
+
+      const loginParams = new URLSearchParams({
+        message: 'check-email',
+      })
+      const returnTo = getSafeReturnTo()
+      if (returnTo) {
+        loginParams.set('returnTo', returnTo)
+      }
+
+      router.push(`/login?${loginParams.toString()}`)
+    } catch {
+      setError({})
+      setLoading(false)
     }
-
-    const loginParams = new URLSearchParams({
-      message: 'Check your email to confirm your account',
-    })
-    const returnTo = getSafeReturnTo()
-    if (returnTo) {
-      loginParams.set('returnTo', returnTo)
-    }
-
-    router.push(`/login?${loginParams.toString()}`)
   }
 
   return (
-    <main className="flex min-h-screen items-center justify-center bg-[#F7F6F0] px-5 py-12 text-[#25311f] sm:px-8">
+    <main
+      dir={dir}
+      className="flex min-h-screen items-center justify-center bg-[#F7F6F0] px-5 py-12 text-[#25311f] sm:px-8"
+    >
       <section className="w-full max-w-md rounded-[2rem] border border-[#617A55]/10 bg-white/70 p-6 shadow-sm sm:p-8">
         <div className="space-y-3 text-center">
           <p className="text-sm font-medium uppercase tracking-[0.28em] text-[#617A55]">
-            Join the studio
+            {c.auth.join}
           </p>
           <h1 className="font-serif text-4xl leading-tight sm:text-5xl">
-            Sign Up
+            {c.auth.signup}
           </h1>
           <p className="text-sm leading-6 text-[#4f5d49]">
-            Create your Ahlam Space member account.
+            {c.auth.signupDescription}
           </p>
         </div>
 
-        <form className="mt-8 grid gap-5" onSubmit={handleSignUp}>
+        <form
+          className="mt-8 grid gap-5"
+          key={locale}
+          onInvalid={(event) => localizeValidation(event.target, c)}
+          onInput={(event) => localizeValidation(event.target, c, true)}
+          onSubmit={handleSignUp}
+        >
           <div className="grid gap-4 sm:grid-cols-2">
             <label className="grid gap-2 text-sm font-medium text-[#617A55]">
-              First name
+              {c.order.firstName}
               <input
-                className="min-h-11 rounded-2xl border border-[#617A55]/20 bg-[#F7F6F0] px-4 py-3 text-[#25311f] outline-none transition placeholder:text-[#617A55]/55 focus:border-[#617A55]"
+                className="min-h-11 min-w-0 w-full rounded-2xl border border-[#617A55]/20 bg-[#F7F6F0] px-4 py-3 text-[#25311f] outline-none transition placeholder:text-[#617A55]/55 focus:border-[#617A55]"
                 type="text"
-                placeholder="First name"
+                placeholder={c.order.firstName}
                 value={firstName}
                 onChange={(e) => setFirstName(e.target.value)}
                 required
@@ -95,11 +121,11 @@ export default function SignUpPage() {
               />
             </label>
             <label className="grid gap-2 text-sm font-medium text-[#617A55]">
-              Last name
+              {c.order.lastName}
               <input
-                className="min-h-11 rounded-2xl border border-[#617A55]/20 bg-[#F7F6F0] px-4 py-3 text-[#25311f] outline-none transition placeholder:text-[#617A55]/55 focus:border-[#617A55]"
+                className="min-h-11 min-w-0 w-full rounded-2xl border border-[#617A55]/20 bg-[#F7F6F0] px-4 py-3 text-[#25311f] outline-none transition placeholder:text-[#617A55]/55 focus:border-[#617A55]"
                 type="text"
-                placeholder="Last name"
+                placeholder={c.order.lastName}
                 value={lastName}
                 onChange={(e) => setLastName(e.target.value)}
                 required
@@ -108,11 +134,11 @@ export default function SignUpPage() {
             </label>
           </div>
           <label className="grid gap-2 text-sm font-medium text-[#617A55]">
-            Email
+            {c.auth.email}
             <input
-              className="min-h-11 rounded-2xl border border-[#617A55]/20 bg-[#F7F6F0] px-4 py-3 text-[#25311f] outline-none transition placeholder:text-[#617A55]/55 focus:border-[#617A55]"
+              className="min-h-11 min-w-0 w-full rounded-2xl border border-[#617A55]/20 bg-[#F7F6F0] px-4 py-3 text-[#25311f] outline-none transition placeholder:text-[#617A55]/55 focus:border-[#617A55]"
               type="email"
-              placeholder="Email"
+              placeholder={c.auth.email}
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               required
@@ -120,11 +146,11 @@ export default function SignUpPage() {
             />
           </label>
           <label className="grid gap-2 text-sm font-medium text-[#617A55]">
-            Password
+            {c.auth.password}
             <input
-              className="min-h-11 rounded-2xl border border-[#617A55]/20 bg-[#F7F6F0] px-4 py-3 text-[#25311f] outline-none transition placeholder:text-[#617A55]/55 focus:border-[#617A55]"
+              className="min-h-11 min-w-0 w-full rounded-2xl border border-[#617A55]/20 bg-[#F7F6F0] px-4 py-3 text-[#25311f] outline-none transition placeholder:text-[#617A55]/55 focus:border-[#617A55]"
               type="password"
-              placeholder="Password"
+              placeholder={c.auth.password}
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               required
@@ -133,8 +159,11 @@ export default function SignUpPage() {
             />
           </label>
           {error && (
-            <p className="rounded-2xl bg-red-50 p-4 text-sm leading-6 text-red-700">
-              {error}
+            <p
+              role="alert"
+              className="rounded-2xl bg-red-50 p-4 text-sm leading-6 text-red-700"
+            >
+              {authErrorMessage(error, c)}
             </p>
           )}
           <button
@@ -142,17 +171,17 @@ export default function SignUpPage() {
             type="submit"
             disabled={loading}
           >
-            {loading ? 'Creating account...' : 'Sign Up'}
+            {loading ? c.auth.creating : c.auth.signup}
           </button>
         </form>
         <div className="mt-6 flex flex-col items-center gap-2 text-center text-sm text-[#4f5d49]">
-          <p>Already have an account?</p>
+          <p>{c.auth.haveAccount}</p>
           <Link
             className="inline-flex min-h-11 items-center justify-center rounded-full px-4 font-medium text-[#617A55] underline-offset-4 transition hover:bg-[#D6E2B6]/50 hover:text-[#25311f] hover:underline"
             href="/login"
             onClick={handleLoginLink}
           >
-            Login
+            {c.auth.login}
           </Link>
         </div>
       </section>
