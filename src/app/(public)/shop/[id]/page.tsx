@@ -1,6 +1,8 @@
 import Image from 'next/image'
 import { notFound } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
+import { getT } from '@/i18n/get-t'
+import type { Locale } from '@/i18n/config'
 import AddToCartButton from './add-to-cart-button'
 
 type Product = {
@@ -23,20 +25,18 @@ type ProductPageProps = {
   params: Promise<{ id: string }>
 }
 
-function formatPrice(price: number | null) {
+function formatPrice(price: number | null, locale: Locale, priceComingSoon: string) {
   if (price === null) {
-    return 'Price coming soon'
+    return priceComingSoon
   }
 
-  return new Intl.NumberFormat('en-US', {
-    style: 'currency',
-    currency: 'USD',
-  }).format(price)
+  return `${new Intl.NumberFormat(locale === 'ar' ? 'ar' : 'en-US').format(price)} ₪`
 }
 
 export default async function ProductPage({ params }: ProductPageProps) {
   const { id } = await params
   const supabase = await createClient()
+  const { t, locale, dir } = await getT()
 
   const { data: productData, error: productError } = await supabase
     .from('products')
@@ -60,14 +60,14 @@ export default async function ProductPage({ params }: ProductPageProps) {
   const variants = (variantData ?? []) as ProductVariant[]
 
   return (
-    <div className="px-5 py-16 sm:px-8 lg:px-10">
+    <div className="px-5 py-16 sm:px-8 lg:px-10" dir={dir}>
       <section className="mx-auto grid max-w-7xl gap-10 lg:grid-cols-[0.9fr_1.1fr] lg:items-center">
         <div className="min-h-[340px] rounded-[2rem] bg-[#D6E2B6] p-6">
           <div className="relative h-full min-h-[292px] overflow-hidden rounded-[1.5rem] border border-white/60 bg-[#F7F6F0]/50">
             {product.image_url && (
               <Image
                 src={product.image_url}
-                alt={`صورة ${product.name}`}
+                alt={`${t.shop.list.productImageAltPrefix} ${product.name}`}
                 fill
                 sizes="(min-width: 1024px) 45vw, 100vw"
                 className="object-cover"
@@ -78,7 +78,7 @@ export default async function ProductPage({ params }: ProductPageProps) {
         </div>
         <div className="space-y-5">
           <p className="text-sm font-medium uppercase tracking-[0.28em] text-[#617A55]">
-            Studio shop
+            {t.shop.product.eyebrow}
           </p>
           <h1 className="font-serif text-5xl leading-tight text-[#25311f] sm:text-6xl">
             {product.name}
@@ -89,21 +89,21 @@ export default async function ProductPage({ params }: ProductPageProps) {
             </p>
           )}
           <p className="text-sm font-semibold uppercase tracking-[0.16em] text-[#617A55]">
-            {formatPrice(product.price)}
+            {formatPrice(product.price, locale, t.shop.product.priceComingSoon)}
           </p>
         </div>
       </section>
 
       <section className="mx-auto mt-14 max-w-7xl">
-        <h2 className="font-serif text-4xl text-[#25311f]">Variants</h2>
+        <h2 className="font-serif text-4xl text-[#25311f]">{t.shop.product.variantsHeading}</h2>
       {variantError && (
         <div className="mt-6 rounded-[1.75rem] bg-[#C7D6E8]/55 p-8 text-[#4f5d49]">
-          Unable to load variants right now.
+          {t.shop.product.variantsLoadError}
         </div>
       )}
       {!variantError && variants.length === 0 && (
         <div className="mt-6 rounded-[1.75rem] bg-[#C7D6E8]/55 p-8 text-[#4f5d49]">
-          No variants available.
+          {t.shop.product.noVariants}
         </div>
       )}
       {!variantError && variants.length > 0 && (
@@ -114,20 +114,20 @@ export default async function ProductPage({ params }: ProductPageProps) {
               className="rounded-[1.5rem] border border-[#617A55]/10 bg-white/70 p-5 text-sm leading-7 text-[#4f5d49]"
             >
               <p>
-                <span className="font-semibold text-[#25311f]">Size:</span>{' '}
-                {variant.size ?? 'N/A'}
+                <span className="font-semibold text-[#25311f]">{t.shop.product.sizeLabel}:</span>{' '}
+                {variant.size ?? t.common.notSpecified}
               </p>
               <p>
-                <span className="font-semibold text-[#25311f]">Color:</span>{' '}
-                {variant.color ?? 'N/A'}
+                <span className="font-semibold text-[#25311f]">{t.shop.product.colorLabel}:</span>{' '}
+                {variant.color ?? t.common.notSpecified}
               </p>
               <p>
-                <span className="font-semibold text-[#25311f]">Stock:</span>{' '}
+                <span className="font-semibold text-[#25311f]">{t.shop.product.stockLabel}:</span>{' '}
                 {variant.stock ?? 0}
               </p>
               <p>
-                <span className="font-semibold text-[#25311f]">SKU:</span>{' '}
-                {variant.sku ?? 'N/A'}
+                <span className="font-semibold text-[#25311f]">{t.shop.product.skuLabel}:</span>{' '}
+                {variant.sku ?? t.common.notSpecified}
               </p>
               <div className="mt-4">
                 <AddToCartButton

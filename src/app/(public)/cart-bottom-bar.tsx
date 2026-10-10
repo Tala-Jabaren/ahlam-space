@@ -4,10 +4,12 @@ import { useEffect, useRef, useState } from 'react'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { useCart } from '@/lib/cart/cart-context'
+import { useT } from '@/i18n/i18n-context'
 
 export default function CartBottomBar() {
   const pathname = usePathname()
   const { totalQuantity } = useCart()
+  const { t, dir } = useT()
   const previousQuantity = useRef(totalQuantity)
   const [showAddedMessage, setShowAddedMessage] = useState(false)
 
@@ -33,16 +35,16 @@ export default function CartBottomBar() {
           <div
             role="status"
             aria-live="polite"
-            dir="rtl"
+            dir={dir}
             className="w-max max-w-full rounded-full bg-[#D6E2B6] px-6 py-3 text-center text-sm font-semibold text-[#25311f] shadow-[0_8px_24px_rgba(37,49,31,0.14)]"
           >
-            تمت الإضافة إلى السلة
+            {t.shop.cartBar.addedToast}
           </div>
         </div>
       )}
 
       <div
-        dir="rtl"
+        dir={dir}
         className="fixed inset-x-4 bottom-4 z-50 mx-auto max-w-xl rounded-2xl border border-[#617A55]/15 bg-[#D6E2B6] p-3 shadow-[0_8px_28px_rgba(37,49,31,0.14)] sm:bottom-6"
       >
         <div className="flex items-center justify-between gap-4">
@@ -62,14 +64,17 @@ export default function CartBottomBar() {
               <circle cx="9.5" cy="20" r="1.3" fill="currentColor" stroke="none" />
               <circle cx="16.5" cy="20" r="1.3" fill="currentColor" stroke="none" />
             </svg>
-            <span className="absolute -left-1 -top-1 grid min-w-5 place-items-center rounded-full bg-[#617A55] px-1 text-[11px] font-semibold leading-5 text-white">
+            <span className="absolute -start-1 -top-1 grid min-w-5 place-items-center rounded-full bg-[#617A55] px-1 text-[11px] font-semibold leading-5 text-white">
               {totalQuantity}
             </span>
             </span>
             <div className="min-w-0">
-              <p className="font-semibold text-[#25311f]">السلة</p>
+              <p className="font-semibold text-[#25311f]">{t.shop.cartBar.cartLabel}</p>
               <p className="text-sm text-[#617A55]">
-                {totalQuantity} {totalQuantity === 1 ? 'منتج' : 'منتجات'}
+                {totalQuantity}{' '}
+                {totalQuantity === 1
+                  ? t.shop.cartBar.itemSingular
+                  : t.shop.cartBar.itemPlural}
               </p>
             </div>
           </div>
@@ -78,7 +83,7 @@ export default function CartBottomBar() {
             href="/cart"
             className="inline-flex min-h-11 shrink-0 items-center justify-center rounded-full bg-[#617A55] px-5 text-sm font-semibold text-white transition hover:bg-[#526849]"
           >
-            عرض السلة
+            {t.shop.cartBar.viewCart}
           </Link>
         </div>
       </div>

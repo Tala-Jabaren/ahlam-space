@@ -4,6 +4,7 @@ import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import PaymentConfirmationBlock from '@/components/payment-confirmation-block'
 import { createClient } from '@/lib/supabase/client'
+import { useT } from '@/i18n/i18n-context'
 
 type Props = {
   courseId: string
@@ -14,6 +15,7 @@ type PurchaseState = 'idle' | 'saving' | 'success' | 'error'
 
 export default function PurchaseCourseButton({ courseId, price }: Props) {
   const router = useRouter()
+  const { t, dir } = useT()
   const [state, setState] = useState<PurchaseState>('idle')
   const [reference, setReference] = useState<string | null>(null)
 
@@ -56,20 +58,18 @@ export default function PurchaseCourseButton({ courseId, price }: Props) {
   }
 
   return (
-    <div className="flex flex-col items-start gap-2" dir="rtl">
+    <div className="flex flex-col items-start gap-2" dir={dir}>
       <button
         type="button"
         onClick={handlePurchase}
         disabled={state === 'saving'}
         className="inline-flex min-h-11 items-center justify-center rounded-lg bg-[#617A55] px-7 py-3 text-sm font-semibold text-[#F7F6F0] transition hover:bg-[#4f6446] disabled:cursor-not-allowed disabled:opacity-50"
       >
-        {state === 'saving' ? 'جارٍ التسجيل...' : 'اشتري الآن'}
+        {state === 'saving' ? t.courses.purchaseButton.buying : t.courses.purchaseButton.buyNow}
       </button>
 
       {state === 'error' && (
-        <p className="text-sm text-red-600">
-          حدث خطأ أثناء تسجيل الطلب، حاولي مرة أخرى
-        </p>
+        <p className="text-sm text-red-600">{t.courses.purchaseButton.purchaseError}</p>
       )}
     </div>
   )

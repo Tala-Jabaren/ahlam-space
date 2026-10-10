@@ -1,6 +1,7 @@
 import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
 import { createAdminClient } from '@/lib/supabase/admin'
+import { getT } from '@/i18n/get-t'
 
 const COURSE_VIDEO_BUCKET = 'course-videos'
 const SIGNED_URL_EXPIRY_SECONDS = 60 * 60 // 1 hour
@@ -21,6 +22,7 @@ type CoursePageProps = {
 export default async function CoursePage({ params }: CoursePageProps) {
   const { id } = await params
   const supabase = await createClient()
+  const { t, dir } = await getT()
   const {
     data: { user },
     error: userError,
@@ -84,10 +86,10 @@ export default async function CoursePage({ params }: CoursePageProps) {
   }
 
   return (
-    <main className="px-4 py-8 text-[#617A55] sm:px-6 lg:px-8" dir="rtl">
+    <main className="px-4 py-8 text-[#617A55] sm:px-6 lg:px-8" dir={dir}>
       <section className="mx-auto max-w-4xl">
         <p className="text-sm font-semibold uppercase tracking-[0.24em] text-[#617A55]/70">
-          كورسات ومحاضرات
+          {t.courses.detail.eyebrow}
         </p>
         <h1 className="mt-2 font-serif text-4xl leading-tight sm:text-5xl">
           {course.title}
@@ -103,16 +105,16 @@ export default async function CoursePage({ params }: CoursePageProps) {
             signedVideoUrl ? (
               <video controls className="aspect-video w-full bg-black">
                 <source src={signedVideoUrl} />
-                متصفحك لا يدعم تشغيل الفيديو.
+                {t.courses.detail.videoUnsupported}
               </video>
             ) : (
               <div className="p-8 text-center text-sm leading-6">
-                تعذر تحميل الفيديو حاليًا، حاولي إعادة تحميل الصفحة.
+                {t.courses.detail.videoLoadError}
               </div>
             )
           ) : (
             <div className="whitespace-pre-wrap p-6 text-base leading-8 sm:p-8">
-              {course.article_body ?? 'لا يوجد محتوى بعد.'}
+              {course.article_body ?? t.courses.detail.noArticleContent}
             </div>
           )}
         </div>

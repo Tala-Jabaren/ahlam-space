@@ -5,6 +5,7 @@ import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import PaymentConfirmationBlock from '@/components/payment-confirmation-block'
 import { createClient } from '@/lib/supabase/client'
+import { useT } from '@/i18n/i18n-context'
 
 type Props = {
   sessionId: string
@@ -26,6 +27,7 @@ export default function BookSessionButton({
   isAuthenticated = true,
 }: Props) {
   const router = useRouter()
+  const { t } = useT()
   const [remaining, setRemaining] = useState(initialRemaining)
   const [state, setState] = useState<BookingState>('idle')
   const [reference, setReference] = useState<string | null>(null)
@@ -126,7 +128,7 @@ export default function BookSessionButton({
     <div className="flex flex-col items-start gap-2">
       {showRemaining && (
         <span className="rounded-full bg-[#C7D6E8]/70 px-3 py-1 text-[#25311f]">
-          {remaining > 0 ? remaining : 'Full'}
+          {remaining > 0 ? remaining : t.schedule.fullBadge}
         </span>
       )}
 
@@ -140,38 +142,35 @@ export default function BookSessionButton({
             disabled={state === 'booking' || remaining <= 0}
             className="rounded-full bg-[#617A55] px-4 py-1.5 text-sm font-medium text-white transition-colors hover:bg-[#4f6446] disabled:cursor-not-allowed disabled:opacity-50"
           >
-            {state === 'booking' ? 'جارٍ الحجز...' : 'احجزي هذه الحصة'}
+            {state === 'booking' ? t.schedule.bookButtonLoading : t.schedule.bookButtonIdle}
           </button>
           <p className="text-xs leading-5 text-[#617A55]/70">
-            بالمتابعة أنت توافق على{' '}
+            {t.schedule.consentPrefix}{' '}
             <Link href="/legal/terms" className="underline">
-              الشروط
+              {t.schedule.consentTerms}
             </Link>{' '}
-            و
+            {t.schedule.consentAnd}{' '}
             <Link href="/legal/cancellation" className="underline">
-              سياسة الإلغاء
+              {t.schedule.consentCancellation}
             </Link>
           </p>
         </>
       )}
 
       {state === 'full' && (
-        <p className="text-sm text-red-600">عذرًا، هذه الحصة ممتلئة</p>
+        <p className="text-sm text-red-600">{t.schedule.fullMessage}</p>
       )}
       {state === 'too_late' && (
         <p className="text-sm text-red-600">
-          عذرًا، لم يعد هناك وقت كافٍ لإتمام الحوالة البنكية قبل بدء هذه
-          الحصة. يرجى{' '}
+          {t.schedule.tooLateMessagePrefix}{' '}
           <a href="/contact" className="underline">
-            التواصل معنا
+            {t.schedule.tooLateContactLink}
           </a>{' '}
-          مباشرة لترتيب الحجز.
+          {t.schedule.tooLateMessageSuffix}
         </p>
       )}
       {state === 'error' && (
-        <p className="text-sm text-red-600">
-          حدث خطأ أثناء الحجز، حاولي مرة أخرى
-        </p>
+        <p className="text-sm text-red-600">{t.schedule.errorMessage}</p>
       )}
     </div>
   )
