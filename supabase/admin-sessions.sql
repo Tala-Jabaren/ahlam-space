@@ -27,6 +27,10 @@ drop policy if exists "Admins can update courses" on public.courses;
 create policy "Admins can update courses" on public.courses
   for update to authenticated using (public.is_admin()) with check (public.is_admin());
 
+drop policy if exists "Admins can view all courses" on public.courses;
+create policy "Admins can view all courses" on public.courses
+  for select to authenticated using (public.is_admin());
+
 -- A row CHECK also protects against concurrent bookings while capacity is edited.
 -- Validation fails atomically if any existing row already violates this rule.
 do $$
