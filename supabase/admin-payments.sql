@@ -6,10 +6,11 @@
 -- single session; it is written to be safely re-runnable (every object uses
 -- IF NOT EXISTS / CREATE OR REPLACE / DROP POLICY IF EXISTS).
 --
--- SOURCE OF TRUTH: public.place_order lives ONLY in this file (section 7).
--- The place-order-function*.sql files that used to sit at the repo root
--- (v1-v4) have been deleted - do not recreate them; edit this file instead
--- and re-run it.
+-- SOURCE OF TRUTH: public.place_order (section 7) and public.cancel_booking
+-- (section 10) live ONLY in this file. The place-order-function*.sql files
+-- (v1-v4) and cancel-booking-function.sql that used to sit at the repo root
+-- have all been deleted - do not recreate them; edit this file instead and
+-- re-run it.
 --
 -- Real schema this was written against (verified live, not assumed):
 --   bookings(id, session_id, user_id, status, payment_status, reserved_until,
@@ -932,9 +933,10 @@ create trigger course_purchases_enforce_insert
 -- EXECUTE from authenticated) once all three branches are merged and the
 -- rewritten book-session-button.tsx is the only version left in main.
 --
--- cancel_booking(p_booking_id, p_user_id): read from cancel-booking-
--- function.sql at the repo root (no other copy of it exists). Checked two
--- things:
+-- cancel_booking(p_booking_id, p_user_id): previously defined only in
+-- cancel-booking-function.sql at the repo root - that file is now deleted,
+-- this is the only copy (see the SOURCE OF TRUTH note at the top of this
+-- file). Checked three things:
 --   (a) double-decrement safety - correct as-is. It captures the booking's
 --       PRE-update status, updates status to 'cancelled' unconditionally,
 --       then only decrements class_sessions.booked_count if that captured
@@ -953,6 +955,15 @@ create trigger course_purchases_enforce_insert
 --       "pg_temp" to search_path to match every other SECURITY DEFINER
 --       function in this file - not a behavior change, just closing the
 --       same search_path gap the rest of this file already guards against.
+--   (c) PRE-LAUNCH HARDENING FINDING (new): p_user_id was never checked
+--       against auth.uid(). The WHERE clause's "user_id = p_user_id" means
+--       a caller still can't cancel a booking they don't know the exact
+--       (id, user_id) pair for, but nothing stopped a caller from passing
+--       someone else's user id as p_user_id if they somehow also had that
+--       person's booking id. book_class_session (section 8) already
+--       enforces "auth.uid() = p_user_id" with a FORBIDDEN exception -
+--       added the same check here for consistency and to close this gap
+--       entirely, not just reduce it.
 
 create or replace function public.cancel_booking(
   p_booking_id uuid,
@@ -970,6 +981,19 @@ declare
   v_start_time time;
   v_session_start timestamptz;
 begin
+  -- Pre-launch hardening: the WHERE clause below already requires
+  -- bookings.user_id = p_user_id to find a row, so a caller can't cancel
+  -- someone else's booking just by guessing a booking id - they'd also
+  -- need that person's exact user id. But nothing previously verified
+  -- p_user_id itself was the caller's own id, unlike book_class_session
+  -- (section 8), which does check auth.uid() = p_user_id. Matching that
+  -- pattern here closes the gap: a caller can no longer impersonate
+  -- another user's id at all, not even in combination with a leaked
+  -- booking id.
+  if p_user_id is distinct from auth.uid() then
+    raise exception 'FORBIDDEN';
+  end if;
+
   select
     bookings.session_id,
     bookings.status
@@ -1027,6 +1051,8 @@ $$;
 --   CANCELLATION_WINDOW_PASSED - including a case that would have wrongly
 --   passed under the old UTC-assuming comparison.
 -- Test (someone else's booking id): expect NOT_YOUR_BOOKING.
+-- Test (p_user_id set to someone else's id, regardless of p_booking_id):
+--   expect FORBIDDEN.
 
 -- Make all of the above visible to PostgREST immediately.
 notify pgrst, 'reload schema';

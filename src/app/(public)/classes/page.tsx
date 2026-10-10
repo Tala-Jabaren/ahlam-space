@@ -1,6 +1,18 @@
+import type { Metadata } from 'next'
 import { createClient } from '@/lib/supabase/server'
 import type { Tables } from '@/types/database'
+import { getT } from '@/i18n/get-t'
+import { getLocale } from '@/i18n/get-locale'
+import { getDictionary } from '@/i18n/dictionaries'
+import type { Locale } from '@/i18n/config'
+import { pageMetadata } from '@/lib/seo'
 import BookSessionButton from '../schedule/book-session-button'
+
+export async function generateMetadata(): Promise<Metadata> {
+  const locale = await getLocale()
+  const t = getDictionary(locale)
+  return pageMetadata({ ...t.seo.classes, path: '/classes', locale })
+}
 
 type ScheduleRow = {
   id: string
@@ -26,8 +38,8 @@ function isUpcoming(session: ScheduleRow) {
   )
 }
 
-function formatDate(date: string) {
-  return new Intl.DateTimeFormat('ar', {
+function formatDate(date: string, locale: Locale) {
+  return new Intl.DateTimeFormat(locale === 'ar' ? 'ar' : 'en-US', {
     weekday: 'long',
     day: 'numeric',
     month: 'long',
@@ -45,6 +57,7 @@ export default async function ClassesPage({
 }) {
   const { book: requestedSessionId } = await searchParams
   const supabase = await createClient()
+  const { t, locale, dir } = await getT()
   const {
     data: { user },
   } = await supabase.auth.getUser()
@@ -84,26 +97,23 @@ export default async function ClassesPage({
   }
 
   return (
-    <div className="px-5 py-16 sm:px-8 lg:px-10">
+    <div className="px-5 py-16 sm:px-8 lg:px-10" dir={dir}>
       <section className="mx-auto max-w-7xl">
         <div className="max-w-3xl space-y-5">
           <p className="text-sm font-medium uppercase tracking-[0.28em] text-[#617A55]">
-            Weekly movement
+            {t.classes.eyebrow}
           </p>
           <h1 className="font-serif text-5xl leading-tight text-[#25311f] sm:text-6xl">
-            Classes
+            {t.classes.heading}
           </h1>
-          <p className="text-lg leading-8 text-[#4f5d49]">
-            Explore yoga, fitness, and dance classes, then choose the upcoming
-            session that suits you.
-          </p>
+          <p className="text-lg leading-8 text-[#4f5d49]">{t.classes.subtitle}</p>
         </div>
       </section>
 
       <section className="mx-auto mt-12 max-w-7xl">
         {!classes || classes.length === 0 ? (
           <div className="rounded-[1.75rem] bg-[#C7D6E8]/55 p-8 text-[#4f5d49]">
-            No classes available right now.
+            {t.classes.noClasses}
           </div>
         ) : (
           <div className="grid gap-7">
@@ -131,19 +141,19 @@ export default async function ClassesPage({
                         </p>
                       )}
                       <p className="mt-6 border-t border-[#617A55]/15 pt-4 text-sm font-semibold uppercase tracking-[0.14em] text-[#617A55]">
-                        {classItem.duration_minutes} minutes &middot; ₪
-                        {classItem.price}
+                        {classItem.duration_minutes} {t.common.minutesSuffix}{' '}
+                        &middot; ₪{classItem.price}
                       </p>
                     </div>
 
-                    <div className="p-5 sm:p-7" dir="rtl">
+                    <div className="p-5 sm:p-7" dir={dir}>
                       <h3 className="font-serif text-2xl text-[#25311f]">
-                        المواعيد القادمة
+                        {t.classes.upcomingHeading}
                       </h3>
 
                       {classSessions.length === 0 ? (
                         <p className="mt-4 rounded-lg bg-[#C7D6E8]/35 p-4 text-sm text-[#617A55]">
-                          لا توجد مواعيد قادمة لهذه الحصة حاليًا.
+                          {t.classes.noUpcoming}
                         </p>
                       ) : (
                         <div className="mt-4 grid gap-3">
@@ -166,34 +176,37 @@ export default async function ClassesPage({
                               >
                                 {isRequested && (
                                   <p className="mb-3 text-sm font-semibold text-[#617A55]">
-                                    أكملي الحجز باختيار طريقة الدفع.
+                                    {t.classes.requestedNotice}
                                   </p>
                                 )}
                                 <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
                                   <dl className="grid min-w-0 gap-2 text-sm text-[#4f5d49] sm:grid-cols-2 sm:gap-x-6">
                                     <div>
-                                      <dt className="sr-only">التاريخ</dt>
+                                      <dt className="sr-only">{t.classes.dateLabel}</dt>
                                       <dd className="font-semibold text-[#25311f]">
-                                        {formatDate(session.session_date)}
+                                        {formatDate(session.session_date, locale)}
                                       </dd>
                                     </div>
                                     <div>
-                                      <dt className="sr-only">الوقت</dt>
+                                      <dt className="sr-only">{t.classes.timeLabel}</dt>
                                       <dd>
                                         {formatTime(session.start_time)} -{' '}
                                         {formatTime(session.end_time)}
                                       </dd>
                                     </div>
                                     <div className="sm:col-span-2">
-                                      <dt className="sr-only">الموقع</dt>
+                                      <dt className="sr-only">{t.classes.locationLabel}</dt>
                                       <dd className="break-words">
-                                        {session.location ?? 'مركز أحلام'}
+                                        {session.location ?? t.classes.locationFallback}
                                       </dd>
                                     </div>
                                     <div className="sm:col-span-2">
-                                      <dt className="sr-only">الأماكن المتاحة</dt>
+                                      <dt className="sr-only">
+                                        {t.classes.availableSeatsLabel}
+                                      </dt>
                                       <dd>
-                                        {remaining} أماكن متاحة من {session.capacity}
+                                        {remaining} {t.classes.seatsAvailableOf}{' '}
+                                        {session.capacity}
                                       </dd>
                                     </div>
                                   </dl>

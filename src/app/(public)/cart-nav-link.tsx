@@ -2,14 +2,16 @@
 
 import Link from 'next/link'
 import { useCart } from '@/lib/cart/cart-context'
+import { useT } from '@/i18n/i18n-context'
 
 export default function CartNavLink() {
   const { totalQuantity } = useCart()
+  const { t } = useT()
 
   return (
     <Link
       href="/cart"
-      aria-label={`السلة${totalQuantity > 0 ? ` (${totalQuantity})` : ''}`}
+      aria-label={`${t.shop.cartBar.cartLabel}${totalQuantity > 0 ? ` (${totalQuantity})` : ''}`}
       className="relative inline-flex min-h-11 min-w-11 items-center justify-center rounded-full transition hover:bg-[#D6E2B6]/35"
     >
       <svg
@@ -27,7 +29,7 @@ export default function CartNavLink() {
         <circle cx="16.5" cy="20" r="1.3" fill="currentColor" stroke="none" />
       </svg>
       {totalQuantity > 0 && (
-        <span className="absolute -top-1 -right-1 grid min-w-[1.25rem] place-items-center rounded-full bg-[#617A55] px-1 text-[11px] font-semibold leading-5 text-white">
+        <span className="absolute -top-1 -end-1 grid min-w-[1.25rem] place-items-center rounded-full bg-[#617A55] px-1 text-[11px] font-semibold leading-5 text-white">
           {totalQuantity}
         </span>
       )}

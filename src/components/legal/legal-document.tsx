@@ -1,6 +1,7 @@
 import Link from 'next/link'
+import { getT } from '@/i18n/get-t'
 
-export function LegalDocument({
+export async function LegalDocument({
   title,
   introduction,
   children,
@@ -9,6 +10,13 @@ export function LegalDocument({
   introduction: string
   children: React.ReactNode
 }) {
+  // The policy text itself stays Arabic-only for now (not yet approved by
+  // the owner in English), regardless of the site's language cookie - this
+  // component and the legal pages that use it are intentionally left out of
+  // the rest of the i18n pass. We only add a short note when the visitor is
+  // browsing in English, so they know why the page below it is in Arabic.
+  const { t, locale } = await getT()
+
   return (
     <article>
       <header className="border-b border-[#617A55]/20 pb-7">
@@ -17,6 +25,14 @@ export function LegalDocument({
           {title}
         </h1>
         <p className="mt-4 text-base leading-8 text-[#617A55]">{introduction}</p>
+        {locale === 'en' && (
+          <p
+            dir="ltr"
+            className="mt-4 rounded-lg bg-[#C7D6E8]/45 px-4 py-3 text-sm leading-6 text-[#25311f]"
+          >
+            {t.legal.onlyArabicNote}
+          </p>
+        )}
       </header>
       <div className="mt-8 space-y-8">{children}</div>
       <footer className="mt-10 border-t border-[#617A55]/20 pt-6 text-sm leading-7 text-[#617A55]">
