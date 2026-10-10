@@ -1,6 +1,7 @@
 import Image from 'next/image'
 import { createClient } from '@/lib/supabase/server'
 import BookSessionButton from '../../(public)/schedule/book-session-button'
+import { getScheduleWindow, sessionsInWindow } from './schedule-weeks'
 
 type ScheduleRow = {
   id: string
@@ -25,13 +26,14 @@ const categoryImages: Record<string, string> = {
 }
 
 function formatDate(date: string) {
-  const value = new Date(`${date}T00:00:00`)
+  const value = new Date(`${date}T00:00:00Z`)
 
   return {
-    day: new Intl.DateTimeFormat('ar', { weekday: 'long' }).format(value),
+    day: new Intl.DateTimeFormat('ar', { weekday: 'long', timeZone: 'UTC' }).format(value),
     date: new Intl.DateTimeFormat('ar', {
       day: 'numeric',
       month: 'long',
+      timeZone: 'UTC',
     }).format(value),
   }
 }
@@ -40,28 +42,25 @@ function formatTime(time: string) {
   return time.slice(0, 5)
 }
 
-function isUpcoming(session: ScheduleRow) {
-  return (
-    session.status === 'scheduled' &&
-    new Date(`${session.session_date}T${session.end_time}`) > new Date()
-  )
-}
-
 export default async function MemberSchedulePage() {
+  const { window, localNow } = getScheduleWindow()
   const supabase = await createClient()
   const { data: sessions, error } = await supabase
     .from('class_sessions')
     .select(
       'id, session_date, start_time, end_time, capacity, booked_count, status, location, classes(name, category, price)'
     )
+    .gte('session_date', window.start)
+    .lt('session_date', window.end)
     .order('session_date', { ascending: true })
+    .order('start_time', { ascending: true })
     .returns<ScheduleRow[]>()
 
   if (error) {
     console.error('Failed to load schedule:', error.message)
   }
 
-  const upcomingSessions = (sessions ?? []).filter(isUpcoming)
+  const upcomingSessions = sessionsInWindow(sessions ?? [], window, localNow)
 
   return (
     <main className="px-4 py-8 sm:px-6 lg:px-8" dir="rtl">
@@ -69,7 +68,7 @@ export default async function MemberSchedulePage() {
         <div className="flex flex-col gap-5 sm:flex-row sm:items-end sm:justify-between">
           <div>
             <p className="text-sm font-semibold text-[#617A55]/70">
-              اختاري مساحتك لهذا الأسبوع
+              حصص الأسبوعين القادمين
             </p>
             <h1 className="mt-2 font-serif text-4xl text-[#617A55] sm:text-5xl">
               جدول الحصص
@@ -80,29 +79,6 @@ export default async function MemberSchedulePage() {
           </p>
         </div>
 
-        <div className="mt-7 flex items-center gap-2" aria-label="التنقل بين الأسابيع">
-          <button
-            type="button"
-            aria-label="الأسبوع السابق"
-            className="grid size-11 place-items-center rounded-lg border border-[#617A55]/20 bg-[#F7F6F0] text-xl transition hover:bg-[#D6E2B6]/60"
-          >
-            ›
-          </button>
-          <button
-            type="button"
-            className="min-h-11 rounded-lg border border-[#617A55]/20 bg-[#D6E2B6]/45 px-5 text-sm font-semibold"
-          >
-            هذا الأسبوع
-          </button>
-          <button
-            type="button"
-            aria-label="الأسبوع التالي"
-            className="grid size-11 place-items-center rounded-lg border border-[#617A55]/20 bg-[#F7F6F0] text-xl transition hover:bg-[#D6E2B6]/60"
-          >
-            ‹
-          </button>
-        </div>
-
         {error && (
           <div className="mt-8 rounded-lg bg-[#C7D6E8]/55 p-6">
             تعذر تحميل الحصص الآن.
@@ -111,7 +87,7 @@ export default async function MemberSchedulePage() {
 
         {!error && upcomingSessions.length === 0 && (
           <div className="mt-8 rounded-lg bg-[#C7D6E8]/55 p-8 text-center">
-            لا توجد حصص قادمة متاحة حالياً.
+            لا توجد حصص قادمة متاحة خلال هذين الأسبوعين.
           </div>
         )}
 

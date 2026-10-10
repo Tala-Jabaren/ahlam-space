@@ -1,16 +1,17 @@
 import Link from 'next/link'
 import { redirect } from 'next/navigation'
+import { ArrowUpRight, BookOpen, CalendarDays, CircleHelp, Package, ShoppingBag, Ticket, UserRound } from 'lucide-react'
 import { createClient } from '@/lib/supabase/server'
 import LogoutButton from './dashboard/logout-button'
 import MemberNavLink from './member-nav-link'
 
 const navItems = [
-  { href: '/member-schedule', label: 'الحصص', icon: '□' },
-  { href: '/bookings', label: 'حجوزاتي', icon: '◇' },
-  { href: '/orders', label: 'طلباتي', icon: '▣' },
-  { href: '/courses', label: 'كورسات ومحاضرات', icon: '▤' },
-  { href: '/shop', label: 'المتجر', icon: '▱' },
-  { href: '/account', label: 'حسابي', icon: '○' },
+  { href: '/member-schedule', label: 'الحصص', icon: <CalendarDays strokeWidth={1.5} /> },
+  { href: '/bookings', label: 'حجوزاتي', icon: <Ticket strokeWidth={1.5} /> },
+  { href: '/orders', label: 'طلباتي', icon: <Package strokeWidth={1.5} /> },
+  { href: '/courses', label: 'محاضرات', icon: <BookOpen strokeWidth={1.5} /> },
+  { href: '/shop', label: 'المتجر', icon: <ShoppingBag strokeWidth={1.5} /> },
+  { href: '/account', label: 'حسابي', icon: <UserRound strokeWidth={1.5} /> },
 ]
 
 export default async function MemberLayout({
@@ -65,7 +66,7 @@ export default async function MemberLayout({
             href="/"
             className="mb-2 inline-flex min-h-11 items-center gap-2 px-4 text-sm font-medium text-[#617A55]/75 transition hover:text-[#617A55]"
           >
-            <span aria-hidden="true">↗</span>
+            <ArrowUpRight aria-hidden="true" className="size-5 shrink-0" strokeWidth={1.5} />
             العودة للموقع
           </Link>
           <Link
@@ -73,7 +74,7 @@ export default async function MemberLayout({
             className="flex min-h-12 items-center gap-4 rounded-lg px-4 font-medium transition hover:bg-[#C7D6E8]/60"
           >
             <span aria-hidden="true" className="grid size-7 place-items-center">
-              ؟
+              <CircleHelp className="size-6" strokeWidth={1.5} />
             </span>
             المساعدة
           </Link>

@@ -6,7 +6,7 @@ import { usePathname } from 'next/navigation'
 type MemberNavLinkProps = {
   href: string
   label: string
-  icon: string
+  icon: React.ReactNode
   mobile?: boolean
 }
 
@@ -37,7 +37,7 @@ export default function MemberNavLink({
     >
       <span
         aria-hidden="true"
-        className={mobile ? 'text-lg leading-none' : 'grid size-7 place-items-center text-xl'}
+        className={mobile ? 'grid size-5 shrink-0 place-items-center [&>svg]:size-5' : 'grid size-7 shrink-0 place-items-center [&>svg]:size-6'}
       >
         {icon}
       </span>
