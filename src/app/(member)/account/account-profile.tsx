@@ -148,12 +148,20 @@ export default function AccountProfile({ initialProfile }: AccountProfileProps) 
       }
     }
 
-    const { error: profileError } = await supabase.from('profiles').upsert({
-      id: user.id,
-      full_name: `${draft.firstName.trim()} ${draft.lastName.trim()}`,
-      phone: draft.phone.trim(),
-      city: draft.city.trim(),
-    })
+    // A plain update, not upsert: the profiles row for this user is
+    // created automatically (by a signup trigger, not by any code in this
+    // repo), so it always exists by the time this page can be reached.
+    // Using update rather than upsert also means this call now only ever
+    // needs UPDATE privilege on profiles, not INSERT - matching the
+    // column-scoped UPDATE grant added in admin-payments.sql section 11.
+    const { error: profileError } = await supabase
+      .from('profiles')
+      .update({
+        full_name: `${draft.firstName.trim()} ${draft.lastName.trim()}`,
+        phone: draft.phone.trim(),
+        city: draft.city.trim(),
+      })
+      .eq('id', user.id)
 
     if (profileError) {
       setMessage('تعذر حفظ المعلومات الآن. حاولي مرة أخرى.')

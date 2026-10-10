@@ -24,7 +24,7 @@
 --                     status, created_at)
 --   products(id, name, description, price, is_active, created_at, image_url)
 --   product_variants(id, product_id, size, color, stock, sku)
---   profiles(id, full_name, phone, role, created_at)  -- role already has 'admin'
+--   profiles(id, full_name, phone, city, role, created_at)  -- role already has 'admin'
 --
 -- Existing functions this builds on:
 --   book_class_session(p_session_id, p_user_id) - REPLACED by section 8 below
@@ -1054,6 +1054,55 @@ $$;
 -- Test (p_user_id set to someone else's id, regardless of p_booking_id):
 --   expect FORBIDDEN.
 
+-- =============================================================================
+-- 11. profiles: let users update their own row, without ever letting them
+--     touch their own role
+-- =============================================================================
+--
+-- SECURITY FIX: profiles had RLS enabled and an admin UPDATE policy
+-- (section 3), but no policy at all letting a normal user update their own
+-- row - "Admins can update all profiles" only grants access via
+-- is_admin(). account-profile.tsx was calling .upsert(), which needs
+-- INSERT privilege as well as UPDATE; since neither existed for a normal
+-- user, every profile save from the account page should already have been
+-- failing outright under RLS. Confirmed there is no INSERT INTO
+-- public.profiles anywhere in this codebase (client or SQL) - the row for
+-- each user must be created by a signup trigger that isn't captured in any
+-- file in this repo, the same situation as the live-only policies found in
+-- earlier rounds. account-profile.tsx has been changed to call .update()
+-- instead of .upsert() (it only ever needs to update a row that should
+-- already exist, never create one), matching the policy below.
+--
+-- The new policy alone would still let a user UPDATE their own row's role
+-- column, since "with check (id = auth.uid())" says nothing about which
+-- columns - so this also revokes blanket UPDATE and grants it back only
+-- for the three columns the account page actually edits. is_admin() is
+-- unaffected (section 3's SELECT policy and is_admin() itself only read
+-- profiles), but note that the admin UPDATE policy (section 3) is also
+-- now limited by this same column grant, since both policies run under
+-- the same "authenticated" Postgres role - there is currently no admin UI
+-- that updates any profiles column, let alone one outside
+-- full_name/phone/city, so this doesn't take anything away today. If an
+-- admin "edit this customer's profile" feature is added later that needs
+-- to touch other columns (or role, e.g. promoting another admin from the
+-- UI instead of the SQL editor), its own GRANT will need to be added here.
+drop policy if exists "Users can update own profile" on public.profiles;
+create policy "Users can update own profile" on public.profiles
+  for update to authenticated using (id = auth.uid()) with check (id = auth.uid());
+
+revoke update on public.profiles from authenticated;
+grant update (full_name, phone, city) on public.profiles to authenticated;
+-- Test (as a normal user, via the account page): update full_name/phone/city
+--   on your own row - expect success.
+-- Test (as a normal user, via supabase.rpc or a direct PostgREST call):
+--   attempt to update your own "role" or "id" column - expect a permission
+--   error (column privilege), not just an RLS rejection.
+-- Test (as a normal user): attempt to update a DIFFERENT user's row -
+--   expect 0 rows affected (RLS), same as before.
+-- Test (as admin): admin_confirm_payment/admin_cancel_order and anything
+--   else that was already working must keep working - none of them touch
+--   public.profiles.
+
 -- Make all of the above visible to PostgREST immediately.
 notify pgrst, 'reload schema';
 
@@ -1106,3 +1155,8 @@ commit;
 -- (section 9): status = 'pending', paid_at = null, payment_method =
 -- 'bank_transfer', reference = a fresh generate_payment_reference() value,
 -- no matter what the client's insert body contains.
+--
+-- profiles update (section 11) - a user can update only their own row, and
+-- only full_name/phone/city (never role or id):
+--   supabase.from('profiles').update({ full_name, phone, city }).eq('id', user.id)
+--   no RPC - this is a plain table update, protected by RLS + column grants
