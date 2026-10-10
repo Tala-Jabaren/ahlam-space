@@ -7,7 +7,7 @@ export const ar = {
     home: 'الرئيسية',
     about: 'من نحن',
     classes: 'الحصص',
-    courses: 'كورسات ومحاضرات',
+    courses: 'محاضرات',
     privateSessions: 'جلسات فردية',
     shop: 'المتجر',
     contact: 'تواصل معنا',
@@ -42,7 +42,7 @@ export const ar = {
         description: 'جلسات مخصصة حسب احتياجاتك وأهدافك.',
       },
       {
-        title: 'كورسات ومحاضرات',
+        title: 'محاضرات',
         description: 'برامج متنوعة للوعي، الحركة وتطوير نمط حياة متوازن.',
       },
       {
@@ -97,7 +97,7 @@ export const ar = {
         description: 'جلسات مخصصة حسب احتياجاتك وأهدافك.',
       },
       {
-        title: 'كورسات ومحاضرات',
+        title: 'محاضرات',
         description:
           'مساحات للتعلّم، الوعي والحركة وتطوير نمط حياة أكثر توازنًا.',
       },
@@ -144,7 +144,7 @@ export const ar = {
   },
   courses: {
     list: {
-      heading: 'كورسات ومحاضرات',
+      heading: 'محاضرات',
       subtitle:
         'اختاري الكورس المناسب، ثم حددي طريقة الدفع. تبقى طلبات الشراء قيد الانتظار حتى يتم تأكيد الدفع يدويًا.',
       accessDeniedNotice:
@@ -159,7 +159,7 @@ export const ar = {
       pendingPayment: 'بانتظار تأكيد الدفع',
     },
     detail: {
-      eyebrow: 'كورسات ومحاضرات',
+      eyebrow: 'محاضرات',
       videoUnsupported: 'متصفحك لا يدعم تشغيل الفيديو.',
       videoLoadError: 'تعذر تحميل الفيديو حاليًا، حاولي إعادة تحميل الصفحة.',
       noArticleContent: 'لا يوجد محتوى بعد.',

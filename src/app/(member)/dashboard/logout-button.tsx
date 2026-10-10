@@ -1,6 +1,7 @@
 'use client'
 
 import { useRouter } from 'next/navigation'
+import { LogOut } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
 import { useCart } from '@/lib/cart/cart-context'
 
@@ -32,7 +33,7 @@ export default function LogoutButton({
     >
       {variant === 'sidebar' && (
         <span aria-hidden="true" className="grid size-7 place-items-center">
-          ←
+          <LogOut className="size-6" strokeWidth={1.5} />
         </span>
       )}
       {variant === 'sidebar' ? 'تسجيل الخروج' : 'Log out'}

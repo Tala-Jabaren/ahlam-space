@@ -52,7 +52,7 @@ export default function LoginPage() {
     const returnTo =
       requestedReturnTo?.startsWith('/') && !requestedReturnTo.startsWith('//')
         ? requestedReturnTo
-        : '/dashboard'
+        : '/member-schedule'
 
     router.replace(returnTo)
     router.refresh()

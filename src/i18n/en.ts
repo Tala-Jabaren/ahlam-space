@@ -9,7 +9,7 @@ export const en: typeof ar = {
     home: 'Home',
     about: 'About',
     classes: 'Classes',
-    courses: 'Courses & Workshops',
+    courses: 'Lectures',
     privateSessions: 'Private Sessions',
     shop: 'Shop',
     contact: 'Contact',
@@ -44,7 +44,7 @@ export const en: typeof ar = {
         description: 'Sessions tailored to your needs and goals.',
       },
       {
-        title: 'Courses & Workshops',
+        title: 'Lectures',
         description:
           'A range of programs for awareness, movement, and a more balanced lifestyle.',
       },
@@ -101,7 +101,7 @@ export const en: typeof ar = {
         description: 'Sessions tailored to your needs and goals.',
       },
       {
-        title: 'Courses & Workshops',
+        title: 'Lectures',
         description:
           'Spaces for learning, awareness, movement, and a more balanced lifestyle.',
       },
@@ -148,7 +148,7 @@ export const en: typeof ar = {
   },
   courses: {
     list: {
-      heading: 'Courses & Workshops',
+      heading: 'Lectures',
       subtitle:
         'Choose the right course, then pick a payment method. Purchases stay pending until payment is manually confirmed.',
       accessDeniedNotice:
@@ -163,7 +163,7 @@ export const en: typeof ar = {
       pendingPayment: 'Awaiting payment confirmation',
     },
     detail: {
-      eyebrow: 'Courses & Workshops',
+      eyebrow: 'Lectures',
       videoUnsupported: 'Your browser doesn’t support video playback.',
       videoLoadError: 'Unable to load the video right now, try reloading the page.',
       noArticleContent: 'No content yet.',
