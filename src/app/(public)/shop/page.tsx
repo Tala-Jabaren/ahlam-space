@@ -1,5 +1,20 @@
+import type { Metadata } from 'next'
 import { createClient } from '@/lib/supabase/server'
+import { getLocale } from '@/i18n/get-locale'
+import { getDictionary } from '@/i18n/dictionaries'
+import { pageMetadata } from '@/lib/seo'
 import ShopCatalog from './shop-catalog'
+
+export async function generateMetadata(): Promise<Metadata> {
+  const locale = await getLocale()
+  const t = getDictionary(locale)
+  return pageMetadata({
+    ...t.seo.shop,
+    path: '/shop',
+    locale,
+    image: '/images/shop-hero-v2.png',
+  })
+}
 
 export type ProductVariant = {
   id: string

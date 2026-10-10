@@ -1,9 +1,19 @@
+import type { Metadata } from 'next'
 import Image from 'next/image'
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase/server'
 import { getT } from '@/i18n/get-t'
+import { getLocale } from '@/i18n/get-locale'
+import { getDictionary } from '@/i18n/dictionaries'
 import type { Locale } from '@/i18n/config'
+import { pageMetadata } from '@/lib/seo'
 import BookSessionButton from './schedule/book-session-button'
+
+export async function generateMetadata(): Promise<Metadata> {
+  const locale = await getLocale()
+  const t = getDictionary(locale)
+  return pageMetadata({ ...t.seo.home, path: '/', locale })
+}
 
 type UpcomingSession = {
   id: string

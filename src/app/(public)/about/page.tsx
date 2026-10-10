@@ -1,6 +1,16 @@
+import type { Metadata } from 'next'
 import Image from 'next/image'
 import Link from 'next/link'
 import { getT } from '@/i18n/get-t'
+import { getLocale } from '@/i18n/get-locale'
+import { getDictionary } from '@/i18n/dictionaries'
+import { pageMetadata } from '@/lib/seo'
+
+export async function generateMetadata(): Promise<Metadata> {
+  const locale = await getLocale()
+  const t = getDictionary(locale)
+  return pageMetadata({ ...t.seo.about, path: '/about', locale })
+}
 
 const serviceIcons = [
   (

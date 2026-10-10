@@ -1,8 +1,12 @@
+import type { Metadata } from 'next'
 import Image from 'next/image'
 import { notFound } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
 import { getT } from '@/i18n/get-t'
+import { getLocale } from '@/i18n/get-locale'
+import { getDictionary } from '@/i18n/dictionaries'
 import type { Locale } from '@/i18n/config'
+import { pageMetadata } from '@/lib/seo'
 import AddToCartButton from './add-to-cart-button'
 
 type Product = {
@@ -31,6 +35,31 @@ function formatPrice(price: number | null, locale: Locale, priceComingSoon: stri
   }
 
   return `${new Intl.NumberFormat(locale === 'ar' ? 'ar' : 'en-US').format(price)} ₪`
+}
+
+export async function generateMetadata({ params }: ProductPageProps): Promise<Metadata> {
+  const { id } = await params
+  const locale = await getLocale()
+  const t = getDictionary(locale)
+  const supabase = await createClient()
+  const { data } = await supabase
+    .from('products')
+    .select('name, description, image_url')
+    .eq('id', id)
+    .eq('is_active', true)
+    .maybeSingle()
+
+  if (!data) {
+    return pageMetadata({ ...t.seo.shop, path: `/shop/${id}`, locale })
+  }
+
+  return pageMetadata({
+    title: `${data.name} | ${t.seo.siteName}`,
+    description: data.description || t.seo.shop.description,
+    path: `/shop/${id}`,
+    locale,
+    image: data.image_url || '/images/shop-hero-v2.png',
+  })
 }
 
 export default async function ProductPage({ params }: ProductPageProps) {

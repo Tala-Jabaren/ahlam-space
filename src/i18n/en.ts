@@ -5,6 +5,46 @@ export const en: typeof ar = {
     minutesSuffix: 'min',
     notSpecified: 'Not specified',
   },
+  seo: {
+    siteName: 'Ahlam Space',
+    defaultTitle: 'Ahlam Space | Yoga, Movement & Balance in Ramallah',
+    defaultDescription:
+      'Ahlam Space in Ramallah: group yoga and movement classes, private sessions, courses & workshops, and a shop of thoughtfully chosen products for a more balanced life.',
+    home: {
+      title: 'Ahlam Space | Yoga, Movement & Balance in Ramallah',
+      description:
+        'A space for movement, awareness, and balance. Book yoga and movement classes, or discover private sessions, courses, and the Ahlam Space shop.',
+    },
+    about: {
+      title: 'Who is Ahlam? | Ahlam Space',
+      description:
+        'Meet Ahlam, a yoga and movement instructor, and her story and journey creating a space for awareness and balance.',
+    },
+    classes: {
+      title: 'Classes | Ahlam Space',
+      description:
+        'Explore yoga, fitness, and dance classes, then choose the upcoming session that suits you.',
+    },
+    courses: {
+      title: 'Courses & Workshops | Ahlam Space',
+      description:
+        'Choose the right course from Ahlam Space’s courses and workshops for awareness, movement, and a more balanced lifestyle.',
+    },
+    shop: {
+      title: 'Shop | Ahlam Space',
+      description:
+        'Small things, made with care. Shop thoughtfully chosen products from Ahlam Space and Zulfa for a more balanced life.',
+    },
+    privateSessions: {
+      title: 'Private Sessions | Ahlam Space',
+      description:
+        'Private sessions tailored to your needs and goals: a personal facilitation journey, sound healing, and private one-on-one sessions.',
+    },
+    contact: {
+      title: 'Contact | Ahlam Space',
+      description: 'Get in touch about classes, private sessions, products, or any other question.',
+    },
+  },
   nav: {
     home: 'Home',
     about: 'About',
@@ -273,5 +313,15 @@ export const en: typeof ar = {
   },
   legal: {
     onlyArabicNote: 'This policy is currently available in Arabic only.',
+  },
+  notFound: {
+    heading: 'Page not found',
+    description: 'The page you’re looking for doesn’t exist or has moved.',
+    backHome: 'Back to Home',
+  },
+  errorPage: {
+    heading: 'Something went wrong',
+    description: 'Sorry, something went wrong. Please try again or come back later.',
+    retry: 'Try Again',
   },
 }

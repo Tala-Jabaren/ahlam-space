@@ -1,3 +1,4 @@
+import type { Metadata } from 'next'
 import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
 import { createAdminClient } from '@/lib/supabase/admin'
@@ -5,6 +6,14 @@ import { getT } from '@/i18n/get-t'
 
 const COURSE_VIDEO_BUCKET = 'course-videos'
 const SIGNED_URL_EXPIRY_SECONDS = 60 * 60 // 1 hour
+
+// This page is purchase-gated (redirects unauthenticated/unpaid visitors
+// before rendering any course content), so it's not meant to be publicly
+// discoverable - noindex rather than exposing the course title to crawlers
+// that will just get redirected anyway.
+export const metadata: Metadata = {
+  robots: { index: false, follow: false },
+}
 
 type Course = {
   id: string
