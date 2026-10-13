@@ -2,7 +2,7 @@
 
 import Image from 'next/image'
 import { ChevronDown } from 'lucide-react'
-import { useId, useState } from 'react'
+import { useEffect, useId, useRef, useState } from 'react'
 import { useT } from '@/i18n/i18n-context'
 import { privateSessionDetailsAr } from '@/i18n/private-session-details'
 import { PRIVATE_SESSION_HOURLY_PRICE } from '@/lib/private-session-details'
@@ -24,6 +24,19 @@ export default function PrivateSessionCard({
   const copy = t.privateSessionDetails ?? privateSessionDetailsAr
   const [expanded, setExpanded] = useState(false)
   const detailsId = useId()
+  const detailsRef = useRef<HTMLDivElement>(null)
+  useEffect(() => {
+    if (!expanded) return
+    const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches
+    // Reveal the panel after expansion when the card is near the viewport edge.
+    const timer = window.setTimeout(() => {
+      detailsRef.current?.scrollIntoView({
+        block: 'nearest',
+        behavior: reducedMotion ? 'instant' : 'smooth',
+      })
+    }, reducedMotion ? 0 : 250)
+    return () => window.clearTimeout(timer)
+  }, [expanded])
   const price = copy.price.replace(
     '{price}',
     new Intl.NumberFormat(locale === 'ar' ? 'ar' : 'en-US').format(
@@ -56,7 +69,7 @@ export default function PrivateSessionCard({
             <button
               type="button"
               onClick={onRequest}
-              className={`rounded-full bg-[#D6E2B6] px-5 py-2.5 text-sm font-medium text-[#617A55] transition-colors hover:bg-[#D6E2B6]/70 ${focusStyle}`}
+              className={`cursor-pointer rounded-full bg-[#D6E2B6] px-5 py-2.5 text-sm font-medium text-[#617A55] transition-colors hover:bg-[#D6E2B6]/70 ${focusStyle}`}
             >
               {requestLabel}
             </button>
@@ -65,7 +78,7 @@ export default function PrivateSessionCard({
               aria-expanded={expanded}
               aria-controls={detailsId}
               onClick={() => setExpanded((value) => !value)}
-              className={`inline-flex min-h-11 items-center gap-2 rounded-full px-3 py-2 text-sm font-medium text-[#617A55] transition-colors hover:bg-[#D6E2B6]/35 ${focusStyle}`}
+              className={`inline-flex min-h-11 cursor-pointer items-center gap-2 rounded-full border border-[#617A55]/35 bg-[#D6E2B6]/30 px-4 py-2 text-sm font-medium text-[#617A55] transition-colors hover:bg-[#D6E2B6]/60 ${focusStyle}`}
             >
               {expanded ? copy.less : copy.more}
               <ChevronDown
@@ -78,6 +91,7 @@ export default function PrivateSessionCard({
         </div>
       </div>
       <div
+        ref={detailsRef}
         id={detailsId}
         aria-hidden={!expanded}
         inert={!expanded}
@@ -103,7 +117,7 @@ export default function PrivateSessionCard({
             <button
               type="button"
               onClick={onRequest}
-              className={`mt-5 min-h-11 max-w-full rounded-full bg-[#617A55] px-5 py-2.5 text-sm font-medium text-white transition-colors hover:bg-[#617A55]/90 ${focusStyle}`}
+              className={`mt-5 min-h-11 max-w-full cursor-pointer rounded-full bg-[#617A55] px-5 py-2.5 text-sm font-medium text-white transition-colors hover:bg-[#617A55]/90 ${focusStyle}`}
             >
               {copy.contact}
             </button>
