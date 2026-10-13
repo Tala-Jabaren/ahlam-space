@@ -26,6 +26,7 @@ export default function PrivateSessionsPage() {
     image: SERVICE_IMAGES[index],
     value: ar.privateSessions.services[index].title,
     isPrivateSession: index === 2,
+    isSoundHealing: index === 1,
   }))
   const formRef = useRef<HTMLFormElement>(null)
   const [sessionType, setSessionType] = useState<string>(SERVICES[0].value)
@@ -81,6 +82,7 @@ export default function PrivateSessionsPage() {
             key={service.value}
             title={service.title}
             isPrivateSession={service.isPrivateSession}
+            isSoundHealing={service.isSoundHealing}
             image={service.image}
             description={service.description}
             requestLabel={t.privateSessions.requestButton}

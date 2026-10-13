@@ -5,11 +5,12 @@ import { ChevronDown } from 'lucide-react'
 import { useEffect, useId, useRef, useState } from 'react'
 import { useT } from '@/i18n/i18n-context'
 import { privateSessionDetailsAr } from '@/i18n/private-session-details'
-import { PRIVATE_SESSION_HOURLY_PRICE } from '@/lib/private-session-details'
+import { PRIVATE_SESSION_HOURLY_PRICE, SOUND_HEALING_SESSION_PRICE } from '@/lib/private-session-details'
 
 type Props = {
   title: string
   isPrivateSession: boolean
+  isSoundHealing: boolean
   image: string
   description: string
   requestLabel: string
@@ -19,6 +20,7 @@ type Props = {
 export default function PrivateSessionCard({
   title,
   isPrivateSession,
+  isSoundHealing,
   image,
   description,
   requestLabel,
@@ -41,10 +43,10 @@ export default function PrivateSessionCard({
     }, reducedMotion ? 0 : 250)
     return () => window.clearTimeout(timer)
   }, [expanded])
-  const price = copy.price.replace(
+  const price = (isSoundHealing ? copy.soundPrice : copy.price).replace(
     '{price}',
     new Intl.NumberFormat(locale === 'ar' ? 'ar' : 'en-US').format(
-      PRIVATE_SESSION_HOURLY_PRICE,
+      isSoundHealing ? SOUND_HEALING_SESSION_PRICE : PRIVATE_SESSION_HOURLY_PRICE,
     ),
   )
   const focusStyle =
@@ -99,7 +101,7 @@ export default function PrivateSessionCard({
             <p className="text-sm leading-6 text-[#4f5d49]">
               {description}
             </p>
-            {isPrivateSession && <dl className="mt-4 grid gap-4 text-sm sm:grid-cols-2">
+            {(isPrivateSession || isSoundHealing) && <dl className="mt-4 grid gap-4 text-sm sm:grid-cols-2">
               <div>
                 <dt className="text-[#617A55]">{copy.priceLabel}</dt>
                 <dd className="mt-1 font-medium text-[#25311f]">{price}</dd>
@@ -107,7 +109,7 @@ export default function PrivateSessionCard({
               <div>
                 <dt className="text-[#617A55]">{copy.durationLabel}</dt>
                 <dd className="mt-1 font-medium text-[#25311f]">
-                  {copy.duration}
+                  {isSoundHealing ? copy.soundDuration : copy.duration}
                 </dd>
               </div>
             </dl>}
