@@ -1,6 +1,5 @@
 'use client'
 
-import Image from 'next/image'
 import { useRef, useState } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import { useT } from '@/i18n/i18n-context'
@@ -26,7 +25,7 @@ export default function PrivateSessionsPage() {
     ...service,
     image: SERVICE_IMAGES[index],
     value: ar.privateSessions.services[index].title,
-    hasDetails: index === 2,
+    isPrivateSession: index === 2,
   }))
   const formRef = useRef<HTMLFormElement>(null)
   const [sessionType, setSessionType] = useState<string>(SERVICES[0].value)
@@ -77,44 +76,16 @@ export default function PrivateSessionsPage() {
       <h1>{t.privateSessions.heading}</h1>
 
       <div className="grid gap-6 xl:grid-cols-2 xl:justify-items-center">
-        {SERVICES.map((service) => service.hasDetails ? (
+        {SERVICES.map((service) => (
           <PrivateSessionCard
             key={service.value}
+            title={service.title}
+            isPrivateSession={service.isPrivateSession}
             image={service.image}
             description={service.description}
             requestLabel={t.privateSessions.requestButton}
             onRequest={() => handleRequestClick(service.value)}
           />
-        ) : (
-          <section
-            key={service.value}
-            className="flex h-auto w-full max-w-[620px] flex-col overflow-hidden rounded-[18px] border border-[#617A55]/[0.12] bg-white transition-transform duration-200 hover:-translate-y-[3px] sm:h-[190px] sm:flex-row"
-          >
-            <div className="relative h-[210px] w-full shrink-0 sm:h-full sm:w-[190px]">
-              <Image
-                src={service.image}
-                alt=""
-                fill
-                sizes="(min-width: 640px) 190px, 100vw"
-                className="object-cover object-center"
-              />
-            </div>
-            <div className="flex min-w-0 flex-1 flex-col p-5">
-              <h2 className="font-serif text-2xl font-medium leading-tight text-[#25311f]">
-                {service.title}
-              </h2>
-              <p className="mt-2 line-clamp-2 text-sm leading-6 text-[#4f5d49]">
-                {service.description}
-              </p>
-              <button
-                className="mt-auto self-start rounded-full bg-[#D6E2B6] px-7 py-2.5 text-sm font-medium text-[#617A55] transition-colors hover:bg-[#cbd9a7]"
-                type="button"
-                onClick={() => handleRequestClick(service.value)}
-              >
-                {t.privateSessions.requestButton}
-              </button>
-            </div>
-          </section>
         ))}
       </div>
 

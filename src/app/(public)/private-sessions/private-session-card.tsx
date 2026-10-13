@@ -8,6 +8,8 @@ import { privateSessionDetailsAr } from '@/i18n/private-session-details'
 import { PRIVATE_SESSION_HOURLY_PRICE } from '@/lib/private-session-details'
 
 type Props = {
+  title: string
+  isPrivateSession: boolean
   image: string
   description: string
   requestLabel: string
@@ -15,6 +17,8 @@ type Props = {
 }
 
 export default function PrivateSessionCard({
+  title,
+  isPrivateSession,
   image,
   description,
   requestLabel,
@@ -60,19 +64,12 @@ export default function PrivateSessionCard({
         </div>
         <div className="flex min-w-0 flex-1 flex-col p-5">
           <h2 className="font-serif text-2xl font-medium leading-tight text-[#25311f]">
-            {copy.title}
+            {isPrivateSession ? copy.title : title}
           </h2>
           <p className="mt-2 line-clamp-2 text-sm leading-6 text-[#4f5d49]">
             {description}
           </p>
           <div className="mt-4 flex flex-wrap items-center gap-2 sm:mt-auto">
-            <button
-              type="button"
-              onClick={onRequest}
-              className={`cursor-pointer rounded-full bg-[#D6E2B6] px-5 py-2.5 text-sm font-medium text-[#617A55] transition-colors hover:bg-[#D6E2B6]/70 ${focusStyle}`}
-            >
-              {requestLabel}
-            </button>
             <button
               type="button"
               aria-expanded={expanded}
@@ -100,9 +97,9 @@ export default function PrivateSessionCard({
         <div className="min-h-0 overflow-hidden">
           <div className="border-t border-[#617A55]/12 bg-[#F7F6F0] p-5">
             <p className="text-sm leading-6 text-[#4f5d49]">
-              {copy.description}
+              {description}
             </p>
-            <dl className="mt-4 grid gap-4 text-sm sm:grid-cols-2">
+            {isPrivateSession && <dl className="mt-4 grid gap-4 text-sm sm:grid-cols-2">
               <div>
                 <dt className="text-[#617A55]">{copy.priceLabel}</dt>
                 <dd className="mt-1 font-medium text-[#25311f]">{price}</dd>
@@ -113,13 +110,13 @@ export default function PrivateSessionCard({
                   {copy.duration}
                 </dd>
               </div>
-            </dl>
+            </dl>}
             <button
               type="button"
               onClick={onRequest}
               className={`mt-5 min-h-11 max-w-full cursor-pointer rounded-full bg-[#617A55] px-5 py-2.5 text-sm font-medium text-white transition-colors hover:bg-[#617A55]/90 ${focusStyle}`}
             >
-              {copy.contact}
+              {requestLabel}
             </button>
           </div>
         </div>
