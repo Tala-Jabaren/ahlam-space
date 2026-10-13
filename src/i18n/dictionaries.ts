@@ -3,13 +3,17 @@ import { en } from './en'
 import type { Locale } from './config'
 import { checkoutAr } from './checkout-ar'
 import { checkoutEn } from './checkout-en'
+import { privateSessionDetailsAr, privateSessionDetailsEn } from './private-session-details'
 
 export const dictionaries = {
-  ar: { ...ar, checkout: checkoutAr },
-  en: { ...en, checkout: checkoutEn },
+  ar: { ...ar, checkout: checkoutAr, privateSessionDetails: privateSessionDetailsAr },
+  en: { ...en, checkout: checkoutEn, privateSessionDetails: privateSessionDetailsEn },
 }
 
-export type Dictionary = typeof ar & { checkout?: typeof checkoutAr }
+export type Dictionary = typeof ar & {
+  checkout?: typeof checkoutAr
+  privateSessionDetails?: typeof privateSessionDetailsAr
+}
 
 export function getDictionary(locale: Locale): Dictionary {
   return dictionaries[locale]

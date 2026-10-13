@@ -1,0 +1,1 @@
+export const PRIVATE_SESSION_HOURLY_PRICE = 100

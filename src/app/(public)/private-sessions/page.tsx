@@ -5,6 +5,7 @@ import { useRef, useState } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import { useT } from '@/i18n/i18n-context'
 import { ar } from '@/i18n/ar'
+import PrivateSessionCard from './private-session-card'
 
 const SERVICE_IMAGES = [
   '/images/about2.png',
@@ -25,6 +26,7 @@ export default function PrivateSessionsPage() {
     ...service,
     image: SERVICE_IMAGES[index],
     value: ar.privateSessions.services[index].title,
+    hasDetails: index === 2,
   }))
   const formRef = useRef<HTMLFormElement>(null)
   const [sessionType, setSessionType] = useState<string>(SERVICES[0].value)
@@ -75,7 +77,15 @@ export default function PrivateSessionsPage() {
       <h1>{t.privateSessions.heading}</h1>
 
       <div className="grid gap-6 xl:grid-cols-2 xl:justify-items-center">
-        {SERVICES.map((service) => (
+        {SERVICES.map((service) => service.hasDetails ? (
+          <PrivateSessionCard
+            key={service.value}
+            image={service.image}
+            description={service.description}
+            requestLabel={t.privateSessions.requestButton}
+            onRequest={() => handleRequestClick(service.value)}
+          />
+        ) : (
           <section
             key={service.value}
             className="flex h-auto w-full max-w-[620px] flex-col overflow-hidden rounded-[18px] border border-[#617A55]/[0.12] bg-white transition-transform duration-200 hover:-translate-y-[3px] sm:h-[190px] sm:flex-row"
