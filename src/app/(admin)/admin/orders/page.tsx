@@ -1,3 +1,4 @@
+import AdminDeleteButton from '@/components/admin/admin-delete-button'
 import AdminRpcButton from '@/components/admin/admin-rpc-button'
 import { createAdminClient } from '@/lib/supabase/admin'
 
@@ -241,6 +242,7 @@ export default async function AdminOrdersPage() {
                   <p className="text-lg font-semibold text-[#25311f]">
                     الإجمالي: <span dir="ltr">{formatAmount(order.total)}</span>
                   </p>
+                  <div className="flex flex-wrap items-start gap-3">
                   <AdminRpcButton
                     rpcName="admin_cancel_order"
                     args={{ p_order_id: order.id }}
@@ -250,6 +252,8 @@ export default async function AdminOrdersPage() {
                     tone="danger"
                     disabled={order.status === 'cancelled'}
                   />
+                  <AdminDeleteButton kind="order" id={order.id} label={`طلب ${order.id}`} />
+                  </div>
                 </footer>
               </article>
             )

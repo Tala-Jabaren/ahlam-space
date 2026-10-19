@@ -1,3 +1,4 @@
+import AdminDeleteButton from '@/components/admin/admin-delete-button'
 import Link from 'next/link'
 import AdminRpcButton from '@/components/admin/admin-rpc-button'
 import { createAdminClient } from '@/lib/supabase/admin'
@@ -338,6 +339,7 @@ export default async function AdminPaymentsPage({
                   </dl>
                 </div>
 
+                <div className="flex flex-wrap items-start gap-3">
                 <AdminRpcButton
                   rpcName="admin_confirm_payment"
                   args={{ p_kind: row.kind, p_id: row.id }}
@@ -346,6 +348,8 @@ export default async function AdminPaymentsPage({
                   successMessage="تم تأكيد الدفع بنجاح."
                   disabled={row.isPaid || row.status === 'cancelled'}
                 />
+                <AdminDeleteButton kind={row.kind === 'course' ? 'course_purchase' : row.kind} id={row.id} label={`${row.item} / ${row.customer.name}`} />
+                </div>
               </div>
             </article>
           ))}
