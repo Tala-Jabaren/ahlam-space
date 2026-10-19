@@ -2,8 +2,7 @@ import { notFound } from 'next/navigation'
 import { getAdminSession } from '@/components/admin/admin-session'
 import CustomerDetailView from '../_detail-view'
 import { customerListUrl, type CustomerSearchParams } from '../_navigation'
-// Backend handoff: replace '../_mock' with '@/lib/admin-customers'.
-import { getGuestDetail } from '../_mock'
+import { getGuestDetail } from '@/lib/admin-customers'
 
 export default async function GuestDetailPage({ searchParams }: {
   searchParams: Promise<CustomerSearchParams>

@@ -1,8 +1,7 @@
 import Link from 'next/link'
 import { ArrowRight, ChevronDown } from 'lucide-react'
 import type { ReactNode } from 'react'
-// Backend handoff: replace './_mock' with '@/lib/admin-customers'.
-import type { CustomerDetail, GuestDetail } from './_mock'
+import type { CustomerDetail, GuestDetail } from '@/lib/admin-customers'
 
 const money = new Intl.NumberFormat('ar', { style: 'currency', currency: 'ILS' })
 const number = new Intl.NumberFormat('ar')
@@ -64,8 +63,6 @@ export default function CustomerDetailView({ detail, backHref }: {
     <header className="rounded-lg border border-[#617A55]/15 bg-white p-5 sm:p-6">
       <p className="mb-2 text-xs text-[#617A55]">{profile ? 'زبون مسجّل' : 'زبون بدون حساب'}</p>
       <h1 className="break-words text-2xl font-medium text-[#617A55] sm:text-3xl">{name}</h1>
-      {/* Remove this fixture notice when switching the imports to the real module. */}
-      <p className="mt-3 inline-block rounded bg-[#C7D6E8]/40 px-2 py-1 text-xs">بيانات تجريبية لحين ربط مصدر البيانات</p>
       <dl className="mt-6 grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4">
         <Info label="البريد الإلكتروني">{profile?.email ?? guest?.guest_email}</Info>
         <Info label="رقم الهاتف">{profile?.phone ?? guest?.guest_phone}</Info>
