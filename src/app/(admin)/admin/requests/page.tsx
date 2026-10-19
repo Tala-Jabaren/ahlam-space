@@ -1,3 +1,4 @@
+import AdminDeleteButton from '@/components/admin/admin-delete-button'
 import { getAdminSession } from '@/components/admin/admin-session'
 import RequestStatusSelect from '@/components/admin/request-status-select'
 
@@ -69,7 +70,7 @@ export default async function AdminRequestsPage() {
                     </dl>
                     {request.message && <div className="mt-4 border-t border-[#617A55]/15 pt-4"><h3 className="text-xs font-semibold text-[#617A55]">الرسالة</h3><p className="mt-2 whitespace-pre-wrap break-words text-sm leading-7 text-[#617A55]">{request.message}</p></div>}
                   </div>
-                  <RequestStatusSelect id={request.id} status={request.status} />
+                  <div className="flex flex-col items-start gap-3"><RequestStatusSelect id={request.id} status={request.status} /><AdminDeleteButton kind="request" id={request.id} label={`طلب جلسة / ${request.full_name}`} /></div>
                 </div>
               </article>
             )

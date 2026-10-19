@@ -1,6 +1,7 @@
 'use client'
 
 import Image from 'next/image'
+import AdminDeleteButton from './admin-delete-button'
 import { useState } from 'react'
 import { ProductActiveToggle, VariantStockEditor } from './product-controls'
 
@@ -40,7 +41,7 @@ export default function AdminProductCard({ product }: { product: AdminProduct })
                   <p className="break-words font-medium">{label}</p>
                   {variant.sku && <p className="mt-1 break-all text-xs" dir="ltr">{variant.sku}</p>}
                 </div>
-                <VariantStockEditor id={variant.id} stock={variant.stock} label={`${product.name} / ${label}`} />
+                <div className="flex flex-wrap items-start gap-2"><VariantStockEditor id={variant.id} stock={variant.stock} label={`${product.name} / ${label}`} /><AdminDeleteButton kind="variant" id={variant.id} label={`خيار ${product.name} / ${label}`} /></div>
               </li>
             )
           })}

@@ -45,12 +45,12 @@ export function ProductActiveToggle({ id, name, active, onDeleted }: { id: strin
     setFailed(false)
     setMessage('')
     try {
-      const { data, error } = await createClient().rpc('admin_delete_product', { p_product_id: id })
+      const { data, error } = await createClient().rpc('admin_delete_record', { p_kind: 'product', p_id: id })
       if (error) {
         if (error.message.includes('PRODUCT_HAS_ORDERS') || error.code === '23503') {
           setMessage('لا يمكن حذف هذا المنتج لأنه مرتبط بطلبات أو سجلات سابقة. يمكنك إخفاؤه من المتجر بدلًا من حذفه.')
         } else if (error.code === 'PGRST202' || error.code === '42883') {
-          setMessage('الحذف النهائي غير مفعّل بعد. يلزم تطبيق ملف admin-delete-product.sql في Supabase أولًا.')
+          setMessage('الحذف النهائي غير مفعّل بعد. يلزم تطبيق ملف admin-delete-record.sql في Supabase أولًا.')
         } else if (error.message.includes('FORBIDDEN') || error.code === '42501') {
           setMessage('ليست لديك صلاحية حذف المنتجات.')
         } else {
