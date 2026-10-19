@@ -2,8 +2,7 @@ import Link from 'next/link'
 import { redirect } from 'next/navigation'
 import { Download, Search, Users } from 'lucide-react'
 import { getAdminSession } from '@/components/admin/admin-session'
-// Backend handoff: change only './_mock' to '@/lib/admin-customers'.
-import { getCustomers, getGuestBuyers, type CustomerRow, type GuestBuyerRow, type CustomerTab, type CustomerSort } from './_mock'
+import { getCustomers, getGuestBuyers, type CustomerRow, type GuestBuyerRow, type CustomerTab, type CustomerSort } from '@/lib/admin-customers'
 
 const numbers = new Intl.NumberFormat('ar')
 const money = new Intl.NumberFormat('ar', { style: 'currency', currency: 'ILS' })
@@ -52,8 +51,6 @@ export default async function CustomersPage({ searchParams }: {
         <div>
           <h1 className="text-3xl font-medium text-[#617A55]">الزبائن</h1>
           <p className="mt-2 text-sm text-[#617A55]">المسجّلون وزبائن المتجر بدون حساب</p>
-          {/* Remove this fixture notice when switching the import to the real module. */}
-          <p className="mt-3 inline-block rounded bg-[#C7D6E8]/40 px-2 py-1 text-xs">بيانات تجريبية لحين ربط مصدر البيانات</p>
         </div>
         <div className="flex flex-wrap gap-2">
           {(['docx', 'csv'] as const).map((format) => (
