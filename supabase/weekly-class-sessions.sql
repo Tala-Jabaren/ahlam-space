@@ -39,10 +39,11 @@ begin
   for v_rule in
     select rules.*
     from (values
-      -- Sunday evening yoga, Monday evening yoga, Tuesday Mix, Friday yoga.
+      -- Sunday evening yoga, Tuesday evening yoga, Wednesday Mix, Friday yoga.
+      -- Monday has no class. weekday follows extract(dow): 0=Sun..6=Sat.
       ('681580e9-5902-489c-b593-657dc14f3c7f'::uuid, 0, time '18:00', time '19:30'),
-      ('08213564-f802-4484-a11a-04047b34fad4'::uuid, 1, time '18:00', time '19:30'),
-      ('538c29c1-105e-4a86-905b-864fba7da936'::uuid, 2, time '18:00', time '18:45'),
+      ('08213564-f802-4484-a11a-04047b34fad4'::uuid, 2, time '18:00', time '19:30'),
+      ('538c29c1-105e-4a86-905b-864fba7da936'::uuid, 3, time '18:00', time '18:50'),
       ('7cbcab94-4491-40eb-94bd-78ae4e418a87'::uuid, 5, time '08:00', time '09:30')
     ) as rules(class_id, weekday, start_time, end_time)
     join public.classes as class on class.id = rules.class_id
