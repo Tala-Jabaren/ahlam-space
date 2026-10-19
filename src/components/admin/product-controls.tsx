@@ -1,10 +1,11 @@
 'use client'
 
 import { useState } from 'react'
+import { Trash2 } from 'lucide-react'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 
-export function ProductActiveToggle({ id, active }: { id: string; active: boolean }) {
+export function ProductActiveToggle({ id, name, active }: { id: string; name: string; active: boolean }) {
   const router = useRouter()
   const [isActive, setIsActive] = useState(active)
   const [busy, setBusy] = useState(false)
@@ -25,7 +26,7 @@ export function ProductActiveToggle({ id, active }: { id: string; active: boolea
         .single()
       if (error || !data) throw new Error('Update rejected')
       setIsActive(data.is_active === true)
-      setMessage(next ? 'تم تفعيل المنتج.' : 'تم إيقاف المنتج.')
+      setMessage(next ? 'المنتج ظاهر الآن في المتجر.' : 'تمت إزالة المنتج من المتجر. يمكنك إظهاره مجددًا في أي وقت.')
       router.refresh()
     } catch {
       setFailed(true)
@@ -35,19 +36,38 @@ export function ProductActiveToggle({ id, active }: { id: string; active: boolea
     }
   }
 
+  function removeFromShop() {
+    if (busy || !isActive) return
+    if (!window.confirm(`إزالة «${name}» من المتجر؟ سيُخفى عن الزبائن دون حذف بياناته أو الطلبات السابقة، ويمكنك إظهاره مجددًا.`)) return
+    void save(false)
+  }
+
   return (
     <div>
+      <div className="flex flex-wrap items-center justify-between gap-2">
       <label className="inline-flex min-h-11 cursor-pointer items-center gap-3 text-sm font-semibold text-[#617A55]">
         <input
           type="checkbox"
           role="switch"
           checked={isActive}
           disabled={busy}
+          aria-label={`إظهار ${name} في المتجر`}
           onChange={(event) => void save(event.target.checked)}
-          className="size-5 accent-[#617A55] disabled:cursor-wait"
+          className="size-5 accent-[#617A55] focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[#617A55] disabled:cursor-wait"
         />
-        {busy ? 'جارٍ الحفظ...' : isActive ? 'نشط' : 'غير نشط'}
+        {busy ? 'جارٍ الحفظ...' : isActive ? 'ظاهر في المتجر' : 'مخفي من المتجر'}
       </label>
+      <button
+        type="button"
+        onClick={removeFromShop}
+        disabled={busy || !isActive}
+        aria-label={`إزالة ${name} من المتجر`}
+        title={isActive ? 'إزالة من المتجر' : 'المنتج مخفي من المتجر بالفعل'}
+        className="grid size-11 shrink-0 cursor-pointer place-items-center rounded-lg border border-[#617A55]/20 text-[#617A55] transition hover:bg-[#D6E2B6]/50 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#617A55] disabled:cursor-not-allowed disabled:opacity-40"
+      >
+        <Trash2 size={18} aria-hidden="true" />
+      </button>
+      </div>
       {message && <p role={failed ? 'alert' : 'status'} className="mt-1 max-w-sm text-sm leading-6 text-[#617A55]">{message}</p>}
     </div>
   )

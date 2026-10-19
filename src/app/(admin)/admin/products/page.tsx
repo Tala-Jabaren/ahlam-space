@@ -38,7 +38,7 @@ export default async function AdminProductsPage() {
                 <div className="min-w-0 flex-1">
                   <h2 className="break-words text-xl font-semibold text-[#617A55]">{product.name}</h2>
                   <p className="mt-1 text-sm text-[#617A55]">{new Intl.NumberFormat('ar').format(product.price)} ₪</p>
-                  <ProductActiveToggle id={product.id} active={product.is_active === true} />
+                  <ProductActiveToggle id={product.id} name={product.name} active={product.is_active === true} />
                 </div>
               </header>
               <div className="p-4 sm:p-5">
