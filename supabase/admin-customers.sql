@@ -30,12 +30,10 @@
 --                    'pending' bank-transfer orders are not counted yet)
 --   last_order_at  = most recent orders.created_at where status <> 'cancelled'
 --
--- admin_list_customers() returns every row in public.profiles (including
--- admins themselves - the brief said "one row per registered user", not
--- "non-admin user"; if you want admins excluded from the list, say so and
--- this is a one-line change), left-joined to their order aggregates so a
--- user with zero orders still gets a row (counts/total 0, last_order_at
--- null) instead of being dropped.
+-- admin_list_customers() returns every row in public.profiles EXCEPT
+-- admins (where coalesce(p.role, '') <> 'admin'), left-joined to their
+-- order aggregates so a user with zero orders still gets a row
+-- (counts/total 0, last_order_at null) instead of being dropped.
 
 begin;
 
@@ -56,7 +54,7 @@ security definer
 set search_path = public, pg_temp
 as $$
 begin
-  if auth.uid() is null or not public.is_admin() then
+  if auth.uid() is null or not coalesce(public.is_admin(), false) then
     raise exception using errcode = '42501', message = 'FORBIDDEN';
   end if;
 
@@ -85,6 +83,7 @@ begin
     where o.user_id is not null
     group by o.user_id
   ) as agg on agg.user_id = p.id
+  where coalesce(p.role, '') <> 'admin'
   order by p.created_at desc;
 end;
 $$;
@@ -103,10 +102,9 @@ grant execute on function public.admin_list_customers() to authenticated;
 -- the same phone number (nothing enforces identity consistency for guest
 -- checkout) - this uses the most recent order's name/email per phone
 -- group, which is what a "grouped by guest_phone" list most usefully shows.
--- A phone group whose orders are ALL cancelled still gets a row (per
--- "orders with user_id null, grouped by guest_phone" - the grouping itself
--- isn't filtered by status, only the orders_count/total_spent/last_order_at
--- values are), with orders_count = 0 and last_order_at = null.
+-- A phone group whose orders are ALL cancelled (orders_count = 0) is
+-- excluded entirely via "where coalesce(agg.orders_count, 0) > 0" - they
+-- were never an actual buyer.
 create or replace function public.admin_list_guest_buyers()
 returns table (
   guest_name text,
@@ -121,7 +119,7 @@ security definer
 set search_path = public, pg_temp
 as $$
 begin
-  if auth.uid() is null or not public.is_admin() then
+  if auth.uid() is null or not coalesce(public.is_admin(), false) then
     raise exception using errcode = '42501', message = 'FORBIDDEN';
   end if;
 
@@ -152,16 +150,18 @@ begin
     where o.user_id is null
     group by o.guest_phone
   ) as agg on agg.guest_phone = latest.guest_phone
+  where coalesce(agg.orders_count, 0) > 0
   order by agg.last_order_at desc nulls last;
 end;
 $$;
 
 revoke all on function public.admin_list_guest_buyers() from public, anon;
 grant execute on function public.admin_list_guest_buyers() to authenticated;
--- Test (as admin): one row per distinct guest_phone among guest orders,
---   name/email matching that phone's most recent order.
--- Test (a guest phone with one cancelled-only order): still appears, with
---   orders_count = 0, total_spent = 0, last_order_at = null.
+-- Test (as admin): one row per distinct guest_phone among guest orders
+--   with at least one non-cancelled order, name/email matching that
+--   phone's most recent order.
+-- Test (a guest phone with only a cancelled order): excluded entirely -
+--   does not appear in the results.
 -- Test (as non-admin authenticated user, or anon): expect 42501/FORBIDDEN.
 
 -- admin_get_customer_detail(p_user_id): one registered user's whole history
@@ -200,7 +200,7 @@ declare
   v_bookings jsonb;
   v_course_purchases jsonb;
 begin
-  if auth.uid() is null or not public.is_admin() then
+  if auth.uid() is null or not coalesce(public.is_admin(), false) then
     raise exception using errcode = '42501', message = 'FORBIDDEN';
   end if;
 
@@ -344,7 +344,7 @@ declare
   v_guest jsonb;
   v_orders jsonb;
 begin
-  if auth.uid() is null or not public.is_admin() then
+  if auth.uid() is null or not coalesce(public.is_admin(), false) then
     raise exception using errcode = '42501', message = 'FORBIDDEN';
   end if;
 
