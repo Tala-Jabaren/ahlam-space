@@ -21,6 +21,59 @@ export type GuestBuyerRow = {
   last_order_at: string | null
 }
 
+export type CustomerOrderItem = {
+  product_name: string
+  variant_label: string | null
+  quantity: number
+  unit_price: number
+}
+
+export type CustomerOrder = {
+  id: string
+  reference: string | null
+  created_at: string
+  status: string
+  payment_method: string | null
+  fulfillment_method: string | null
+  total: number
+  delivery_address: string | null
+  items: CustomerOrderItem[]
+}
+
+export type CustomerBooking = {
+  id: string
+  reference: string | null
+  created_at: string
+  status: string
+  payment_status: string
+  class_name: string
+  session_date: string
+  start_time: string
+  end_time: string
+}
+
+export type CustomerCoursePurchase = {
+  id: string
+  reference: string | null
+  created_at: string
+  status: string
+  paid_at: string | null
+  course_title: string
+  price: number
+}
+
+export type CustomerDetail = {
+  profile: CustomerRow
+  orders: CustomerOrder[]
+  bookings: CustomerBooking[]
+  course_purchases: CustomerCoursePurchase[]
+}
+
+export type GuestDetail = {
+  guest: GuestBuyerRow
+  orders: CustomerOrder[]
+}
+
 export type CustomerTab = 'users' | 'guests'
 export type CustomerSort = 'registered_desc' | 'registered_asc' | 'spent_desc'
 export type CustomerQuery = {
@@ -107,4 +160,33 @@ export async function getGuestBuyers(
   const sorted = sortByDate(filtered, (row) => row.last_order_at, sort, (row) => row.total_spent)
 
   return paginate(sorted, page, pageSize)
+}
+
+export async function getCustomerDetail(
+  supabase: SupabaseClient,
+  userId: string
+): Promise<CustomerDetail | null> {
+  const { data, error } = await supabase.rpc('admin_get_customer_detail', {
+    p_user_id: userId,
+  })
+
+  if (error) throw error
+
+  // The SQL function returns SQL null (not a JSON "null") when the user
+  // isn't in public.profiles - supabase-js surfaces that as data: null with
+  // no error, which is exactly the "not found" case this returns null for.
+  return (data ?? null) as CustomerDetail | null
+}
+
+export async function getGuestDetail(
+  supabase: SupabaseClient,
+  phone: string
+): Promise<GuestDetail | null> {
+  const { data, error } = await supabase.rpc('admin_get_guest_detail', {
+    p_phone: phone,
+  })
+
+  if (error) throw error
+
+  return (data ?? null) as GuestDetail | null
 }
