@@ -5,10 +5,11 @@ import { Trash2 } from 'lucide-react'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 
-export function ProductActiveToggle({ id, name, active }: { id: string; name: string; active: boolean }) {
+export function ProductActiveToggle({ id, name, active, onDeleted }: { id: string; name: string; active: boolean; onDeleted: () => void }) {
   const router = useRouter()
   const [isActive, setIsActive] = useState(active)
   const [busy, setBusy] = useState(false)
+  const [deleting, setDeleting] = useState(false)
   const [message, setMessage] = useState('')
   const [failed, setFailed] = useState(false)
 
@@ -26,7 +27,7 @@ export function ProductActiveToggle({ id, name, active }: { id: string; name: st
         .single()
       if (error || !data) throw new Error('Update rejected')
       setIsActive(data.is_active === true)
-      setMessage(next ? 'المنتج ظاهر الآن في المتجر.' : 'تمت إزالة المنتج من المتجر. يمكنك إظهاره مجددًا في أي وقت.')
+      setMessage(next ? 'المنتج ظاهر الآن في المتجر.' : 'المنتج مخفي الآن من المتجر. يمكنك إظهاره مجددًا في أي وقت.')
       router.refresh()
     } catch {
       setFailed(true)
@@ -36,10 +37,38 @@ export function ProductActiveToggle({ id, name, active }: { id: string; name: st
     }
   }
 
-  function removeFromShop() {
-    if (busy || !isActive) return
-    if (!window.confirm(`إزالة «${name}» من المتجر؟ سيُخفى عن الزبائن دون حذف بياناته أو الطلبات السابقة، ويمكنك إظهاره مجددًا.`)) return
-    void save(false)
+  async function deleteProduct() {
+    if (busy) return
+    if (!window.confirm(`حذف «${name}» نهائيًا من لوحة الإدارة والمتجر مع جميع خياراته؟ لا يمكن التراجع عن الحذف. لن يتم حذف أي طلبات سابقة.`)) return
+    setBusy(true)
+    setDeleting(true)
+    setFailed(false)
+    setMessage('')
+    try {
+      const { data, error } = await createClient().rpc('admin_delete_product', { p_product_id: id })
+      if (error) {
+        if (error.message.includes('PRODUCT_HAS_ORDERS') || error.code === '23503') {
+          setMessage('لا يمكن حذف هذا المنتج لأنه مرتبط بطلبات أو سجلات سابقة. يمكنك إخفاؤه من المتجر بدلًا من حذفه.')
+        } else if (error.code === 'PGRST202' || error.code === '42883') {
+          setMessage('الحذف النهائي غير مفعّل بعد. يلزم تطبيق ملف admin-delete-product.sql في Supabase أولًا.')
+        } else if (error.message.includes('FORBIDDEN') || error.code === '42501') {
+          setMessage('ليست لديك صلاحية حذف المنتجات.')
+        } else {
+          setMessage('تعذر حذف المنتج. تحققي من الاتصال والصلاحيات ثم حاولي مجددًا.')
+        }
+        setFailed(true)
+        return
+      }
+      if (data !== id) throw new Error('Deletion not confirmed')
+      onDeleted()
+      router.refresh()
+    } catch {
+      setFailed(true)
+      setMessage('تعذر حذف المنتج. تحققي من الاتصال والصلاحيات ثم حاولي مجددًا.')
+    } finally {
+      setDeleting(false)
+      setBusy(false)
+    }
   }
 
   return (
@@ -55,14 +84,14 @@ export function ProductActiveToggle({ id, name, active }: { id: string; name: st
           onChange={(event) => void save(event.target.checked)}
           className="size-5 accent-[#617A55] focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[#617A55] disabled:cursor-wait"
         />
-        {busy ? 'جارٍ الحفظ...' : isActive ? 'ظاهر في المتجر' : 'مخفي من المتجر'}
+        {deleting ? 'جارٍ الحذف...' : busy ? 'جارٍ الحفظ...' : isActive ? 'ظاهر في المتجر' : 'مخفي من المتجر'}
       </label>
       <button
         type="button"
-        onClick={removeFromShop}
-        disabled={busy || !isActive}
-        aria-label={`إزالة ${name} من المتجر`}
-        title={isActive ? 'إزالة من المتجر' : 'المنتج مخفي من المتجر بالفعل'}
+        onClick={() => void deleteProduct()}
+        disabled={busy}
+        aria-label={`حذف ${name} نهائيًا`}
+        title="حذف نهائي من لوحة الإدارة والمتجر"
         className="grid size-11 shrink-0 cursor-pointer place-items-center rounded-lg border border-[#617A55]/20 text-[#617A55] transition hover:bg-[#D6E2B6]/50 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#617A55] disabled:cursor-not-allowed disabled:opacity-40"
       >
         <Trash2 size={18} aria-hidden="true" />
