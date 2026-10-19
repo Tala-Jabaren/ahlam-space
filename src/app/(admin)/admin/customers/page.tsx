@@ -113,8 +113,15 @@ export default async function CustomersPage({ searchParams }: {
                 const values = 'user_id' in row
                   ? [row.full_name, row.email, row.phone, row.city, formatDate(row.registered_at), numbers.format(row.orders_count), money.format(row.total_spent), formatDate(row.last_order_at)]
                   : [row.guest_name, row.guest_phone, row.guest_email, numbers.format(row.orders_count), money.format(row.total_spent), formatDate(row.last_order_at)]
+                const filters = new URLSearchParams({ tab, q, sort, page: String(page) })
+                if (!('user_id' in row) && row.guest_phone) filters.set('phone', row.guest_phone)
+                const detailHref = 'user_id' in row
+                  ? `/admin/customers/${encodeURIComponent(row.user_id)}?${filters}`
+                  : row.guest_phone ? `/admin/customers/guest?${filters}` : null
                 return <tr key={'user_id' in row ? row.user_id : `${row.guest_phone}-${index}`} className="hover:bg-[#F7F6F0]">
-                  {values.map((value, cell) => <td key={cell} className="px-4 py-4"><bdi className="break-words">{value || '-'}</bdi></td>)}
+                  {values.map((value, cell) => <td key={cell} className="px-4 py-4">{cell === 0 && detailHref
+                    ? <Link href={detailHref} className="inline-block min-h-11 content-center rounded text-[#617A55] underline underline-offset-4 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#617A55]"><bdi className="break-words">{value || 'بدون اسم'}</bdi></Link>
+                    : <bdi className="break-words">{value || '-'}</bdi>}</td>)}
                 </tr>
               })}
             </tbody>
