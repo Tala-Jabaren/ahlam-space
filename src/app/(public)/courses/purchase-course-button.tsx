@@ -9,11 +9,13 @@ import { useT } from '@/i18n/i18n-context'
 type Props = {
   courseId: string
   price: number
+  returnTo?: string
+  successMessage?: string
 }
 
 type PurchaseState = 'idle' | 'saving' | 'success' | 'error'
 
-export default function PurchaseCourseButton({ courseId, price }: Props) {
+export default function PurchaseCourseButton({ courseId, price, returnTo = '/courses', successMessage }: Props) {
   const router = useRouter()
   const { t, dir } = useT()
   const [state, setState] = useState<PurchaseState>('idle')
@@ -26,7 +28,7 @@ export default function PurchaseCourseButton({ courseId, price }: Props) {
     } = await supabase.auth.getUser()
 
     if (!user) {
-      router.push('/login?returnTo=%2Fcourses')
+      router.push(`/login?returnTo=${encodeURIComponent(returnTo)}`)
       return
     }
 
@@ -54,7 +56,7 @@ export default function PurchaseCourseButton({ courseId, price }: Props) {
   }
 
   if (state === 'success' && reference) {
-    return <PaymentConfirmationBlock amount={price} reference={reference} />
+    return <div className="space-y-4">{successMessage && <p role="status" className="text-sm leading-7">{successMessage}</p>}<PaymentConfirmationBlock amount={price} reference={reference} /></div>
   }
 
   return (

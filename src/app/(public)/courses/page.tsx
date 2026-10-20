@@ -7,6 +7,7 @@ import { getLocale } from '@/i18n/get-locale'
 import { getDictionary } from '@/i18n/dictionaries'
 import { pageMetadata } from '@/lib/seo'
 import PurchaseCourseButton from './purchase-course-button'
+import { meditationsAr } from '@/i18n/meditations'
 
 export async function generateMetadata(): Promise<Metadata> {
   const locale = await getLocale()
@@ -18,7 +19,7 @@ type Course = {
   id: string
   title: string
   description: string | null
-  content_type: 'video' | 'article'
+  content_type: 'video' | 'article' | 'audio'
   price: number
   cover_image_url: string | null
 }
@@ -39,9 +40,10 @@ export default async function CoursesPage({
   const { error: errorParam } = await searchParams
   const supabase = await createClient()
   const { t, dir } = await getT()
+  const copy = t.meditations ?? meditationsAr
 
   function contentTypeLabel(type: Course['content_type']) {
-    return type === 'video' ? t.courses.list.contentTypeVideo : t.courses.list.contentTypeArticle
+    return type === 'audio' ? copy.audio : type === 'video' ? t.courses.list.contentTypeVideo : t.courses.list.contentTypeArticle
   }
   const {
     data: { user },
@@ -127,9 +129,12 @@ export default async function CoursesPage({
           </div>
         )}
 
-        {!coursesError && (courses ?? []).length > 0 && (
-          <div className="mt-8 grid gap-6 sm:grid-cols-2 xl:grid-cols-3">
-            {(courses ?? []).map((course) => {
+        {!coursesError && (['lectures', 'meditations'] as const).map((section) => (
+          <section key={section} id={section} className="mt-8 scroll-mt-32">
+          <h2 className="mb-5 font-serif text-3xl">{section === 'meditations' ? copy.heading : copy.lectures}</h2>
+          {section === 'meditations' && !(courses ?? []).some(course => course.content_type === 'audio') && <p className="py-6 text-sm">{copy.empty}</p>}
+          <div className="grid gap-6 sm:grid-cols-2 xl:grid-cols-3">
+            {(courses ?? []).filter(course => (course.content_type === 'audio') === (section === 'meditations')).map((course) => {
               const purchase = purchaseByCourseId.get(course.id)
               const status = purchase?.status
 
@@ -153,9 +158,9 @@ export default async function CoursesPage({
                   </div>
 
                   <div className="flex flex-1 flex-col p-5">
-                    <h2 className="font-serif text-2xl leading-tight">
+                    <h3 className="font-serif text-2xl leading-tight">
                       {course.title}
-                    </h2>
+                    </h3>
                     {course.description && (
                       <p className="mt-2 line-clamp-2 text-sm leading-6 text-[#617A55]/75">
                         {course.description}
@@ -167,7 +172,10 @@ export default async function CoursesPage({
                         ₪{course.price}
                       </p>
 
-                      {!user && (
+                      {course.content_type === 'audio' && (
+                        <Link href={`/courses/${course.id}`} className="inline-flex min-h-11 items-center justify-center rounded-lg bg-[#617A55] px-6 py-3 text-sm font-semibold text-[#F7F6F0]">{status === 'paid' ? copy.listen : copy.details}</Link>
+                      )}
+                      {course.content_type !== 'audio' && !user && (
                         <Link
                           href="/login?returnTo=%2Fcourses"
                           className="inline-flex min-h-11 items-center justify-center rounded-lg bg-[#617A55] px-6 py-3 text-sm font-semibold text-[#F7F6F0] transition hover:bg-[#617A55]/85"
@@ -176,7 +184,7 @@ export default async function CoursesPage({
                         </Link>
                       )}
 
-                      {user && status === 'paid' && (
+                      {course.content_type !== 'audio' && user && status === 'paid' && (
                         <Link
                           href={`/courses/${course.id}`}
                           className="inline-flex min-h-11 items-center justify-center rounded-lg bg-[#617A55] px-6 py-3 text-sm font-semibold text-[#F7F6F0] transition hover:bg-[#617A55]/85"
@@ -185,18 +193,18 @@ export default async function CoursesPage({
                         </Link>
                       )}
 
-                      {user && status === 'pending' && (
+                      {course.content_type !== 'audio' && user && status === 'pending' && (
                         <span className="inline-flex min-h-11 items-center rounded-full bg-[#C7D6E8] px-5 text-sm font-semibold text-[#617A55]">
                           {t.courses.list.pendingPayment}
                         </span>
                       )}
 
-                      {user && !status && (
+                      {course.content_type !== 'audio' && user && !status && (
                         <PurchaseCourseButton courseId={course.id} price={course.price} />
                       )}
                     </div>
 
-                    {user && status === 'pending' && purchase?.reference && (
+                    {course.content_type !== 'audio' && user && status === 'pending' && purchase?.reference && (
                       <div className="mt-4">
                         <PaymentConfirmationBlock
                           amount={course.price}
@@ -209,7 +217,8 @@ export default async function CoursesPage({
               )
             })}
           </div>
-        )}
+          </section>
+        ))}
       </section>
     </main>
   )
