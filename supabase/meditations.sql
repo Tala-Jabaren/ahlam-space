@@ -1,6 +1,12 @@
 -- REVIEW ONLY: do not execute automatically. Requires public.is_admin().
 -- courses.content_type is expected to be text with video/article CHECKs.
 -- No courses, purchases or storage objects are inserted by this script.
+-- Read-only pre-checks: review/run these separately before the migration.
+-- SELECT column_name, data_type, udt_name FROM information_schema.columns
+--   WHERE table_schema = 'public' AND table_name = 'courses' ORDER BY ordinal_position;
+-- SELECT content_type, count(*) FROM public.courses GROUP BY content_type ORDER BY content_type;
+-- SELECT conname, pg_get_constraintdef(oid) FROM pg_constraint
+--   WHERE conrelid = 'public.courses'::regclass AND contype = 'c' ORDER BY conname;
 begin;
 
 alter table public.courses add column if not exists audio_path text;
@@ -28,26 +34,12 @@ end $$;
 
 insert into storage.buckets (id, name, public, file_size_limit, allowed_mime_types)
 values ('meditations', 'meditations', false, 52428800,
-  array['audio/mp4', 'audio/mpeg', 'audio/x-m4a'])
+  array['audio/mp4', 'audio/mpeg', 'audio/x-m4a', 'audio/m4a', 'audio/aac'])
 on conflict (id) do update set public = false, file_size_limit = excluded.file_size_limit,
   allowed_mime_types = excluded.allowed_mime_types;
 
--- Public metadata remains readable under existing RLS, but audio paths do not.
--- Table-level SELECT overrides column restrictions, so replace it with explicit
--- grants for all existing columns except audio_path. Existing RLS is unchanged.
-revoke select on public.courses from public, anon, authenticated;
-revoke select (audio_path) on public.courses from public, anon, authenticated;
-do $$
-declare columns_sql text;
-begin
-  select string_agg(format('%I', attname), ', ' order by attnum) into columns_sql
-  from pg_attribute where attrelid = 'public.courses'::regclass
-    and attnum > 0 and not attisdropped and attname <> 'audio_path';
-  execute format('grant select (%s) on public.courses to anon, authenticated', columns_sql);
-end $$;
-
--- Definer helpers are needed because audio_path itself is not client-readable.
--- They are bound to auth.uid(); callers cannot supply a different buyer ID.
+-- Access helpers are bound to auth.uid(); callers cannot supply a different
+-- buyer ID. Existing courses SELECT privileges and RLS remain unchanged.
 create or replace function public.can_access_meditation(p_object_name text)
 returns boolean language sql stable security definer
 set search_path = public, pg_temp

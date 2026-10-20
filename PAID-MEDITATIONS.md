@@ -17,14 +17,16 @@ Existing video/article gates remain in place.
 
 ## Manual Deployment Order
 
-1. Review supabase/meditations.sql, including its column-level SELECT grants.
+1. Review supabase/meditations.sql. Its three commented, read-only pre-checks
+   show the courses columns, content_type values and CHECK constraints. Review
+   those results separately before running the migration.
    The script expects a text content_type column with video/article CHECKs.
-   It preserves other course checks and existing course SELECT RLS policies.
+   It preserves other course checks, course SELECT privileges and SELECT RLS.
    Do not deploy the application changes before applying the reviewed script.
 2. Run the reviewed script yourself. No SQL was executed by this task.
 3. Upload MP3/M4A files manually into the PRIVATE meditations bucket using
    Supabase Storage. Limit: 50 MB; allowed MIME types are audio/mp4,
-   audio/mpeg and audio/x-m4a. Do not make the bucket public.
+   audio/mpeg, audio/x-m4a, audio/m4a and audio/aac. Do not make the bucket public.
 4. In /admin/courses create an audio meditation with title, description, price,
    duration_minutes and the exact object path (for example folder/file.mp3).
    The path is stored in courses.audio_path. This form does not upload files.
@@ -33,9 +35,14 @@ Existing video/article gates remain in place.
 ## Access Boundaries
 
 - Listing and unpaid detail queries fetch explicit metadata, not audio_path.
-- Column grants deny direct audio_path SELECT to anon/authenticated, including
-  admins. get_meditation_audio_path returns it only for the caller's paid
-  purchase or admin status. The RPC accepts no buyer ID.
+- Existing table/column SELECT privileges are not changed. audio_path may be
+  readable through a direct API query under the existing courses privileges
+  and RLS; knowing a path does not authorize reading or signing the object.
+  The application does not depend on hiding that column to enforce access.
+- get_meditation_audio_path still returns a path only for the caller's paid
+  purchase or admin status. The RPC accepts no buyer ID. Public application
+  queries continue to omit audio_path, and unpaid/pending responses do not
+  include it or a signed audio URL.
 - Storage SELECT is independently limited to paid ownership/admin access.
   Restrictive policies stop broader pre-existing Storage policies from granting
   anonymous or unauthorized access to this bucket. Writes require admin status.
@@ -61,16 +68,43 @@ the new audio fields; only audio records query or write the new columns.
 The SQL/RLS rules have NOT been executed or integration-tested against Supabase.
 Installing the unchanged main lockfile reported five high-severity npm
 advisories; dependency upgrades were not included in this feature.
-After manual deployment verify with separate buyer/admin accounts:
+## Post-SQL Access Tests
 
-- Anonymous: public metadata works, audio_path SELECT and bucket access fail.
-- Unpaid and pending buyer: path RPC returns null and audio signing fails.
-- Paid buyer: matching course object signs; another course's object does not.
-- Admin: can read/sign/upload/update/delete bucket objects and edit audio paths.
-- Repeat the reviewed script to confirm idempotence in your actual schema.
-- Existing lecture playback and other buckets still work.
+Use separate sessions for an unpaid buyer, a pending buyer, a paid buyer, an
+admin and an anonymous visitor. Use a known path of an uploaded meditation so
+denial is tested even when the caller already knows the path. With each
+session's own Supabase client, attempt:
 
-If another integration uses courses.select('*'), change it to explicit safe
-columns: the protected audio_path column intentionally makes SELECT * fail.
+```ts
+const result = await supabase.storage
+  .from('meditations')
+  .createSignedUrl('folder/file.mp3', 3600)
+```
+
+1. Unpaid buyer (no purchase): signing must return an error and no signed URL.
+   The path RPC must return null; the detail page must show the buy action.
+2. Pending buyer: signing must return an error and no signed URL. The path RPC
+   must return null; the detail page must show its reference and waiting message.
+3. Paid buyer: signing the purchased course's file must succeed and playback
+   must work. A different, unpurchased course's file must fail to sign. Reload
+   the detail page and confirm a fresh one-hour signed URL is requested.
+4. Admin without a purchase: signing and playback must succeed. Confirm admin
+   upload, update and deletion permissions using a disposable test object.
+5. Anonymous visitor (fresh session without auth cookies): requesting a NEW
+   signed URL must fail. Calling the path RPC must be denied. Public metadata
+   should still load, but the detail page must contain no audio path or URL.
+   An already-issued, unexpired signed URL is a bearer link and can still be
+   used without login; that is not the same as permission to create a new URL.
+6. Open /shop and a product detail page anonymously and while logged in.
+   Confirm real product images still load (successful image/network responses),
+   and check representative files in every other existing storage bucket with
+   their usual permissions. Existing paid course-videos playback must still
+   work; unrelated buckets must not gain or lose access after this migration.
+7. Repeat the reviewed script to confirm idempotence in your actual schema.
+
+The revised script does not reverse grants if an older version was already
+executed. In that case review the current grants separately before proceeding;
+this task does not run or automatically repair database privileges.
+
 Bank account placeholders in the existing shared confirmation block must be
 filled with the owner's verified details before accepting real transfers.
