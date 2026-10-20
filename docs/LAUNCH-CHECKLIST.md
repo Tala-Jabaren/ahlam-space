@@ -12,7 +12,8 @@ Nothing here is code - this is a checklist for you to work through, in roughly t
       `robots.txt` point at localhost if left unset.
 - [ ] Double-check every variable in `.env.example` is set in production with real
       values (`NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`,
-      `SUPABASE_SERVICE_ROLE_KEY`, `RESEND_API_KEY`, `NEXT_PUBLIC_SITE_URL`).
+      `SUPABASE_SERVICE_ROLE_KEY`, `RESEND_API_KEY`, `EMAIL_FROM`, `CRON_SECRET`,
+      `ADMIN_NOTIFY_EMAIL`, `NEXT_PUBLIC_SITE_URL`).
 
 ## 2. Supabase project
 
@@ -23,10 +24,29 @@ Nothing here is code - this is a checklist for you to work through, in roughly t
 - [ ] **Turn email confirmation back on** (Authentication > Providers > Email >
       "Confirm email"). It's off for easier testing during development - launching
       with it off means anyone can sign up with an email they don't own.
-- [ ] **Set up Resend's SMTP / sending domain properly** rather than relying on
-      Resend's shared `onboarding@resend.dev` sender currently hardcoded in
-      `src/app/api/contact/route.ts`. Verify a real sending domain in Resend, then
-      update the `from` address in that file to match.
+- [ ] **Set up Resend's sending domain.** In the Resend dashboard: Domains > Add
+      Domain, enter the real domain, then add the SPF/DKIM (and DMARC, if shown)
+      DNS records it gives you at the registrar/DNS host. Wait for the domain's
+      status to flip to "Verified" (can take a few minutes to a few hours for DNS
+      to propagate) - sends from an unverified domain are rejected. Once verified,
+      set `EMAIL_FROM` to an address on that domain, e.g.
+      `Ahlam Space <notifications@ahlamspace.com>`. This is used by the contact
+      form (which still relies on Resend's shared `onboarding@resend.dev` sender,
+      hardcoded in `src/app/api/contact/route.ts` - update that too) and by the
+      class-reminder / admin-notification cron emails (`src/lib/email/mailer.ts`).
+- [ ] **Set `CRON_SECRET`** to a random value (e.g. `openssl rand -hex 32`) in the
+      production environment. Vercel Cron sends it automatically as
+      `Authorization: Bearer <CRON_SECRET>` to the two jobs in `vercel.json`
+      (`/api/cron/class-reminders` hourly, `/api/cron/admin-notifications` every 5
+      minutes) - without it set, both routes reject every request with 401,
+      including Vercel's own cron calls.
+- [ ] **Set `ADMIN_NOTIFY_EMAIL`** if the owner digest (new bookings, orders,
+      session requests, course purchases) should go somewhere other than the
+      `nmi.ahlam@gmail.com` default.
+- [ ] **Run `supabase/class-reminders.sql`** in the SQL editor (adds
+      `bookings.reminder_sent_at`, the claim/release/count functions, and the
+      `admin_notification_queue` table + triggers the two cron jobs depend on).
+      Without it, both cron routes fail every run (missing column/function/table).
 - [ ] **Replace the business email placeholder.** `src/app/api/contact/route.ts`
       has `const businessEmail = 'nmi.ahlam@gmail.com' // TODO: replace with the
       real business email address.` - update it to the address that should
