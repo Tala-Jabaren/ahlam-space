@@ -13,7 +13,7 @@ Nothing here is code - this is a checklist for you to work through, in roughly t
 - [ ] Double-check every variable in `.env.example` is set in production with real
       values (`NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`,
       `SUPABASE_SERVICE_ROLE_KEY`, `RESEND_API_KEY`, `EMAIL_FROM`, `CRON_SECRET`,
-      `ADMIN_NOTIFY_EMAIL`, `NEXT_PUBLIC_SITE_URL`).
+      `ADMIN_NOTIFY_EMAIL`, `CONTACT_TO_EMAIL`, `NEXT_PUBLIC_SITE_URL`).
 
 ## 2. Supabase project
 
@@ -99,7 +99,9 @@ Nothing here is code - this is a checklist for you to work through, in roughly t
 - [ ] Place a real test booking, course purchase, and shop order end-to-end on
       the production domain once DNS is live, then delete that test data
       afterward (see the cleanup step above).
-- [ ] Run `npm audit` again right before launch - the critical Next.js CVE fixed
-      in `next@16.4.0` was deliberately not force-upgraded during this pass (it's
-      outside this project's pinned version range and needs its own testing
-      pass); decide whether to take that upgrade before going live.
+- [ ] Run `npm audit` again right before launch. The critical Next.js RCE and the
+      high-severity zod DoS that affected earlier versions are fixed as of
+      `next@16.4.3` and `zod@4.6.7` (both upgraded on `feature/security-bump`,
+      regression-tested against the payment/booking flow) - `npm audit` reports
+      zero vulnerabilities as of that upgrade. Still worth re-running right
+      before launch in case a new advisory has landed since.
