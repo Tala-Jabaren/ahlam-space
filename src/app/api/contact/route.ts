@@ -46,7 +46,7 @@ export async function POST(request: Request) {
   const email = body.email.trim()
   const message = body.message.trim()
   const resend = new Resend(resendApiKey)
-  const businessEmail = 'nmi.ahlam@gmail.com' // TODO: replace with the real business email address.
+  const businessEmail = process.env.CONTACT_TO_EMAIL || 'nmi.ahlam@gmail.com'
 
   try {
     const { error } = await resend.emails.send({
