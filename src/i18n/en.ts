@@ -200,15 +200,19 @@ export const en: typeof ar = {
   },
   courses: {
     list: {
-      heading: 'Lectures',
-      subtitle:
-        'Choose the right course, then pick a payment method. Purchases stay pending until payment is manually confirmed.',
+      heading: 'Courses',
+      heroDescription: 'A mindful journey toward deeper awareness, balance, and inner peace.',
+      heroSecondaryDescription:
+        'Explore lectures and meditations designed to help you reconnect with yourself.',
+      heroImageAlt: 'A lit candle among green branches and linen at Ahlam Space',
+      subtitle: 'Purchase requests remain pending until payment is confirmed.',
+      accessHint: 'Available after purchase',
       accessDeniedNotice:
         'You can’t access this content yet — you need to complete the purchase and have payment confirmed first.',
       notFoundNotice: 'This course isn’t available right now.',
       loadError: 'Unable to load courses right now.',
       empty: 'No courses are available for purchase right now.',
-      contentTypeVideo: 'Video',
+      contentTypeVideo: 'Video Lecture',
       contentTypeArticle: 'Article',
       loginToBuy: 'Log in to purchase',
       watchNow: 'Watch Now',
