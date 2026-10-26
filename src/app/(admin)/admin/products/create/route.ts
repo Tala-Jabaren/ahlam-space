@@ -1,14 +1,7 @@
 import { createClient } from '@/lib/supabase/server'
 import { createAdminClient } from '@/lib/supabase/admin'
 import { MAX_PRODUCT_IMAGE_BYTES, PRODUCT_IMAGE_BUCKET, productInputSchema } from '@/components/admin/product-input'
-
-function imageFormat(bytes: Uint8Array) {
-  if ([137, 80, 78, 71, 13, 10, 26, 10].every((value, index) => bytes[index] === value)) return { type: 'image/png', extension: 'png' }
-  if (bytes[0] === 255 && bytes[1] === 216 && bytes[2] === 255) return { type: 'image/jpeg', extension: 'jpg' }
-  const text = new TextDecoder('ascii')
-  if (text.decode(bytes.slice(0, 4)) === 'RIFF' && text.decode(bytes.slice(8, 12)) === 'WEBP') return { type: 'image/webp', extension: 'webp' }
-  return null
-}
+import { detectImageFormat } from '@/lib/file-format'
 
 export async function POST(request: Request) {
   if (request.headers.get('origin') !== new URL(request.url).origin) return Response.json({ error: 'طلب غير مسموح.' }, { status: 403 })
@@ -38,11 +31,11 @@ export async function POST(request: Request) {
     const input = parsed.data
     const image = form.get('image')
     let imageBytes: Uint8Array | null = null
-    let format: ReturnType<typeof imageFormat> = null
+    let format: ReturnType<typeof detectImageFormat> = null
     if (image instanceof File && image.size > 0) {
       if (image.size > MAX_PRODUCT_IMAGE_BYTES) return Response.json({ error: 'حجم الصورة يجب ألا يتجاوز 5 ميغابايت.' }, { status: 413 })
       imageBytes = new Uint8Array(await image.arrayBuffer())
-      format = imageFormat(imageBytes)
+      format = detectImageFormat(imageBytes)
       if (!format || image.type !== format.type) return Response.json({ error: 'اختاري صورة JPG أو PNG أو WebP صحيحة.' }, { status: 400 })
     } else if (image && !(image instanceof File)) {
       return Response.json({ error: 'ملف الصورة غير صالح.' }, { status: 400 })

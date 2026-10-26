@@ -5,7 +5,7 @@ import { meditationsAr } from '@/i18n/meditations'
 
 export default async function AdminCoursesPage() {
   const supabase = await getAdminSession()
-  const { data, error } = await supabase.from('courses').select('id, title, description, price, content_type, video_url, article_body, is_active').order('created_at', { ascending: false }).returns<Omit<CourseRecord, 'audio_path' | 'duration_minutes'>[]>()
+  const { data, error } = await supabase.from('courses').select('id, title, description, price, content_type, video_url, article_body, is_active, cover_image_url').order('created_at', { ascending: false }).returns<Omit<CourseRecord, 'audio_path' | 'duration_minutes'>[]>()
   const paths = new Map<string, string | null>()
   const durations = new Map<string, number | null>()
   let pathError = false
@@ -23,6 +23,9 @@ export default async function AdminCoursesPage() {
     <header className="flex flex-wrap items-center justify-between gap-4 border-b border-[#617A55]/15 pb-6"><h1 className="font-serif text-3xl text-[#617A55]">الكورسات</h1></header>
     <section aria-label="كورس جديد" className="py-6"><CatalogEditor kind="course" /></section>
     {pathError && <p role="alert" className="mb-4 rounded-lg bg-[#C7D6E8]/50 p-5">{meditationsAr.adminPathLoadError}</p>}
-    {error ? <p role="alert" className="rounded-lg bg-[#C7D6E8]/50 p-5">تعذر تحميل الكورسات. تحققي من صلاحيات العرض والاتصال.</p> : !data?.length ? <p className="p-5">لا توجد كورسات بعد.</p> : <div className="grid gap-5 lg:grid-cols-2">{data.map(item => <article key={item.id} className="min-w-0 rounded-lg border border-[#617A55]/15 bg-white p-5"><header className="flex items-start justify-between gap-3"><h2 className="min-w-0 break-words text-xl font-semibold text-[#617A55]">{item.title}</h2><AdminDeleteButton kind="course" id={item.id} label={item.title} /></header><p className="my-2 text-sm text-[#617A55]">{new Intl.NumberFormat('ar').format(item.price)} ₪ · {item.content_type === 'audio' ? meditationsAr.adminAudio : item.content_type === 'video' ? 'فيديو' : 'مقال'} · {item.is_active ? 'نشط' : 'غير نشط'}</p><p className="mb-4 whitespace-pre-wrap break-words text-sm leading-7">{item.description}</p>{(item.content_type !== 'audio' || paths.has(item.id)) && <CatalogEditor kind="course" record={{ ...item, audio_path: paths.get(item.id) ?? null, duration_minutes: durations.get(item.id) ?? null }} />}</article>)}</div>}
+    {error ? <p role="alert" className="rounded-lg bg-[#C7D6E8]/50 p-5">تعذر تحميل الكورسات. تحققي من صلاحيات العرض والاتصال.</p> : !data?.length ? <p className="p-5">لا توجد كورسات بعد.</p> : <div className="grid gap-5 lg:grid-cols-2">{data.map(item => <article key={item.id} className="min-w-0 rounded-lg border border-[#617A55]/15 bg-white p-5"><header className="flex items-start justify-between gap-3">{item.cover_image_url && (
+      // eslint-disable-next-line @next/next/no-img-element
+      <img src={item.cover_image_url} alt="" className="size-14 shrink-0 rounded-lg object-cover" />
+    )}<h2 className="min-w-0 flex-1 break-words text-xl font-semibold text-[#617A55]">{item.title}</h2><AdminDeleteButton kind="course" id={item.id} label={item.title} /></header><p className="my-2 text-sm text-[#617A55]">{new Intl.NumberFormat('ar').format(item.price)} ₪ · {item.content_type === 'audio' ? meditationsAr.adminAudio : item.content_type === 'video' ? 'فيديو' : 'مقال'} · {item.is_active ? 'نشط' : 'غير نشط'}</p><p className="mb-4 whitespace-pre-wrap break-words text-sm leading-7">{item.description}</p>{(item.content_type !== 'audio' || paths.has(item.id)) && <CatalogEditor kind="course" record={{ ...item, audio_path: paths.get(item.id) ?? null, duration_minutes: durations.get(item.id) ?? null }} />}</article>)}</div>}
   </main>
 }
