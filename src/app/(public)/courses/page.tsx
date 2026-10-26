@@ -90,25 +90,25 @@ export default async function CoursesPage({
           convention as the home hero - only the text block inside follows
           the active language. */}
       <section className="relative overflow-hidden border-b border-[#617A55]/10" dir="ltr">
-        <div className="mx-auto flex max-w-7xl flex-col sm:flex-row sm:items-stretch">
-          <div className="relative z-10 flex flex-1 items-center px-5 py-14 sm:px-8 sm:py-20 lg:px-12">
+        <div className="mx-auto flex min-h-[300px] max-w-7xl flex-col sm:flex-row sm:items-stretch">
+          <div className="relative z-10 flex flex-1 items-center px-5 py-10 sm:px-10 lg:px-14">
             <div className="max-w-xl" dir={dir}>
-              <h1 className="font-serif text-4xl leading-tight text-[#25311f] sm:text-5xl">{t.courses.list.heading}</h1>
-              <p className="mt-5 text-base leading-8 text-[#4f5d49] sm:text-lg">{t.courses.list.heroDescription}</p>
-              <p className="mt-3 max-w-md text-sm leading-7 text-[#617A55]/85">{t.courses.list.heroSecondaryDescription}</p>
-              <p className="mt-6 inline-flex items-center gap-2 rounded-full bg-[#D6E2B6]/45 px-4 py-2 text-xs font-medium text-[#617A55]">
+              <h1 className="font-serif text-4xl leading-[1.35] text-[#25311f] sm:text-5xl">{t.courses.list.heading}</h1>
+              <p className="mt-4 text-base leading-8 text-[#4f5d49] sm:text-lg">{t.courses.list.heroDescription}</p>
+              <p className="mt-2 max-w-md text-base leading-8 text-[#617A55]/85 sm:text-lg">{t.courses.list.heroSecondaryDescription}</p>
+              <p className="mt-4 inline-flex items-center gap-2 rounded-full bg-[#D6E2B6]/45 px-4 py-2 text-sm font-medium text-[#617A55]">
                 {t.courses.list.subtitle}
               </p>
             </div>
           </div>
-          <div className="relative h-56 w-full shrink-0 sm:h-auto sm:w-[44%]">
+          <div className="relative min-h-56 w-full shrink-0 lg:min-h-full lg:w-[44%]">
             <Image
-              src="/images/shop-still-life.png"
+              src="/images/SunlitSageMedittionDesk.png"
               alt={t.courses.list.heroImageAlt}
               fill
               priority
               sizes="(min-width: 640px) 44vw, 100vw"
-              className="object-cover"
+              className="object-cover object-right"
             />
             <div
               aria-hidden="true"
