@@ -17,9 +17,11 @@ type OrderItemRow = {
 // Loads the full event details a single admin_notification_queue row points
 // to, by kind + ref_id, using the service-role client (RLS doesn't apply).
 // Returns null when the event shouldn't be reported at all: the ref_id row
-// is gone, or (bookings only, per the brief) the booking has since been
-// cancelled - the queue row is still considered handled either way, it just
-// won't get a card in the digest.
+// is gone (e.g. a deleted order or booking), or (bookings only, per the
+// brief) the booking has since been cancelled. The caller (the cron route)
+// must treat a null result as "stays marked sent, never released" - there's
+// nothing to retry for a deleted or cancelled record, so it just won't get
+// a card in the digest.
 export async function loadNotificationEvent(
   supabase: SupabaseClient,
   row: NotificationQueueRow

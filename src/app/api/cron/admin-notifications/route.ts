@@ -41,33 +41,39 @@ export async function GET(request: Request) {
   }
 
   const rows = (data ?? []) as NotificationQueueRow[]
-  const claimedIds = rows.map((row) => row.id)
 
   if (rows.length === 0) {
     return Response.json({ claimed: 0, events: 0, sent: false })
   }
 
+  // "Found" = loadNotificationEvent resolved a real record (possibly still
+  // worth emailing). "Skipped" = the referenced record is gone (deleted
+  // order/booking/etc.) or, for a booking, already cancelled - there's
+  // nothing to retry there, so these rows must stay marked sent no matter
+  // what happens below. Only foundIds are ever candidates for release.
   const events: OwnerDigestEvent[] = []
+  const foundIds: string[] = []
   for (const row of rows) {
     const event = await loadNotificationEvent(supabase, row)
-    if (event) events.push(event)
+    if (event) {
+      events.push(event)
+      foundIds.push(row.id)
+    }
   }
+  const skipped = rows.length - foundIds.length
 
-  // Every claimed row was legitimately evaluated (e.g. a booking that's
-  // since been cancelled is correctly skipped, not a failure) - nothing
-  // left to send, nothing to release.
   if (events.length === 0) {
-    return Response.json({ claimed: rows.length, events: 0, sent: false })
+    return Response.json({ claimed: rows.length, events: 0, skipped, sent: false })
   }
 
   let mailer
   try {
     mailer = createMailer()
   } catch {
-    await supabase.rpc('release_admin_notifications', { p_ids: claimedIds })
+    await supabase.rpc('release_admin_notifications', { p_ids: foundIds })
     console.error('admin-notifications: mailer not configured.')
     return Response.json(
-      { error: 'mailer_not_configured', claimed: rows.length, released: claimedIds.length },
+      { error: 'mailer_not_configured', claimed: rows.length, skipped, released: foundIds.length },
       { status: 502 }
     )
   }
@@ -81,13 +87,13 @@ export async function GET(request: Request) {
       throw new Error('send_failed')
     }
   } catch {
-    await supabase.rpc('release_admin_notifications', { p_ids: claimedIds })
+    await supabase.rpc('release_admin_notifications', { p_ids: foundIds })
     console.error('admin-notifications: send failed.')
     return Response.json(
-      { error: 'send_failed', claimed: rows.length, released: claimedIds.length },
+      { error: 'send_failed', claimed: rows.length, skipped, released: foundIds.length },
       { status: 502 }
     )
   }
 
-  return Response.json({ claimed: rows.length, events: events.length, sent: true })
+  return Response.json({ claimed: rows.length, events: events.length, skipped, sent: true })
 }

@@ -53,16 +53,27 @@ alter table public.bookings
 -- 2. claim_due_class_reminders(p_hours default 24)
 -- =============================================================================
 --
--- One atomic statement (a single WITH ... UPDATE ... RETURNING): locks and
--- claims every confirmed, paid booking whose reminder hasn't been sent yet
--- and whose session starts in the future but within p_hours, in one pass -
--- "claiming" means reminder_sent_at is set to now() as part of the same
--- statement that selects the rows, so two overlapping cron runs (or a cron
--- run overlapping a manual retry) can never both pick up the same booking.
--- FOR UPDATE SKIP LOCKED on the inner CTE means a booking already locked by
--- something else (e.g. a customer cancelling it right now) is silently
--- skipped this run rather than waited on - it'll be picked up on a later
--- run if it's still due then.
+-- One atomic statement (a WITH chain: a locking CTE, an UPDATE CTE off of
+-- it, then a plain SELECT that joins back in the read-only columns) - locks
+-- and claims every confirmed, paid booking whose reminder hasn't been sent
+-- yet and whose session starts in the future but within p_hours, in one
+-- pass. "Claiming" means reminder_sent_at is set to now() as part of the
+-- same statement that selects the rows, so two overlapping cron runs (or a
+-- cron run overlapping a manual retry) can never both pick up the same
+-- booking. FOR UPDATE SKIP LOCKED on the first CTE means a booking already
+-- locked by something else (e.g. a customer cancelling it right now) is
+-- silently skipped this run rather than waited on - it'll be picked up on a
+-- later run if it's still due then.
+--
+-- This is a WITH chain rather than a single UPDATE ... FROM ... JOIN
+-- because Postgres does not allow the UPDATE target table (bookings, as b)
+-- to be referenced inside a JOIN ... ON within the UPDATE's own FROM
+-- clause - `from due join class_sessions cs on cs.id = b.session_id` fails
+-- at runtime ("invalid reference to FROM-clause entry for table b"), since
+-- b is only in scope for the top-level WHERE/SET correlation, not inside a
+-- join nested in the FROM list. Splitting the UPDATE into its own CTE
+-- (returning only bookings columns) and joining class_sessions/classes in a
+-- separate, final SELECT avoids the problem entirely.
 create or replace function public.claim_due_class_reminders(p_hours integer default 24)
 returns table (
   booking_id uuid,
@@ -87,26 +98,31 @@ begin
     where b.status = 'confirmed'
       and b.payment_status = 'paid'
       and b.reminder_sent_at is null
+      and cs.status = 'scheduled'
       and (cs.session_date + cs.start_time) at time zone 'Asia/Jerusalem' > now()
       and (cs.session_date + cs.start_time) at time zone 'Asia/Jerusalem'
           <= now() + make_interval(hours => p_hours)
     for update of b skip locked
+  ),
+  upd as (
+    update public.bookings as b
+    set reminder_sent_at = now()
+    from due as d
+    where b.id = d.id
+    returning b.id, b.user_id, b.reference, b.session_id
   )
-  update public.bookings as b
-  set reminder_sent_at = now()
-  from due as d
-  join public.class_sessions as cs on cs.id = b.session_id
-  join public.classes as c on c.id = cs.class_id
-  where b.id = d.id
-  returning
-    b.id as booking_id,
-    b.user_id,
-    b.reference,
+  select
+    upd.id as booking_id,
+    upd.user_id,
+    upd.reference,
     c.name as class_name,
     cs.session_date,
     cs.start_time,
     cs.end_time,
-    cs.location;
+    cs.location
+  from upd
+  join public.class_sessions as cs on cs.id = upd.session_id
+  join public.classes as c on c.id = cs.class_id;
 end;
 $$;
 
@@ -143,6 +159,7 @@ as $$
   where b.status = 'confirmed'
     and b.payment_status = 'paid'
     and b.reminder_sent_at is null
+    and cs.status = 'scheduled'
     and (cs.session_date + cs.start_time) at time zone 'Asia/Jerusalem' > now()
     and (cs.session_date + cs.start_time) at time zone 'Asia/Jerusalem'
         <= now() + make_interval(hours => p_hours);
@@ -198,6 +215,11 @@ create table if not exists public.admin_notification_queue (
 
 alter table public.admin_notification_queue enable row level security;
 
+-- Belt-and-suspenders alongside the RLS-with-zero-policies deny-all above:
+-- even if a future policy is ever added, anon/authenticated still have no
+-- table-level grant to fall back on.
+revoke all on public.admin_notification_queue from anon, authenticated;
+
 -- =============================================================================
 -- 5. enqueue_admin_notification() - one trigger function, four triggers
 -- =============================================================================
@@ -205,9 +227,10 @@ alter table public.admin_notification_queue enable row level security;
 -- The whole body is wrapped in its own BEGIN/EXCEPTION block so this can
 -- NEVER fail the booking/order/session_request/course_purchase insert it's
 -- attached to - if the queue insert itself fails for any reason (a bug here,
--- the queue table missing, whatever), the exception is swallowed and the
--- real insert that triggered this proceeds completely unaffected. The
--- "kind" value comes from the trigger definition's own argument (TG_ARGV[0])
+-- the queue table missing, whatever), the error is downgraded to a WARNING
+-- (logged, with the original sqlerrm, but not re-raised) and the real
+-- insert that triggered this proceeds completely unaffected. The "kind"
+-- value comes from the trigger definition's own argument (TG_ARGV[0])
 -- rather than being hardcoded per-table, so one function serves all four
 -- tables.
 create or replace function public.enqueue_admin_notification()
@@ -221,7 +244,7 @@ begin
     insert into public.admin_notification_queue (kind, ref_id)
     values (tg_argv[0], new.id);
   exception when others then
-    null;
+    raise warning 'enqueue_admin_notification failed: %', sqlerrm;
   end;
   return new;
 end;
@@ -261,7 +284,14 @@ create trigger enqueue_admin_notification
 -- =============================================================================
 -- 6. claim_admin_notifications(p_limit default 50) / release_admin_notifications(p_ids)
 -- =============================================================================
-
+--
+-- Only rows with attempts < 5 are claimed - a row that's already failed to
+-- send 5 times (release_admin_notifications increments attempts on every
+-- claim, so a row that keeps getting released keeps accumulating attempts)
+-- is left alone rather than retried forever. It stays unsent (sent_at null,
+-- so count_pending_admin_notifications still counts it) but is no longer
+-- picked up - a stuck row needs a human to look at it, not an infinite retry
+-- loop.
 create or replace function public.claim_admin_notifications(p_limit integer default 50)
 returns setof public.admin_notification_queue
 language plpgsql
@@ -274,6 +304,7 @@ begin
     select q.id
     from public.admin_notification_queue as q
     where q.sent_at is null
+      and q.attempts < 5
     order by q.created_at
     limit p_limit
     for update skip locked
@@ -332,3 +363,25 @@ grant execute on function public.count_pending_admin_notifications() to service_
 notify pgrst, 'reload schema';
 
 commit;
+
+-- =============================================================================
+-- Manual test queries - run as postgres in the SQL editor
+-- =============================================================================
+--
+-- Each is wrapped in its own begin/rollback so nothing is actually consumed:
+-- claim_due_class_reminders and claim_admin_notifications both mutate rows
+-- (reminder_sent_at / sent_at+attempts) as part of selecting them, and
+-- rollback undoes that after you've seen the result, leaving the real data
+-- untouched for the next real cron run.
+--
+-- begin;
+-- select count_due_class_reminders(24);
+-- rollback;
+--
+-- begin;
+-- select * from claim_due_class_reminders(24);
+-- rollback;
+--
+-- begin;
+-- select * from claim_admin_notifications(5);
+-- rollback;
