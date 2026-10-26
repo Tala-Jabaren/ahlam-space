@@ -1,27 +1,18 @@
 import type { Metadata } from 'next'
-import Link from 'next/link'
+import Image from 'next/image'
+import { Flower2, PlayCircle } from 'lucide-react'
 import { createClient } from '@/lib/supabase/server'
-import PaymentConfirmationBlock from '@/components/payment-confirmation-block'
 import { getT } from '@/i18n/get-t'
 import { getLocale } from '@/i18n/get-locale'
 import { getDictionary } from '@/i18n/dictionaries'
 import { pageMetadata } from '@/lib/seo'
-import PurchaseCourseButton from './purchase-course-button'
 import { meditationsAr } from '@/i18n/meditations'
+import CourseCard, { type CourseCardData } from './course-card'
 
 export async function generateMetadata(): Promise<Metadata> {
   const locale = await getLocale()
   const t = getDictionary(locale)
   return pageMetadata({ ...t.seo.courses, path: '/courses', locale })
-}
-
-type Course = {
-  id: string
-  title: string
-  description: string | null
-  content_type: 'video' | 'article' | 'audio'
-  price: number
-  cover_image_url: string | null
 }
 
 type PurchaseStatus = 'pending' | 'paid'
@@ -39,12 +30,9 @@ export default async function CoursesPage({
 }) {
   const { error: errorParam } = await searchParams
   const supabase = await createClient()
-  const { t, dir } = await getT()
+  const { t, dir, locale } = await getT()
   const copy = t.meditations ?? meditationsAr
 
-  function contentTypeLabel(type: Course['content_type']) {
-    return type === 'audio' ? copy.audio : type === 'video' ? t.courses.list.contentTypeVideo : t.courses.list.contentTypeArticle
-  }
   const {
     data: { user },
     error: userError,
@@ -56,10 +44,10 @@ export default async function CoursesPage({
 
   const { data: courses, error: coursesError } = await supabase
     .from('courses')
-    .select('id, title, description, content_type, price, cover_image_url')
+    .select('id, title, description, content_type, price, cover_image_url, duration_minutes')
     .eq('is_active', true)
     .order('created_at', { ascending: false })
-    .returns<Course[]>()
+    .returns<CourseCardData[]>()
 
   if (coursesError) {
     console.error('Failed to load courses:', coursesError.message)
@@ -81,10 +69,7 @@ export default async function CoursesPage({
     purchases = data ?? []
   }
 
-  const purchaseByCourseId = new Map<
-    string,
-    { status: PurchaseStatus; reference: string | null }
-  >()
+  const purchaseByCourseId = new Map<string, { status: PurchaseStatus; reference: string | null }>()
   for (const purchase of purchases) {
     if (purchaseByCourseId.get(purchase.course_id)?.status !== 'paid') {
       purchaseByCourseId.set(purchase.course_id, {
@@ -94,132 +79,115 @@ export default async function CoursesPage({
     }
   }
 
-  return (
-    <main className="px-4 py-8 text-[#617A55] sm:px-6 lg:px-8" dir={dir}>
-      <section className="mx-auto max-w-7xl">
-        <header className="border-b border-[#617A55]/15 pb-8 sm:pb-10">
-          <h1 className="font-serif text-4xl leading-tight sm:text-5xl">
-            {t.courses.list.heading}
-          </h1>
-          <p className="mt-3 max-w-2xl text-base leading-8 text-[#617A55]/80 sm:text-lg">
-            {t.courses.list.subtitle}
-          </p>
-        </header>
+  const allCourses = courses ?? []
+  const meditations = allCourses.filter((course) => course.content_type === 'audio')
+  const lectures = allCourses.filter((course) => course.content_type !== 'audio')
+  const isEmpty = !coursesError && allCourses.length === 0
 
+  return (
+    <div className="bg-[#F7F6F0] text-[#25311f]" dir={dir}>
+      {/* Fixed image-right/text-left composition in both languages, same
+          convention as the home hero - only the text block inside follows
+          the active language. */}
+      <section className="relative overflow-hidden border-b border-[#617A55]/10" dir="ltr">
+        <div className="mx-auto flex max-w-7xl flex-col sm:flex-row sm:items-stretch">
+          <div className="relative z-10 flex flex-1 items-center px-5 py-14 sm:px-8 sm:py-20 lg:px-12">
+            <div className="max-w-xl" dir={dir}>
+              <h1 className="font-serif text-4xl leading-tight text-[#25311f] sm:text-5xl">{t.courses.list.heading}</h1>
+              <p className="mt-5 text-base leading-8 text-[#4f5d49] sm:text-lg">{t.courses.list.heroDescription}</p>
+              <p className="mt-3 max-w-md text-sm leading-7 text-[#617A55]/85">{t.courses.list.heroSecondaryDescription}</p>
+              <p className="mt-6 inline-flex items-center gap-2 rounded-full bg-[#D6E2B6]/45 px-4 py-2 text-xs font-medium text-[#617A55]">
+                {t.courses.list.subtitle}
+              </p>
+            </div>
+          </div>
+          <div className="relative h-56 w-full shrink-0 sm:h-auto sm:w-[44%]">
+            <Image
+              src="/images/shop-still-life.png"
+              alt={t.courses.list.heroImageAlt}
+              fill
+              priority
+              sizes="(min-width: 640px) 44vw, 100vw"
+              className="object-cover"
+            />
+            <div
+              aria-hidden="true"
+              className="absolute inset-0 bg-[linear-gradient(90deg,rgba(247,246,240,0.55)_0%,rgba(247,246,240,0)_22%)] sm:bg-[linear-gradient(90deg,rgba(247,246,240,0.9)_0%,rgba(247,246,240,0)_18%)]"
+            />
+          </div>
+        </div>
+      </section>
+
+      <div className="mx-auto max-w-5xl px-5 py-14 sm:px-8 sm:py-16" dir={dir}>
         {errorParam === 'access_denied' && (
-          <div className="mt-6 rounded-lg bg-[#C7D6E8]/55 p-5 text-center text-sm leading-6">
+          <div className="mb-8 rounded-lg bg-[#C7D6E8]/55 p-5 text-center text-sm leading-6">
             {t.courses.list.accessDeniedNotice}
           </div>
         )}
         {errorParam === 'not_found' && (
-          <div className="mt-6 rounded-lg bg-[#C7D6E8]/55 p-5 text-center text-sm leading-6">
+          <div className="mb-8 rounded-lg bg-[#C7D6E8]/55 p-5 text-center text-sm leading-6">
             {t.courses.list.notFoundNotice}
           </div>
         )}
 
         {coursesError && (
-          <div className="mt-7 rounded-lg bg-[#C7D6E8]/55 p-6 text-center">
-            {t.courses.list.loadError}
-          </div>
+          <div className="rounded-lg bg-[#C7D6E8]/55 p-6 text-center">{t.courses.list.loadError}</div>
         )}
 
-        {!coursesError && (courses ?? []).length === 0 && (
-          <div className="mt-7 rounded-lg bg-[#C7D6E8]/40 p-8 text-center">
+        {isEmpty && (
+          <div className="rounded-lg bg-[#C7D6E8]/40 p-10 text-center">
             <p className="font-serif text-2xl">{t.courses.list.empty}</p>
           </div>
         )}
 
-        {!coursesError && (['lectures', 'meditations'] as const).map((section) => (
-          <section key={section} id={section} className="mt-8 scroll-mt-32">
-          <h2 className="mb-5 font-serif text-3xl">{section === 'meditations' ? copy.heading : copy.lectures}</h2>
-          {section === 'meditations' && !(courses ?? []).some(course => course.content_type === 'audio') && <p className="py-6 text-sm">{copy.empty}</p>}
-          <div className="grid gap-6 sm:grid-cols-2 xl:grid-cols-3">
-            {(courses ?? []).filter(course => (course.content_type === 'audio') === (section === 'meditations')).map((course) => {
-              const purchase = purchaseByCourseId.get(course.id)
-              const status = purchase?.status
-
-              return (
-                <article
+        {meditations.length > 0 && (
+          <section aria-labelledby="meditations-heading" id="meditations" className="scroll-mt-28">
+            <div className="flex items-center gap-3">
+              <Flower2 aria-hidden="true" strokeWidth={1.5} className="size-6 text-[#617A55]" />
+              <h2 id="meditations-heading" className="font-serif text-3xl text-[#25311f]">
+                {copy.heading}
+              </h2>
+            </div>
+            <div className="mt-4 h-px bg-[#617A55]/15" />
+            <div className="mt-7 grid gap-6">
+              {meditations.map((course) => (
+                <CourseCard
                   key={course.id}
-                  className="flex min-w-0 flex-col overflow-hidden rounded-lg border border-[#617A55]/10 bg-[#F7F6F0] shadow-sm"
-                >
-                  <div className="relative aspect-[4/3] overflow-hidden bg-[#C7D6E8]/40">
-                    {course.cover_image_url && (
-                      // eslint-disable-next-line @next/next/no-img-element
-                      <img
-                        src={course.cover_image_url}
-                        alt=""
-                        className="h-full w-full object-cover"
-                      />
-                    )}
-                    <span className="absolute start-4 top-4 rounded-full bg-[#F7F6F0]/95 px-3 py-1 text-xs font-semibold shadow-sm">
-                      {contentTypeLabel(course.content_type)}
-                    </span>
-                  </div>
-
-                  <div className="flex flex-1 flex-col p-5">
-                    <h3 className="font-serif text-2xl leading-tight">
-                      {course.title}
-                    </h3>
-                    {course.description && (
-                      <p className="mt-2 line-clamp-2 text-sm leading-6 text-[#617A55]/75">
-                        {course.description}
-                      </p>
-                    )}
-
-                    <div className="mt-auto flex flex-wrap items-center justify-between gap-4 border-t border-[#617A55]/15 pt-4">
-                      <p className="font-serif text-2xl font-semibold">
-                        ₪{course.price}
-                      </p>
-
-                      {course.content_type === 'audio' && (
-                        <Link href={`/courses/${course.id}`} className="inline-flex min-h-11 items-center justify-center rounded-lg bg-[#617A55] px-6 py-3 text-sm font-semibold text-[#F7F6F0]">{status === 'paid' ? copy.listen : copy.details}</Link>
-                      )}
-                      {course.content_type !== 'audio' && !user && (
-                        <Link
-                          href="/login?returnTo=%2Fcourses"
-                          className="inline-flex min-h-11 items-center justify-center rounded-lg bg-[#617A55] px-6 py-3 text-sm font-semibold text-[#F7F6F0] transition hover:bg-[#617A55]/85"
-                        >
-                          {t.courses.list.loginToBuy}
-                        </Link>
-                      )}
-
-                      {course.content_type !== 'audio' && user && status === 'paid' && (
-                        <Link
-                          href={`/courses/${course.id}`}
-                          className="inline-flex min-h-11 items-center justify-center rounded-lg bg-[#617A55] px-6 py-3 text-sm font-semibold text-[#F7F6F0] transition hover:bg-[#617A55]/85"
-                        >
-                          {t.courses.list.watchNow}
-                        </Link>
-                      )}
-
-                      {course.content_type !== 'audio' && user && status === 'pending' && (
-                        <span className="inline-flex min-h-11 items-center rounded-full bg-[#C7D6E8] px-5 text-sm font-semibold text-[#617A55]">
-                          {t.courses.list.pendingPayment}
-                        </span>
-                      )}
-
-                      {course.content_type !== 'audio' && user && !status && (
-                        <PurchaseCourseButton courseId={course.id} price={course.price} />
-                      )}
-                    </div>
-
-                    {course.content_type !== 'audio' && user && status === 'pending' && purchase?.reference && (
-                      <div className="mt-4">
-                        <PaymentConfirmationBlock
-                          amount={course.price}
-                          reference={purchase.reference}
-                        />
-                      </div>
-                    )}
-                  </div>
-                </article>
-              )
-            })}
-          </div>
+                  course={course}
+                  isLoggedIn={Boolean(user)}
+                  purchase={purchaseByCourseId.get(course.id)}
+                  t={t}
+                  locale={locale}
+                />
+              ))}
+            </div>
           </section>
-        ))}
-      </section>
-    </main>
+        )}
+
+        {lectures.length > 0 && (
+          <section aria-labelledby="lectures-heading" id="lectures" className={`scroll-mt-28 ${meditations.length > 0 ? 'mt-14' : ''}`}>
+            <div className="flex items-center gap-3">
+              <PlayCircle aria-hidden="true" strokeWidth={1.5} className="size-6 text-[#617A55]" />
+              <h2 id="lectures-heading" className="font-serif text-3xl text-[#25311f]">
+                {copy.lectures}
+              </h2>
+            </div>
+            <div className="mt-4 h-px bg-[#617A55]/15" />
+            <div className="mt-7 grid gap-6">
+              {lectures.map((course) => (
+                <CourseCard
+                  key={course.id}
+                  course={course}
+                  isLoggedIn={Boolean(user)}
+                  purchase={purchaseByCourseId.get(course.id)}
+                  t={t}
+                  locale={locale}
+                />
+              ))}
+            </div>
+          </section>
+        )}
+      </div>
+    </div>
   )
 }
