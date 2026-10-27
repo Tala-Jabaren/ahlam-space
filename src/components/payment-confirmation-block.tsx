@@ -1,5 +1,6 @@
 'use client'
 
+import { useState } from 'react'
 import { useT } from '@/i18n/i18n-context'
 import { checkoutAr } from '@/i18n/checkout-ar'
 import { bankDetails } from '@/lib/bank-details'
@@ -19,10 +20,24 @@ export default function PaymentConfirmationBlock({
 }: Props) {
   const { t, locale, dir } = useT()
   const c = t.checkout ?? checkoutAr
+  const [copied, setCopied] = useState(false)
   const amountLabel = new Intl.NumberFormat(locale === 'ar' ? 'ar' : 'en-US', {
     style: 'currency',
     currency: 'ILS',
   }).format(amount)
+
+  async function copyReference() {
+    try {
+      await navigator.clipboard.writeText(reference)
+      setCopied(true)
+      setTimeout(() => setCopied(false), 2000)
+    } catch {
+      // Clipboard access can fail (permissions, insecure context) - the
+      // reference text is still visible and selectable, so this is a
+      // silent no-op rather than an error state.
+    }
+  }
+
   return (
     <div
       dir={dir}
@@ -35,11 +50,18 @@ export default function PaymentConfirmationBlock({
           <bdi>{amountLabel}</bdi>
         </strong>
       </p>
-      <p>
+      <p className="flex flex-wrap items-center gap-2">
         {c.bank.reference}:{' '}
         <strong className="font-mono" dir="ltr">
           {reference}
         </strong>
+        <button
+          type="button"
+          onClick={copyReference}
+          className="inline-flex min-h-8 items-center rounded-full border border-[#617A55]/30 px-3 py-1 text-xs font-medium text-[#617A55] transition hover:bg-[#617A55]/10 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#617A55]"
+        >
+          {copied ? c.bank.referenceCopied : c.bank.copyReference}
+        </button>
       </p>
 
       <div className="mt-3 border-t border-[#617A55]/15 pt-3">

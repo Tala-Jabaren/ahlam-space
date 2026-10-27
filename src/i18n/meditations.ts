@@ -10,6 +10,62 @@ export const meditationsAr = {
   adminAudio: 'تأمل صوتي', adminDuration: 'المدة بالدقائق',
   adminDurationError: 'أدخلي مدة صحيحة بالدقائق أكبر من صفر.',
   adminPathLoadError: 'تعذر تحميل مسارات الصوت. أعيدي التحميل قبل تعديل التأملات.',
+
+  // --- Access states (course details page) ---
+  accessWindowNote: 'يمكنكِ الاستماع إلى هذا التأمل لمدة 7 أيام من تاريخ تأكيد الدفع.',
+  accessWindowShort: 'مدة الوصول: 7 أيام بعد تأكيد الدفع',
+  availableAfterConfirmation: 'متاح بعد تأكيد الدفع',
+
+  loginRequiredTitle: 'سجّلي دخولك للشراء',
+  loginRequiredBody: 'لشراء هذا التأمل، يرجى تسجيل الدخول أولًا أو إنشاء حساب جديد.',
+  login: 'تسجيل الدخول',
+  createAccount: 'إنشاء حساب جديد',
+
+  buyNow: 'اشتري الآن',
+  listenAnyDevice: 'يمكنكِ الاستماع في أي وقت ومن أي جهاز',
+  personalUseOnly: 'للاستخدام الشخصي فقط',
+
+  pendingTitle: 'في انتظار تأكيد الدفع',
+  pendingBody: 'تم استلام طلبك، وسيتم تأكيد الدفع يدويًا من خلال إدارة الموقع.',
+  orderNumber: 'رقم الطلب',
+  nextStepsHeading: 'الخطوات التالية',
+  nextStep1: 'حوّلي المبلغ عبر الحساب البنكي أعلاه.',
+  nextStep2: 'سيتم مراجعة الدفع من قِبل إدارة الموقع.',
+  nextStep3: 'ستصلكِ رسالة تأكيد وستتمكّنين من الوصول إلى التأمل.',
+
+  confirmedTitle: 'تم تأكيد الدفع',
+  availableUntil: 'متاح حتى',
+  closesAfterNote: 'سيُغلق الوصول إلى هذا التأمل بعد هذا التاريخ.',
+  remainingLabel: 'الوقت المتبقي',
+  daysLeftSuffix: 'يوم متبقٍ', hoursLeftSuffix: 'ساعة متبقية', lessThanHourLeft: 'أقل من ساعة متبقية',
+
+  expiredTitle: 'انتهت مدة الاستماع',
+  expiredBody: 'انتهت مدة الوصول إلى هذا التأمل. يمكنكِ شراء الوصول مرة أخرى.',
+  expiredOn: 'انتهى الوصول في',
+  buyAgain: 'اشتري مرة أخرى',
+
+  adminBadge: 'حساب إداري',
+  adminAccessNote: 'دخول دائم كمسؤولة، بغض النظر عن الشراء.',
+  editThisMeditation: 'تعديل هذا التأمل',
+
+  // --- Custom audio player ---
+  play: 'تشغيل', pause: 'إيقاف مؤقت', seek: 'موضع التشغيل',
+  mute: 'كتم الصوت', unmute: 'إلغاء كتم الصوت', volume: 'مستوى الصوت',
+  playbackSpeed: 'سرعة التشغيل',
+
+  // --- Detail page sections ---
+  aboutHeading: 'عن هذا التأمل',
+  benefitsHeading: 'ما ستحصلين عليه',
+  benefitAudio: 'تأمل صوتي', benefitAudioNote: 'بجودة عالية',
+  benefitSupport: 'دعم رحلتك', benefitSupportNote: 'الشخصية',
+  benefitAccess: 'وصول لمدة 7 أيام', benefitAccessNote: 'بعد تأكيد الدفع',
+  faqHeading: 'الأسئلة الشائعة',
+  faqPaymentQ: 'كيف يتم تأكيد الدفع؟',
+  faqPaymentA: 'بعد تحويل المبلغ بنكيًا، تراجع إدارة الموقع الحوالة يدويًا وتؤكد الدفع، وستصلكِ رسالة فور التأكيد.',
+  faqReviewTimeQ: 'كم تستغرق مراجعة طلب الشراء؟',
+  faqReviewTimeA: 'عادةً خلال يوم إلى يومي عمل من استلام الحوالة البنكية.',
+  faqDurationQ: 'كم تستمر مدة الوصول للتأمل بعد الدفع؟',
+  faqDurationA: 'يمكنكِ الاستماع لمدة 7 أيام كاملة من لحظة تأكيد الدفع، ويمكنكِ إعادة الاستماع في أي وقت خلال هذه المدة.',
 }
 
 export const meditationsEn: typeof meditationsAr = {
@@ -24,4 +80,57 @@ export const meditationsEn: typeof meditationsAr = {
   adminAudio: 'Audio meditation', adminDuration: 'Duration in minutes',
   adminDurationError: 'Enter a whole number of minutes greater than zero.',
   adminPathLoadError: 'Unable to load audio paths. Reload before editing meditations.',
+
+  accessWindowNote: 'You can listen to this meditation for 7 days from the payment confirmation date.',
+  accessWindowShort: 'Access duration: 7 days after payment confirmation',
+  availableAfterConfirmation: 'Available after payment confirmation',
+
+  loginRequiredTitle: 'Log in to purchase',
+  loginRequiredBody: 'To purchase this meditation, please log in first or create a new account.',
+  login: 'Log In',
+  createAccount: 'Create a new account',
+
+  buyNow: 'Buy Now',
+  listenAnyDevice: 'Listen any time, from any device',
+  personalUseOnly: 'For personal use only',
+
+  pendingTitle: 'Awaiting payment confirmation',
+  pendingBody: 'Your request has been received, and payment will be confirmed manually by the site admin.',
+  orderNumber: 'Order number',
+  nextStepsHeading: 'Next steps',
+  nextStep1: 'Transfer the amount to the bank account above.',
+  nextStep2: 'The payment will be reviewed by the site admin.',
+  nextStep3: "You'll get a confirmation message and be able to access the meditation.",
+
+  confirmedTitle: 'Payment confirmed',
+  availableUntil: 'Available until',
+  closesAfterNote: 'Access to this meditation will close after this date.',
+  remainingLabel: 'Time remaining',
+  daysLeftSuffix: 'days left', hoursLeftSuffix: 'hours left', lessThanHourLeft: 'Less than an hour left',
+
+  expiredTitle: 'Listening period has ended',
+  expiredBody: 'Your access to this meditation has expired. You can purchase access again.',
+  expiredOn: 'Access expired on',
+  buyAgain: 'Buy Again',
+
+  adminBadge: 'Admin account',
+  adminAccessNote: 'Permanent admin access, regardless of purchase.',
+  editThisMeditation: 'Edit this meditation',
+
+  play: 'Play', pause: 'Pause', seek: 'Playback position',
+  mute: 'Mute', unmute: 'Unmute', volume: 'Volume',
+  playbackSpeed: 'Playback speed',
+
+  aboutHeading: 'About this meditation',
+  benefitsHeading: "What you'll get",
+  benefitAudio: 'Audio meditation', benefitAudioNote: 'High quality',
+  benefitSupport: 'Support your', benefitSupportNote: 'personal journey',
+  benefitAccess: '7-day access', benefitAccessNote: 'after payment confirmation',
+  faqHeading: 'Frequently asked questions',
+  faqPaymentQ: 'How is payment confirmed?',
+  faqPaymentA: "After you transfer the amount by bank, the site admin reviews the transfer manually and confirms payment - you'll get a message as soon as it's confirmed.",
+  faqReviewTimeQ: 'How long does reviewing a purchase request take?',
+  faqReviewTimeA: 'Usually within one to two business days of receiving the bank transfer.',
+  faqDurationQ: 'How long can I access the meditation after paying?',
+  faqDurationA: "You can listen for a full 7 days from the moment payment is confirmed, and replay it as many times as you like during that period.",
 }
