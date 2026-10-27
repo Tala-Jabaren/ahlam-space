@@ -59,6 +59,8 @@ export const checkoutEn: CheckoutCopy = {
     account: 'Account number / IBAN',
     bankPlaceholder: 'Bank name',
     accountPlaceholder: 'Account number / IBAN',
+    copyReference: 'Copy',
+    referenceCopied: 'Copied',
   },
   errors: {
     OUT_OF_STOCK:

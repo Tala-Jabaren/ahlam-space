@@ -55,6 +55,8 @@ export const checkoutAr = {
     account: 'رقم الحساب / IBAN',
     bankPlaceholder: 'اسم البنك',
     accountPlaceholder: 'رقم الحساب / IBAN',
+    copyReference: 'نسخ',
+    referenceCopied: 'تم النسخ',
   },
   errors: {
     OUT_OF_STOCK: 'عذرًا، أحد المنتجات لم يعد متوفرًا بالكمية المطلوبة.',
