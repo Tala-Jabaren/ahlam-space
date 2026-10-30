@@ -48,16 +48,23 @@ export default async function SessionAttendeesPage({
 
   return (
     <main className="mx-auto max-w-5xl px-4 py-8 sm:px-6 lg:px-8">
-      <Link href="/admin/classes" className="mb-4 inline-block text-sm text-[#617A55] underline-offset-4 hover:underline">
-        ← العودة إلى الحصص
-      </Link>
+      <nav aria-label="مسار التنقل" className="mb-4 flex flex-wrap items-center gap-1.5 text-sm text-[#617A55]/80">
+        <Link href="/admin/classes?tab=sessions" className="underline-offset-4 hover:underline">الحصص والمواعيد</Link>
+        <span aria-hidden="true">‹</span>
+        <Link href={`/admin/classes?tab=sessions&classId=${classId}`} className="underline-offset-4 hover:underline">{session.classes?.name ?? 'حصة'}</Link>
+        <span aria-hidden="true">‹</span>
+        <span>{dateLabel}</span>
+        <span aria-hidden="true">‹</span>
+        <span className="text-[#25311f]">المسجلات</span>
+      </nav>
 
-      <header className="border-b border-[#617A55]/15 pb-6">
-        <h1 className="font-serif text-3xl text-[#617A55]">{session.classes?.name ?? 'حصة'}</h1>
+      <header className="rounded-lg border border-[#617A55]/15 bg-white p-5">
+        <h1 className="font-serif text-2xl text-[#617A55] sm:text-3xl">{session.classes?.name ?? 'حصة'}</h1>
         <dl className="mt-3 flex flex-wrap gap-x-6 gap-y-2 text-sm text-[#25311f]">
           <div><dt className="inline text-[#617A55]/70">التاريخ:</dt> <dd className="inline">{dateLabel}</dd></div>
           <div><dt className="inline text-[#617A55]/70">الوقت:</dt> <dd className="inline" dir="ltr">{timeLabel}</dd></div>
           {session.location && <div><dt className="inline text-[#617A55]/70">الموقع:</dt> <dd className="inline">{session.location}</dd></div>}
+          <div><dt className="inline text-[#617A55]/70">السعة:</dt> <dd className="inline"><bdi>{session.booked_count} / {session.capacity}</bdi></dd></div>
         </dl>
       </header>
 
