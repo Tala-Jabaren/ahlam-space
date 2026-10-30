@@ -3,7 +3,7 @@
 import { useState } from 'react'
 import { useT } from '@/i18n/i18n-context'
 import { checkoutAr } from '@/i18n/checkout-ar'
-import { bankDetails } from '@/lib/bank-details'
+import { bankDetails, bankDetailsArePlaceholders } from '@/lib/bank-details'
 
 type Props = {
   amount: number
@@ -63,6 +63,12 @@ export default function PaymentConfirmationBlock({
           {copied ? c.bank.referenceCopied : c.bank.copyReference}
         </button>
       </p>
+
+      {bankDetailsArePlaceholders && (
+        <p role="alert" className="mt-3 rounded-lg border-2 border-red-600 bg-red-50 p-3 font-semibold text-red-700">
+          تنبيه للإدارة: بيانات الحساب البنكي ما زالت نموذجية (placeholder) في src/lib/bank-details.ts. يجب استبدالها بالبيانات الحقيقية قبل الإطلاق.
+        </p>
+      )}
 
       <div className="mt-3 border-t border-[#617A55]/15 pt-3">
         <p className="font-semibold">{c.bank.details}</p>
