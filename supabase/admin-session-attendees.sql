@@ -20,12 +20,15 @@
 --     dashboard-side grant, not something this file can do for you.
 --
 -- bookings.user_id is not nullable - there is no guest-booking path for
--- classes (unlike orders), so every booking row has a real member behind
--- it. A plain join (not left join) to profiles/auth.users is therefore
--- safe and will never silently drop a row. profiles.full_name/phone are
--- themselves nullable, independent of the join - a member who never filled
--- those in still gets a row here, with null name/phone; the UI handles
--- that, not this function.
+-- classes (unlike orders) - and it references an auth user, so the join to
+-- auth.users is a plain (inner) join. The join to profiles is a LEFT join:
+-- nothing guarantees every auth user has a matching profiles row (an
+-- account created before the signup trigger existed, or a profiles row
+-- that's since been deleted), so a plain join there could silently drop a
+-- booking from the results. With the left join, that booking still comes
+-- back - full_name and phone are just null, same as for a member who filled
+-- in their profile only partially. The UI already handles null name/phone
+-- (see attendees-client.tsx), not this function.
 --
 -- Returns ALL bookings for the session regardless of status (including
 -- 'cancelled' and expired-but-never-confirmed holds) - filtering active vs.
@@ -78,7 +81,7 @@ begin
     p.phone,
     u.email::text as email
   from public.bookings as b
-  join public.profiles as p on p.id = b.user_id
+  left join public.profiles as p on p.id = b.user_id
   join auth.users as u on u.id = b.user_id
   where b.session_id = p_session_id
   order by b.created_at;
