@@ -34,8 +34,7 @@ export default async function AdminLayout({
             <AdminNavLink href="/admin/customers">الزبائن</AdminNavLink>
             <AdminNavLink href="/admin/products">المنتجات</AdminNavLink>
             <AdminNavLink href="/admin/requests">طلبات الجلسات</AdminNavLink>
-            <AdminNavLink href="/admin/sessions">المواعيد</AdminNavLink>
-            <AdminNavLink href="/admin/classes">الحصص</AdminNavLink>
+            <AdminNavLink href="/admin/classes">الحصص والمواعيد</AdminNavLink>
             <AdminNavLink href="/admin/courses">الكورسات</AdminNavLink>
           </nav>
         </div>
