@@ -8,6 +8,8 @@ import { getDictionary } from '@/i18n/dictionaries'
 import type { Locale } from '@/i18n/config'
 import { pageMetadata } from '@/lib/seo'
 import BookSessionButton from './schedule/book-session-button'
+import ReviewsSection from '@/components/home/reviews-section'
+import { reviews } from '@/content/reviews'
 
 export async function generateMetadata(): Promise<Metadata> {
   const locale = await getLocale()
@@ -104,7 +106,26 @@ function formatTime(time: string) {
   return time.slice(0, 5)
 }
 
-export default async function HomePage() {
+export default async function HomePage({
+  searchParams,
+}: {
+  searchParams: Promise<{ previewReviews?: string }>
+}) {
+  const resolvedSearchParams = await searchParams
+  // NODE_ENV is 'production' for every Vercel deployment, Production and
+  // Preview alike - only `next dev` is 'development' (same convention
+  // already used in src/lib/bank-details.ts) - so this query flag can never
+  // do anything on a real deployment, only under a local dev server.
+  const previewAllReviews =
+    process.env.NODE_ENV === 'development' && resolvedSearchParams?.previewReviews === '1'
+  // Filtered here, server-side, before anything crosses into the
+  // ReviewsSection client component's props - a Client Component's props
+  // are serialized into the page's RSC payload regardless of what it
+  // renders, so an unapproved review must never be passed down in the
+  // first place outside of the dev-only preview, not merely hidden by the
+  // component's own render logic.
+  const visibleReviews = previewAllReviews ? reviews : reviews.filter((review) => review.approved)
+
   const supabase = await createClient()
   const { t, locale, dir } = await getT()
   const [
@@ -213,6 +234,8 @@ export default async function HomePage() {
           ))}
         </div>
       </section>
+
+      <ReviewsSection reviews={visibleReviews} />
 
       <section className="relative px-5 py-20 sm:px-8 lg:px-10 lg:py-28">
         <div className="mx-auto grid max-w-7xl gap-12 lg:grid-cols-[1.05fr_0.95fr] lg:items-center lg:gap-20">
