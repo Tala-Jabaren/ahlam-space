@@ -2,9 +2,9 @@
 // after placing an order, buying a course, or booking a paid session.
 // Replace the placeholders with the real account details before launch.
 export const bankDetails = {
-  accountHolder: 'Ahlam Space',
-  bankName: 'اسم البنك',
-  accountNumber: 'رقم الحساب / IBAN',
+  accountHolder: 'احلام حسين محمد حامد',
+  bankName: 'بنك فلسطين',
+  accountNumber: 'PS47PALS046208304500993000000',
 }
 
 const PLACEHOLDER_BANK_NAME = 'اسم البنك'
