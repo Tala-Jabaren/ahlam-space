@@ -144,58 +144,49 @@ export default function ReviewsSection({ reviews: visible }: { reviews: Review[]
             ))}
           </div>
         ) : (
-          <>
-            {/* Desktop/tablet: soft quote-card grid, 2-3 columns. items-start
-                (not stretch) keeps each card at its own natural content
-                height instead of stretching to match its row, so heights
-                still read as varied even though this is a strict grid and
-                not true packed masonry - CSS multi-column (columns-*) was
-                tried first but Chromium's auto-balance algorithm collapsed
-                every card into a single column here, so a plain grid is
-                used instead for layout that's actually reliable. */}
-            <div className="mt-10 hidden grid-cols-2 items-start gap-5 sm:grid lg:grid-cols-3">
+          /* One carousel at every breakpoint - no more grid-at-desktop,
+             carousel-at-mobile split. Card width grows with the viewport
+             (more of the row fits more cards), but the mechanism - a
+             single horizontal scroll-snap row with a next-card peek and
+             the same prev/next buttons - is identical everywhere, so
+             desktop can also rely on the arrows and not just
+             touch/trackpad scroll. items-start on the row keeps each
+             card at its own natural content height. */
+          <div className="relative mt-10">
+            <ul
+              ref={scrollerRef}
+              aria-label={labels.carouselAriaLabel}
+              className="flex snap-x snap-mandatory items-start gap-4 overflow-x-auto pb-2 ps-1 pe-10 sm:gap-5 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+            >
               {visible.map((review) => (
-                <ReviewCard key={review.id} review={review} labels={labels} />
+                <li key={review.id} className="w-[85%] shrink-0 snap-start sm:w-[300px] lg:w-[360px]">
+                  <ReviewCard review={review} labels={labels} />
+                </li>
               ))}
-            </div>
-
-            {/* Mobile: horizontal swipe carousel with scroll-snap and a next-card peek */}
-            <div className="relative mt-10 sm:hidden">
-              <ul
-                ref={scrollerRef}
-                aria-label={labels.carouselAriaLabel}
-                className="flex snap-x snap-mandatory gap-4 overflow-x-auto pb-2 ps-1 pe-10 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+            </ul>
+            <div className="mt-2 flex justify-center gap-3">
+              <button
+                type="button"
+                onClick={() => scrollByCard(-1)}
+                aria-label={labels.previous}
+                className={`grid size-11 place-items-center rounded-full border border-[#617A55]/25 text-[#617A55] transition hover:bg-[#D6E2B6]/40 ${focusRing}`}
               >
-                {visible.map((review) => (
-                  <li key={review.id} className="w-[85%] shrink-0 snap-start">
-                    <ReviewCard review={review} labels={labels} />
-                  </li>
-                ))}
-              </ul>
-              <div className="mt-2 flex justify-center gap-3">
-                <button
-                  type="button"
-                  onClick={() => scrollByCard(-1)}
-                  aria-label={labels.previous}
-                  className={`grid size-11 place-items-center rounded-full border border-[#617A55]/25 text-[#617A55] transition hover:bg-[#D6E2B6]/40 ${focusRing}`}
-                >
-                  <svg aria-hidden="true" viewBox="0 0 24 24" className="size-5 rotate-180" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                    <path d="M9 18l6-6-6-6" />
-                  </svg>
-                </button>
-                <button
-                  type="button"
-                  onClick={() => scrollByCard(1)}
-                  aria-label={labels.next}
-                  className={`grid size-11 place-items-center rounded-full border border-[#617A55]/25 text-[#617A55] transition hover:bg-[#D6E2B6]/40 ${focusRing}`}
-                >
-                  <svg aria-hidden="true" viewBox="0 0 24 24" className="size-5" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                    <path d="M9 18l6-6-6-6" />
-                  </svg>
-                </button>
-              </div>
+                <svg aria-hidden="true" viewBox="0 0 24 24" className="size-5 rotate-180" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M9 18l6-6-6-6" />
+                </svg>
+              </button>
+              <button
+                type="button"
+                onClick={() => scrollByCard(1)}
+                aria-label={labels.next}
+                className={`grid size-11 place-items-center rounded-full border border-[#617A55]/25 text-[#617A55] transition hover:bg-[#D6E2B6]/40 ${focusRing}`}
+              >
+                <svg aria-hidden="true" viewBox="0 0 24 24" className="size-5" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M9 18l6-6-6-6" />
+                </svg>
+              </button>
             </div>
-          </>
+          </div>
         )}
       </div>
     </section>
