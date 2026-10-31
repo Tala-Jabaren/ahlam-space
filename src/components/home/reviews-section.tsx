@@ -4,7 +4,7 @@ import { useRef, useState } from 'react'
 import { useT } from '@/i18n/i18n-context'
 import type { Review } from '@/content/reviews'
 
-// Every card shows only the first ~4 "sentences" by default. These reviews
+// Every card shows only the first ~5 "sentences" by default. These reviews
 // don't punctuate consistently - some use periods/!/؟, some rely on \n line
 // breaks between thoughts instead and have almost no punctuation inside a
 // line - so a sentence boundary here is EITHER a sentence-ending mark or a
@@ -12,7 +12,16 @@ import type { Review } from '@/content/reviews'
 // never contains a boundary character except as its own trailing one, so
 // joining the first N chunks and splitting on \n afterward still reproduces
 // the original paragraph structure up to the cutoff point.
-const EXCERPT_SENTENCE_COUNT = 4
+const EXCERPT_SENTENCE_COUNT = 5
+
+// Collapsed cards are a fixed height so every card in the row is the same
+// size, regardless of how long its particular excerpt happens to be. The
+// line-clamp is the actual mechanism that guarantees this (a 5-sentence
+// excerpt can still wrap to very different line counts depending on
+// sentence length and ar/en line-wrapping) - the sentence count above is
+// just the content target, not what makes the height uniform.
+const COLLAPSED_CARD_HEIGHT = 'h-[420px]'
+const COLLAPSED_TEXT_LINES = 'line-clamp-5'
 
 function splitIntoSentenceChunks(text: string): string[] {
   return text.match(/[^.!؟\n]+[.!؟\n]?/g) ?? [text]
@@ -67,9 +76,16 @@ function ReviewCard({ review, labels }: { review: Review; labels: ReturnType<typ
   const displayedText = expanded || !hasMore ? review.text : excerptText
 
   return (
-    <figure className="relative rounded-2xl border border-[#617A55]/15 bg-white p-6 shadow-[0_1px_2px_rgba(37,49,31,0.04)] sm:p-7">
+    <figure
+      className={`relative flex flex-col rounded-2xl border border-[#617A55]/15 bg-white p-6 shadow-[0_1px_2px_rgba(37,49,31,0.04)] sm:p-7 ${
+        expanded ? '' : `${COLLAPSED_CARD_HEIGHT} overflow-hidden`
+      }`}
+    >
       <QuoteMark />
-      <blockquote dir={dir} className="relative text-[15px] leading-[1.9] text-[#25311f] sm:text-base">
+      <blockquote
+        dir={dir}
+        className={`relative text-[15px] leading-[1.9] text-[#25311f] sm:text-base ${expanded ? '' : COLLAPSED_TEXT_LINES}`}
+      >
         {displayedText.split('\n').map((paragraph, index) => (
           <p key={index} className={index > 0 ? 'mt-3' : ''}>
             {paragraph}
@@ -77,23 +93,32 @@ function ReviewCard({ review, labels }: { review: Review; labels: ReturnType<typ
         ))}
       </blockquote>
 
-      {hasMore && (
-        <button
-          type="button"
-          onClick={() => setExpanded((value) => !value)}
-          aria-expanded={expanded}
-          className={`mt-3 inline-flex min-h-11 items-center rounded-full border border-[#617A55]/25 px-4 text-sm font-semibold text-[#617A55] transition hover:bg-[#D6E2B6]/40 ${focusRing}`}
-        >
-          {expanded ? labels.readLess : labels.readMore}
-        </button>
-      )}
+      {/* Pinned to the bottom of the fixed-height card via mt-auto, so the
+          button + footer sit at the same position on every card regardless
+          of how much excerpt text precedes them. */}
+      <div className="mt-auto pt-3">
+        {hasMore && (
+          <button
+            type="button"
+            onClick={() => setExpanded((value) => !value)}
+            aria-expanded={expanded}
+            className={`inline-flex min-h-11 items-center rounded-full border border-[#617A55]/25 px-4 text-sm font-semibold text-[#617A55] transition hover:bg-[#D6E2B6]/40 ${focusRing}`}
+          >
+            {expanded ? labels.readLess : labels.readMore}
+          </button>
+        )}
 
-      <figcaption className="mt-5 flex items-center gap-2">
-        {review.hasPhoto && <AvatarPlaceholder />}
-        <span className="inline-flex rounded-full bg-[#D6E2B6]/50 px-4 py-1.5 text-xs font-semibold text-[#617A55]">
-          {name}
-        </span>
-      </figcaption>
+        {/* min-h-11 matches the avatar circle's own size, so the footer is
+            the same height whether or not a given card has one - no empty
+            circle is drawn on cards that never had a photo, but the row's
+            height still doesn't shift either way. */}
+        <figcaption className="mt-5 flex min-h-11 items-center gap-2">
+          {review.hasPhoto && <AvatarPlaceholder />}
+          <span className="inline-flex rounded-full bg-[#D6E2B6]/50 px-4 py-1.5 text-xs font-semibold text-[#617A55]">
+            {name}
+          </span>
+        </figcaption>
+      </div>
     </figure>
   )
 }
