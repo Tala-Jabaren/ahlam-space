@@ -109,23 +109,49 @@ drop table matched_test_profiles;
 -- =============================================================================
 -- B. Four named test records, by reference - via admin_delete_record
 -- =============================================================================
--- Print current status first.
-select 'order' as kind, id, reference, status, user_id from public.orders where reference = 'AS-1029'
-union all
-select 'booking' as kind, id, reference, status, user_id from public.bookings where reference = 'AS-1030'
-union all
-select 'course_purchase' as kind, id, reference, status, user_id from public.course_purchases where reference in ('AS-1032', 'AS-1034');
+-- This file cannot know ahead of time which of these four are currently
+-- protected - that depends on live data this script never queries outside
+-- this preview. Each preview below prints exactly the columns
+-- admin_delete_record itself checks, so read them before running the
+-- delete calls further down:
+--
+--   order (AS-1029): blocked with PROTECTED_FINANCIAL_RECORD if paid_at is
+--     not null, or status in ('paid','processing','shipped','delivered'),
+--     or a public.payments row references it. Otherwise blocked with
+--     CANCEL_ORDER_FIRST unless status = 'cancelled'. Deletable only if
+--     status = 'cancelled' AND paid_at is null AND no matching payments row.
+--   booking (AS-1030): blocked with PROTECTED_FINANCIAL_RECORD if
+--     payment_status = 'paid', or paid_at is not null, or a public.payments
+--     row references it. Otherwise blocked with CANCEL_BOOKING_FIRST unless
+--     status = 'cancelled'. Deletable only if status = 'cancelled' AND
+--     payment_status <> 'paid' AND paid_at is null AND no payments row.
+--   course_purchase (AS-1032, AS-1034): blocked with
+--     PROTECTED_FINANCIAL_RECORD if status <> 'pending' OR paid_at is not
+--     null. Deletable only if status = 'pending' AND paid_at is null - i.e.
+--     if either of these was ever actually paid (likely, if it was used to
+--     test the paid-course audio-access flow), admin_delete_record WILL
+--     refuse it, by design. That is not a bug in this script.
+select o.id, o.reference, o.status, o.paid_at,
+  exists (select 1 from public.payments p where p.order_id = o.id) as has_payment_row
+from public.orders o where o.reference = 'AS-1029';
+
+select b.id, b.reference, b.status, b.payment_status, b.paid_at,
+  exists (select 1 from public.payments p where p.booking_id = b.id) as has_payment_row
+from public.bookings b where b.reference = 'AS-1030';
+
+select cp.id, cp.reference, cp.status, cp.paid_at
+from public.course_purchases cp where cp.reference in ('AS-1032', 'AS-1034');
 
 -- CAVEAT: admin_delete_record checks admin status via auth.uid(), which
 -- PostgREST normally sets from the caller's JWT. Run directly here in the
 -- SQL editor (as the postgres/service role, with no such JWT), it may raise
 -- FORBIDDEN even though you are the real owner - that's the function
 -- correctly refusing an unrecognized caller, not a bug. If any of the three
--- calls below raises FORBIDDEN (or PROTECTED_FINANCIAL_RECORD /
--- RECORD_IN_USE / CANCEL_ORDER_FIRST / CANCEL_BOOKING_FIRST), do not work
--- around it here - delete that specific record from the admin UI instead
--- (/admin/orders, /admin/payments), where the same function runs with a
--- real admin session and the same protections are already known to work.
+-- calls below raises FORBIDDEN, or any of the protection errors described
+-- above, do not work around it here - delete that specific record from the
+-- admin UI instead (/admin/orders, /admin/payments), where the same
+-- function runs with a real admin session and the same protections are
+-- already known to work.
 select public.admin_delete_record('order', id) from public.orders where reference = 'AS-1029';
 select public.admin_delete_record('booking', id) from public.bookings where reference = 'AS-1030';
 select public.admin_delete_record('course_purchase', id) from public.course_purchases where reference in ('AS-1032', 'AS-1034');
