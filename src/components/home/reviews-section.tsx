@@ -4,14 +4,35 @@ import { useRef, useState } from 'react'
 import { useT } from '@/i18n/i18n-context'
 import type { Review } from '@/content/reviews'
 
-// Long reviews (6 and 7 in practice - ~3700 and ~1500 characters) get an
-// excerpt + expand control instead of filling the whole card; the short
-// ones (1-5, all under 650 characters) show in full. Picked by length, not
-// by id, so this keeps working correctly if reviews are added/removed.
-const LONG_TEXT_THRESHOLD = 900
+// Every card shows only the first ~4 "sentences" by default. These reviews
+// don't punctuate consistently - some use periods/!/؟, some rely on \n line
+// breaks between thoughts instead and have almost no punctuation inside a
+// line - so a sentence boundary here is EITHER a sentence-ending mark or a
+// line break, whichever comes first, not a character-count cutoff. A chunk
+// never contains a boundary character except as its own trailing one, so
+// joining the first N chunks and splitting on \n afterward still reproduces
+// the original paragraph structure up to the cutoff point.
+const EXCERPT_SENTENCE_COUNT = 4
+
+function splitIntoSentenceChunks(text: string): string[] {
+  return text.match(/[^.!؟\n]+[.!؟\n]?/g) ?? [text]
+}
 
 const focusRing =
   'focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#617A55]'
+
+function AvatarPlaceholder() {
+  return (
+    <span
+      aria-hidden="true"
+      className="grid size-11 shrink-0 place-items-center rounded-full border border-[#617A55]/25 bg-[#D6E2B6]/40 text-[#617A55]"
+    >
+      <svg viewBox="0 0 24 24" className="size-5" fill="currentColor">
+        <path d="M12 12a5 5 0 1 0 0-10 5 5 0 0 0 0 10Zm0 2c-4.4 0-8 2.2-8 5v2a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1v-2c0-2.8-3.6-5-8-5Z" />
+      </svg>
+    </span>
+  )
+}
 
 function QuoteMark() {
   return (
@@ -28,30 +49,35 @@ function QuoteMark() {
 
 function ReviewCard({ review, labels }: { review: Review; labels: ReturnType<typeof useT>['t']['home']['reviews'] }) {
   const [expanded, setExpanded] = useState(false)
-  const isLong = review.text.length > LONG_TEXT_THRESHOLD
   // Follows the review's own language, not the active UI locale - an
   // Arabic testimonial must stay right-aligned even when the site chrome
   // is switched to English, and vice versa for the one English review.
   const dir = review.lang === 'en' ? 'ltr' : 'rtl'
   const name = review.name ?? labels.fallbackName
 
+  const chunks = splitIntoSentenceChunks(review.text)
+  const hasMore = chunks.length > EXCERPT_SENTENCE_COUNT
+  const excerptText = chunks
+    .slice(0, EXCERPT_SENTENCE_COUNT)
+    .join('')
+    .replace(/\n+$/, '')
+    .trimEnd()
+  // Never rewrite or summarize - expanded always shows review.text
+  // character-for-character; the excerpt is only ever a literal prefix of it.
+  const displayedText = expanded || !hasMore ? review.text : excerptText
+
   return (
     <figure className="relative rounded-2xl border border-[#617A55]/15 bg-white p-6 shadow-[0_1px_2px_rgba(37,49,31,0.04)] sm:p-7">
       <QuoteMark />
-      <blockquote
-        dir={dir}
-        className={`relative text-[15px] leading-[1.9] text-[#25311f] sm:text-base ${
-          isLong && !expanded ? 'line-clamp-3' : ''
-        }`}
-      >
-        {review.text.split('\n').map((paragraph, index) => (
+      <blockquote dir={dir} className="relative text-[15px] leading-[1.9] text-[#25311f] sm:text-base">
+        {displayedText.split('\n').map((paragraph, index) => (
           <p key={index} className={index > 0 ? 'mt-3' : ''}>
             {paragraph}
           </p>
         ))}
       </blockquote>
 
-      {isLong && (
+      {hasMore && (
         <button
           type="button"
           onClick={() => setExpanded((value) => !value)}
@@ -62,8 +88,11 @@ function ReviewCard({ review, labels }: { review: Review; labels: ReturnType<typ
         </button>
       )}
 
-      <figcaption className="mt-5 inline-flex rounded-full bg-[#D6E2B6]/50 px-4 py-1.5 text-xs font-semibold text-[#617A55]">
-        {name}
+      <figcaption className="mt-5 flex items-center gap-2">
+        {review.hasPhoto && <AvatarPlaceholder />}
+        <span className="inline-flex rounded-full bg-[#D6E2B6]/50 px-4 py-1.5 text-xs font-semibold text-[#617A55]">
+          {name}
+        </span>
       </figcaption>
     </figure>
   )

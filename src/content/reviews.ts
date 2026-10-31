@@ -13,6 +13,13 @@
 // service in psychologist/therapeutic terms ("سيكولوجية" / "psychologist").
 // The owner should confirm this framing is accurate and appropriate before
 // approving either one for the public site.
+//
+// `hasPhoto` on reviews 1, 2, 4, 5: a best-effort, NOT fully certain reading
+// of which reviews had a participant photo next to them in the original
+// PDF (no photo file exists anywhere in this repo - this only reserves
+// circular placeholder space in the UI for where a real photo will go). The
+// owner is expected to confirm or correct this mapping once she attaches
+// the actual photo files.
 export type Review = {
   id: string
   name?: string
@@ -20,6 +27,7 @@ export type Review = {
   lang?: 'ar' | 'en'
   approved: boolean
   sensitive?: boolean
+  hasPhoto?: boolean
 }
 
 export const reviews: Review[] = [
@@ -31,6 +39,7 @@ export const reviews: Review[] = [
 أحلام، إنتِ مش بس مدرّبة بتدرّب الجسم، إنتِ إنسانة بتترك أثر بالقلب، وبتزرع فينا شعور حلو بضل معنا حتى ما بعد ما تخلص الجلسة. شكرًا لأنك كنتِ جزءًا من هالتغيير الحلو فيّ، ولأنك بتخلّيني أحب حالي وحياتي أكثر.`,
     lang: 'ar',
     approved: false,
+    hasPhoto: true,
   },
   {
     id: '2',
@@ -40,6 +49,7 @@ export const reviews: Review[] = [
 مع أحلام مش بس بستنى اللقاءات بشوق إلا كمان الفعاليات والجلسات والورشات و المشاوير الرائعة مع مجموعات صبايا و أرواح حلوة دايماً بتكون بيننا أشياء مشتركة وراحة رهيبة`,
     lang: 'ar',
     approved: false,
+    hasPhoto: true,
   },
   {
     id: '3',
@@ -68,6 +78,7 @@ export const reviews: Review[] = [
 ربنا باركلك ويزيدك نور وصحة وخير وبركة`,
     lang: 'ar',
     approved: false,
+    hasPhoto: true,
   },
   {
     id: '5',
@@ -78,6 +89,7 @@ export const reviews: Review[] = [
 وصرت احس حالي اقوى وجسمي اقوى وطبعا بشكر احلام ومساحتها على هاد الاشي وعلى كلشي بتقدمو`,
     lang: 'ar',
     approved: false,
+    hasPhoto: true,
   },
   {
     id: '6',
