@@ -36,7 +36,7 @@ function ReviewCard({ review, labels }: { review: Review; labels: ReturnType<typ
   const name = review.name ?? labels.fallbackName
 
   return (
-    <figure className="relative mb-5 break-inside-avoid rounded-2xl border border-[#617A55]/15 bg-white p-6 shadow-[0_1px_2px_rgba(37,49,31,0.04)] sm:p-7">
+    <figure className="relative rounded-2xl border border-[#617A55]/15 bg-white p-6 shadow-[0_1px_2px_rgba(37,49,31,0.04)] sm:p-7">
       <QuoteMark />
       <blockquote
         dir={dir}
@@ -116,13 +116,18 @@ export default function ReviewsSection({ reviews: visible }: { reviews: Review[]
           </div>
         ) : (
           <>
-            {/* Desktop/tablet: soft quote-card grid, varied heights via columns */}
-            <div className="mt-10 hidden sm:block">
-              <div className="columns-2 gap-5 lg:columns-3">
-                {visible.map((review) => (
-                  <ReviewCard key={review.id} review={review} labels={labels} />
-                ))}
-              </div>
+            {/* Desktop/tablet: soft quote-card grid, 2-3 columns. items-start
+                (not stretch) keeps each card at its own natural content
+                height instead of stretching to match its row, so heights
+                still read as varied even though this is a strict grid and
+                not true packed masonry - CSS multi-column (columns-*) was
+                tried first but Chromium's auto-balance algorithm collapsed
+                every card into a single column here, so a plain grid is
+                used instead for layout that's actually reliable. */}
+            <div className="mt-10 hidden grid-cols-2 items-start gap-5 sm:grid lg:grid-cols-3">
+              {visible.map((review) => (
+                <ReviewCard key={review.id} review={review} labels={labels} />
+              ))}
             </div>
 
             {/* Mobile: horizontal swipe carousel with scroll-snap and a next-card peek */}
