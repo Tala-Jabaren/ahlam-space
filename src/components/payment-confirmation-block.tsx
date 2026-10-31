@@ -21,10 +21,14 @@ export default function PaymentConfirmationBlock({
   const { t, locale, dir } = useT()
   const c = t.checkout ?? checkoutAr
   const [copied, setCopied] = useState(false)
+  const [accountCopied, setAccountCopied] = useState(false)
   const amountLabel = new Intl.NumberFormat(locale === 'ar' ? 'ar' : 'en-US', {
     style: 'currency',
     currency: 'ILS',
   }).format(amount)
+  // Grouped in 4s for readability only - the raw, unspaced value is what
+  // gets copied and what's stored in bankDetails.accountNumber.
+  const groupedAccountNumber = bankDetails.accountNumber.replace(/(.{4})/g, '$1 ').trim()
 
   async function copyReference() {
     try {
@@ -35,6 +39,17 @@ export default function PaymentConfirmationBlock({
       // Clipboard access can fail (permissions, insecure context) - the
       // reference text is still visible and selectable, so this is a
       // silent no-op rather than an error state.
+    }
+  }
+
+  async function copyAccountNumber() {
+    try {
+      await navigator.clipboard.writeText(bankDetails.accountNumber)
+      setAccountCopied(true)
+      setTimeout(() => setAccountCopied(false), 2000)
+    } catch {
+      // Same silent no-op as copyReference above - the IBAN is still
+      // visible and selectable for a manual copy.
     }
   }
 
@@ -81,12 +96,26 @@ export default function PaymentConfirmationBlock({
             ? c.bank.bankPlaceholder
             : bankDetails.bankName}
         </p>
-        <p>
+        <p className="flex flex-wrap items-center gap-2">
           {c.bank.account}:{' '}
-          {bankDetails.accountNumber === 'رقم الحساب / IBAN'
-            ? c.bank.accountPlaceholder
-            : bankDetails.accountNumber}
+          {bankDetails.accountNumber === 'رقم الحساب / IBAN' ? (
+            c.bank.accountPlaceholder
+          ) : (
+            <>
+              <strong className="select-all font-mono" dir="ltr">
+                {groupedAccountNumber}
+              </strong>
+              <button
+                type="button"
+                onClick={copyAccountNumber}
+                className="inline-flex min-h-8 items-center rounded-full border border-[#617A55]/30 px-3 py-1 text-xs font-medium text-[#617A55] transition hover:bg-[#617A55]/10 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#617A55]"
+              >
+                {accountCopied ? c.bank.accountCopied : c.bank.copyAccount}
+              </button>
+            </>
+          )}
         </p>
+        <p className="mt-2 font-semibold">{c.bank.transferNote}</p>
       </div>
     </div>
   )

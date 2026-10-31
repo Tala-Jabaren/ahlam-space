@@ -61,6 +61,9 @@ export const checkoutEn: CheckoutCopy = {
     accountPlaceholder: 'Account number / IBAN',
     copyReference: 'Copy',
     referenceCopied: 'Copied',
+    copyAccount: 'Copy',
+    accountCopied: 'Copied',
+    transferNote: 'Write your booking number (AS-0000) in the transfer note.',
   },
   errors: {
     OUT_OF_STOCK:

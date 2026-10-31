@@ -57,6 +57,9 @@ export const checkoutAr = {
     accountPlaceholder: 'رقم الحساب / IBAN',
     copyReference: 'نسخ',
     referenceCopied: 'تم النسخ',
+    copyAccount: 'نسخ',
+    accountCopied: 'تم النسخ',
+    transferNote: 'اكتبي رقم الحجز (AS-0000) في ملاحظة التحويل.',
   },
   errors: {
     OUT_OF_STOCK: 'عذرًا، أحد المنتجات لم يعد متوفرًا بالكمية المطلوبة.',
