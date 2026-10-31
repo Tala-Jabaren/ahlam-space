@@ -118,6 +118,15 @@ export const en: typeof ar = {
     finalCtaParagraph:
       'Choose the right class and start your journey toward more mindful, balanced movement.',
     finalCtaButton: 'Book Your Class',
+    reviews: {
+      heading: 'Participant Reviews',
+      fallbackName: 'Participant',
+      readMore: 'Read more',
+      readLess: 'Show less',
+      previous: 'Previous',
+      next: 'Next',
+      carouselAriaLabel: 'Participant reviews',
+    },
   },
   about: {
     heading: 'Who is Ahlam?',

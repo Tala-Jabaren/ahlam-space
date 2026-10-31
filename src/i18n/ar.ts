@@ -114,6 +114,15 @@ export const ar = {
     finalCtaParagraph:
       'اختاري الحصة المناسبة وابدئي رحلتك نحو حركة أكثر وعيًا وتوازنًا.',
     finalCtaButton: 'احجزي حصتك',
+    reviews: {
+      heading: 'آراء المشاركات',
+      fallbackName: 'مشاركة',
+      readMore: 'اقرئي المزيد',
+      readLess: 'عرض أقل',
+      previous: 'السابقة',
+      next: 'التالية',
+      carouselAriaLabel: 'آراء المشاركات',
+    },
   },
   about: {
     heading: 'من هي أحلام؟',
