@@ -36,6 +36,7 @@ export default async function AdminLayout({
             <AdminNavLink href="/admin/requests">طلبات الجلسات</AdminNavLink>
             <AdminNavLink href="/admin/classes">الحصص والمواعيد</AdminNavLink>
             <AdminNavLink href="/admin/courses">الكورسات</AdminNavLink>
+            <AdminNavLink href="/admin/reviews">آراء المشاركات</AdminNavLink>
           </nav>
         </div>
       </header>

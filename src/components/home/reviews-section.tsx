@@ -2,7 +2,7 @@
 
 import { useRef, useState } from 'react'
 import { useT } from '@/i18n/i18n-context'
-import type { Review } from '@/content/reviews'
+import type { ReviewRow } from '@/lib/reviews'
 
 // Every card shows only the first ~5 "sentences" by default. These reviews
 // don't punctuate consistently - some use periods/!/؟, some rely on \n line
@@ -30,19 +30,6 @@ function splitIntoSentenceChunks(text: string): string[] {
 const focusRing =
   'focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#617A55]'
 
-function AvatarPlaceholder() {
-  return (
-    <span
-      aria-hidden="true"
-      className="grid size-11 shrink-0 place-items-center rounded-full border border-[#617A55]/25 bg-[#D6E2B6]/40 text-[#617A55]"
-    >
-      <svg viewBox="0 0 24 24" className="size-5" fill="currentColor">
-        <path d="M12 12a5 5 0 1 0 0-10 5 5 0 0 0 0 10Zm0 2c-4.4 0-8 2.2-8 5v2a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1v-2c0-2.8-3.6-5-8-5Z" />
-      </svg>
-    </span>
-  )
-}
-
 function QuoteMark() {
   return (
     <svg
@@ -56,7 +43,7 @@ function QuoteMark() {
   )
 }
 
-function ReviewCard({ review, labels }: { review: Review; labels: ReturnType<typeof useT>['t']['home']['reviews'] }) {
+function ReviewCard({ review, labels }: { review: ReviewRow; labels: ReturnType<typeof useT>['t']['home']['reviews'] }) {
   const [expanded, setExpanded] = useState(false)
   // Follows the review's own language, not the active UI locale - an
   // Arabic testimonial must stay right-aligned even when the site chrome
@@ -64,16 +51,16 @@ function ReviewCard({ review, labels }: { review: Review; labels: ReturnType<typ
   const dir = review.lang === 'en' ? 'ltr' : 'rtl'
   const name = review.name ?? labels.fallbackName
 
-  const chunks = splitIntoSentenceChunks(review.text)
+  const chunks = splitIntoSentenceChunks(review.body)
   const hasMore = chunks.length > EXCERPT_SENTENCE_COUNT
   const excerptText = chunks
     .slice(0, EXCERPT_SENTENCE_COUNT)
     .join('')
     .replace(/\n+$/, '')
     .trimEnd()
-  // Never rewrite or summarize - expanded always shows review.text
+  // Never rewrite or summarize - expanded always shows review.body
   // character-for-character; the excerpt is only ever a literal prefix of it.
-  const displayedText = expanded || !hasMore ? review.text : excerptText
+  const displayedText = expanded || !hasMore ? review.body : excerptText
 
   return (
     <figure
@@ -108,12 +95,15 @@ function ReviewCard({ review, labels }: { review: Review; labels: ReturnType<typ
           </button>
         )}
 
-        {/* min-h-11 matches the avatar circle's own size, so the footer is
+        {/* min-h-11 matches the photo circle's own size, so the footer is
             the same height whether or not a given card has one - no empty
             circle is drawn on cards that never had a photo, but the row's
             height still doesn't shift either way. */}
         <figcaption className="mt-5 flex min-h-11 items-center gap-2">
-          {review.hasPhoto && <AvatarPlaceholder />}
+          {review.photo_url && (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img src={review.photo_url} alt="" className="size-11 shrink-0 rounded-full border border-[#617A55]/20 object-cover" />
+          )}
           <span className="inline-flex rounded-full bg-[#D6E2B6]/50 px-4 py-1.5 text-xs font-semibold text-[#617A55]">
             {name}
           </span>
@@ -131,7 +121,7 @@ function ReviewCard({ review, labels }: { review: Review; labels: ReturnType<typ
 // unapproved review text to the browser even while displaying nothing -
 // filtering has to happen server-side, before the data ever crosses into a
 // client prop, not just before the DOM render.
-export default function ReviewsSection({ reviews: visible }: { reviews: Review[] }) {
+export default function ReviewsSection({ reviews: visible }: { reviews: ReviewRow[] }) {
   const { t, dir } = useT()
   const labels = t.home.reviews
   const scrollerRef = useRef<HTMLUListElement>(null)

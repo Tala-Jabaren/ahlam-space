@@ -9,7 +9,7 @@ import type { Locale } from '@/i18n/config'
 import { pageMetadata } from '@/lib/seo'
 import BookSessionButton from './schedule/book-session-button'
 import ReviewsSection from '@/components/home/reviews-section'
-import { reviews } from '@/content/reviews'
+import type { ReviewRow } from '@/lib/reviews'
 
 export async function generateMetadata(): Promise<Metadata> {
   const locale = await getLocale()
@@ -118,21 +118,32 @@ export default async function HomePage({
   // do anything on a real deployment, only under a local dev server.
   const previewAllReviews =
     process.env.NODE_ENV === 'development' && resolvedSearchParams?.previewReviews === '1'
-  // Filtered here, server-side, before anything crosses into the
-  // ReviewsSection client component's props - a Client Component's props
-  // are serialized into the page's RSC payload regardless of what it
-  // renders, so an unapproved review must never be passed down in the
-  // first place outside of the dev-only preview, not merely hidden by the
-  // component's own render logic.
-  const visibleReviews = previewAllReviews ? reviews : reviews.filter((review) => review.approved)
 
   const supabase = await createClient()
   const { t, locale, dir } = await getT()
+
+  // Filtered at the query itself, server-side, before anything crosses into
+  // the ReviewsSection client component's props - a Client Component's
+  // props are serialized into the page's RSC payload regardless of what it
+  // renders, so an unapproved review must never be fetched in the first
+  // place outside of the dev-only preview, not merely hidden by the
+  // component's own render logic. RLS backs this up independently (the
+  // public policy on public.reviews only ever returns approved = true rows
+  // to begin with), so this holds even if the .eq() below were ever
+  // dropped by mistake.
+  let reviewsQuery = supabase
+    .from('reviews')
+    .select('id, display_order, name, body, lang, approved, sensitive, photo_url, created_at')
+    .order('display_order', { ascending: true, nullsFirst: false })
+    .order('created_at', { ascending: true })
+  if (!previewAllReviews) reviewsQuery = reviewsQuery.eq('approved', true)
+
   const [
     {
       data: { user },
     },
     { data: sessions, error: sessionsError },
+    { data: reviewRows, error: reviewsError },
   ] = await Promise.all([
     supabase.auth.getUser(),
     supabase
@@ -143,11 +154,16 @@ export default async function HomePage({
       .order('session_date', { ascending: true })
       .order('start_time', { ascending: true })
       .returns<UpcomingSession[]>(),
+    reviewsQuery.returns<ReviewRow[]>(),
   ])
 
   if (sessionsError) {
     console.error('Failed to load upcoming home sessions:', sessionsError.message)
   }
+  if (reviewsError) {
+    console.error('Failed to load home page reviews:', reviewsError.message)
+  }
+  const visibleReviews = reviewRows ?? []
 
   const upcomingSessions = (sessions ?? []).filter(isUpcoming).slice(0, 3)
   const services = t.home.services.map((service, index) => ({
