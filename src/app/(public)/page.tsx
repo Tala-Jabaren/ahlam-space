@@ -164,7 +164,7 @@ export default async function HomePage({
           block inside follows the active language. */}
       <section className="relative flex min-h-[75vh] items-center overflow-hidden lg:min-h-[82vh]" dir="ltr">
         <Image
-          src="/images/hero.png"
+          src="/images/hero1.jpeg"
           alt={t.home.heroImageAlt}
           fill
           priority
