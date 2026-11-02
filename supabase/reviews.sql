@@ -196,6 +196,13 @@ $$;
 revoke all on function public.admin_delete_record(text, uuid) from public, anon;
 grant execute on function public.admin_delete_record(text, uuid) to authenticated;
 
+do $$
+begin
+  if exists (select 1 from public.reviews) then
+    raise exception 'reviews already seeded - aborting to avoid duplicates';
+  end if;
+end $$;
+
 -- =============================================================================
 -- C. Seed data - the 7 reviews already in src/content/reviews.ts, verbatim
 -- =============================================================================
