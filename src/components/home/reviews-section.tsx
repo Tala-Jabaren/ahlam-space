@@ -2,13 +2,30 @@
 
 import { useRef, useState } from 'react'
 import { useT } from '@/i18n/i18n-context'
-import type { Review } from '@/content/reviews'
+import type { ReviewRow } from '@/lib/reviews'
 
-// Long reviews (6 and 7 in practice - ~3700 and ~1500 characters) get an
-// excerpt + expand control instead of filling the whole card; the short
-// ones (1-5, all under 650 characters) show in full. Picked by length, not
-// by id, so this keeps working correctly if reviews are added/removed.
-const LONG_TEXT_THRESHOLD = 900
+// Every card shows only the first ~5 "sentences" by default. These reviews
+// don't punctuate consistently - some use periods/!/؟, some rely on \n line
+// breaks between thoughts instead and have almost no punctuation inside a
+// line - so a sentence boundary here is EITHER a sentence-ending mark or a
+// line break, whichever comes first, not a character-count cutoff. A chunk
+// never contains a boundary character except as its own trailing one, so
+// joining the first N chunks and splitting on \n afterward still reproduces
+// the original paragraph structure up to the cutoff point.
+const EXCERPT_SENTENCE_COUNT = 5
+
+// Collapsed cards are a fixed height so every card in the row is the same
+// size, regardless of how long its particular excerpt happens to be. The
+// line-clamp is the actual mechanism that guarantees this (a 5-sentence
+// excerpt can still wrap to very different line counts depending on
+// sentence length and ar/en line-wrapping) - the sentence count above is
+// just the content target, not what makes the height uniform.
+const COLLAPSED_CARD_HEIGHT = 'h-[420px]'
+const COLLAPSED_TEXT_LINES = 'line-clamp-5'
+
+function splitIntoSentenceChunks(text: string): string[] {
+  return text.match(/[^.!؟\n]+[.!؟\n]?/g) ?? [text]
+}
 
 const focusRing =
   'focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#617A55]'
@@ -26,45 +43,72 @@ function QuoteMark() {
   )
 }
 
-function ReviewCard({ review, labels }: { review: Review; labels: ReturnType<typeof useT>['t']['home']['reviews'] }) {
+function ReviewCard({ review, labels }: { review: ReviewRow; labels: ReturnType<typeof useT>['t']['home']['reviews'] }) {
   const [expanded, setExpanded] = useState(false)
-  const isLong = review.text.length > LONG_TEXT_THRESHOLD
   // Follows the review's own language, not the active UI locale - an
   // Arabic testimonial must stay right-aligned even when the site chrome
   // is switched to English, and vice versa for the one English review.
   const dir = review.lang === 'en' ? 'ltr' : 'rtl'
   const name = review.name ?? labels.fallbackName
 
+  const chunks = splitIntoSentenceChunks(review.body)
+  const hasMore = chunks.length > EXCERPT_SENTENCE_COUNT
+  const excerptText = chunks
+    .slice(0, EXCERPT_SENTENCE_COUNT)
+    .join('')
+    .replace(/\n+$/, '')
+    .trimEnd()
+  // Never rewrite or summarize - expanded always shows review.body
+  // character-for-character; the excerpt is only ever a literal prefix of it.
+  const displayedText = expanded || !hasMore ? review.body : excerptText
+
   return (
-    <figure className="relative mb-5 break-inside-avoid rounded-2xl border border-[#617A55]/15 bg-white p-6 shadow-[0_1px_2px_rgba(37,49,31,0.04)] sm:p-7">
+    <figure
+      className={`relative flex flex-col rounded-2xl border border-[#617A55]/15 bg-white p-6 shadow-[0_1px_2px_rgba(37,49,31,0.04)] sm:p-7 ${
+        expanded ? '' : `${COLLAPSED_CARD_HEIGHT} overflow-hidden`
+      }`}
+    >
       <QuoteMark />
       <blockquote
         dir={dir}
-        className={`relative text-[15px] leading-[1.9] text-[#25311f] sm:text-base ${
-          isLong && !expanded ? 'line-clamp-3' : ''
-        }`}
+        className={`relative text-[15px] leading-[1.9] text-[#25311f] sm:text-base ${expanded ? '' : COLLAPSED_TEXT_LINES}`}
       >
-        {review.text.split('\n').map((paragraph, index) => (
+        {displayedText.split('\n').map((paragraph, index) => (
           <p key={index} className={index > 0 ? 'mt-3' : ''}>
             {paragraph}
           </p>
         ))}
       </blockquote>
 
-      {isLong && (
-        <button
-          type="button"
-          onClick={() => setExpanded((value) => !value)}
-          aria-expanded={expanded}
-          className={`mt-3 inline-flex min-h-11 items-center rounded-full border border-[#617A55]/25 px-4 text-sm font-semibold text-[#617A55] transition hover:bg-[#D6E2B6]/40 ${focusRing}`}
-        >
-          {expanded ? labels.readLess : labels.readMore}
-        </button>
-      )}
+      {/* Pinned to the bottom of the fixed-height card via mt-auto, so the
+          button + footer sit at the same position on every card regardless
+          of how much excerpt text precedes them. */}
+      <div className="mt-auto pt-3">
+        {hasMore && (
+          <button
+            type="button"
+            onClick={() => setExpanded((value) => !value)}
+            aria-expanded={expanded}
+            className={`inline-flex min-h-11 items-center rounded-full border border-[#617A55]/25 px-4 text-sm font-semibold text-[#617A55] transition hover:bg-[#D6E2B6]/40 ${focusRing}`}
+          >
+            {expanded ? labels.readLess : labels.readMore}
+          </button>
+        )}
 
-      <figcaption className="mt-5 inline-flex rounded-full bg-[#D6E2B6]/50 px-4 py-1.5 text-xs font-semibold text-[#617A55]">
-        {name}
-      </figcaption>
+        {/* min-h-11 matches the photo circle's own size, so the footer is
+            the same height whether or not a given card has one - no empty
+            circle is drawn on cards that never had a photo, but the row's
+            height still doesn't shift either way. */}
+        <figcaption className="mt-5 flex min-h-11 items-center gap-2">
+          {review.photo_url && (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img src={review.photo_url} alt="" className="size-11 shrink-0 rounded-full border border-[#617A55]/20 object-cover" />
+          )}
+          <span className="inline-flex rounded-full bg-[#D6E2B6]/50 px-4 py-1.5 text-xs font-semibold text-[#617A55]">
+            {name}
+          </span>
+        </figcaption>
+      </div>
     </figure>
   )
 }
@@ -77,7 +121,7 @@ function ReviewCard({ review, labels }: { review: Review; labels: ReturnType<typ
 // unapproved review text to the browser even while displaying nothing -
 // filtering has to happen server-side, before the data ever crosses into a
 // client prop, not just before the DOM render.
-export default function ReviewsSection({ reviews: visible }: { reviews: Review[] }) {
+export default function ReviewsSection({ reviews: visible }: { reviews: ReviewRow[] }) {
   const { t, dir } = useT()
   const labels = t.home.reviews
   const scrollerRef = useRef<HTMLUListElement>(null)
@@ -115,53 +159,49 @@ export default function ReviewsSection({ reviews: visible }: { reviews: Review[]
             ))}
           </div>
         ) : (
-          <>
-            {/* Desktop/tablet: soft quote-card grid, varied heights via columns */}
-            <div className="mt-10 hidden sm:block">
-              <div className="columns-2 gap-5 lg:columns-3">
-                {visible.map((review) => (
-                  <ReviewCard key={review.id} review={review} labels={labels} />
-                ))}
-              </div>
-            </div>
-
-            {/* Mobile: horizontal swipe carousel with scroll-snap and a next-card peek */}
-            <div className="relative mt-10 sm:hidden">
-              <ul
-                ref={scrollerRef}
-                aria-label={labels.carouselAriaLabel}
-                className="flex snap-x snap-mandatory gap-4 overflow-x-auto pb-2 ps-1 pe-10 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+          /* One carousel at every breakpoint - no more grid-at-desktop,
+             carousel-at-mobile split. Card width grows with the viewport
+             (more of the row fits more cards), but the mechanism - a
+             single horizontal scroll-snap row with a next-card peek and
+             the same prev/next buttons - is identical everywhere, so
+             desktop can also rely on the arrows and not just
+             touch/trackpad scroll. items-start on the row keeps each
+             card at its own natural content height. */
+          <div className="relative mt-10">
+            <ul
+              ref={scrollerRef}
+              aria-label={labels.carouselAriaLabel}
+              className="flex snap-x snap-mandatory items-start gap-4 overflow-x-auto pb-2 ps-1 pe-10 sm:gap-5 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+            >
+              {visible.map((review) => (
+                <li key={review.id} className="w-[85%] shrink-0 snap-start sm:w-[300px] lg:w-[360px]">
+                  <ReviewCard review={review} labels={labels} />
+                </li>
+              ))}
+            </ul>
+            <div className="mt-2 flex justify-center gap-3">
+              <button
+                type="button"
+                onClick={() => scrollByCard(-1)}
+                aria-label={labels.previous}
+                className={`grid size-11 place-items-center rounded-full border border-[#617A55]/25 text-[#617A55] transition hover:bg-[#D6E2B6]/40 ${focusRing}`}
               >
-                {visible.map((review) => (
-                  <li key={review.id} className="w-[85%] shrink-0 snap-start">
-                    <ReviewCard review={review} labels={labels} />
-                  </li>
-                ))}
-              </ul>
-              <div className="mt-2 flex justify-center gap-3">
-                <button
-                  type="button"
-                  onClick={() => scrollByCard(-1)}
-                  aria-label={labels.previous}
-                  className={`grid size-11 place-items-center rounded-full border border-[#617A55]/25 text-[#617A55] transition hover:bg-[#D6E2B6]/40 ${focusRing}`}
-                >
-                  <svg aria-hidden="true" viewBox="0 0 24 24" className="size-5 rotate-180" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                    <path d="M9 18l6-6-6-6" />
-                  </svg>
-                </button>
-                <button
-                  type="button"
-                  onClick={() => scrollByCard(1)}
-                  aria-label={labels.next}
-                  className={`grid size-11 place-items-center rounded-full border border-[#617A55]/25 text-[#617A55] transition hover:bg-[#D6E2B6]/40 ${focusRing}`}
-                >
-                  <svg aria-hidden="true" viewBox="0 0 24 24" className="size-5" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                    <path d="M9 18l6-6-6-6" />
-                  </svg>
-                </button>
-              </div>
+                <svg aria-hidden="true" viewBox="0 0 24 24" className="size-5 rotate-180" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M9 18l6-6-6-6" />
+                </svg>
+              </button>
+              <button
+                type="button"
+                onClick={() => scrollByCard(1)}
+                aria-label={labels.next}
+                className={`grid size-11 place-items-center rounded-full border border-[#617A55]/25 text-[#617A55] transition hover:bg-[#D6E2B6]/40 ${focusRing}`}
+              >
+                <svg aria-hidden="true" viewBox="0 0 24 24" className="size-5" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M9 18l6-6-6-6" />
+                </svg>
+              </button>
             </div>
-          </>
+          </div>
         )}
       </div>
     </section>

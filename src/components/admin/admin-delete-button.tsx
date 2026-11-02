@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation'
 import { Trash2 } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
 
-export type DeleteKind = 'product' | 'variant' | 'request' | 'class' | 'session' | 'course' | 'booking' | 'course_purchase' | 'order'
+export type DeleteKind = 'product' | 'variant' | 'request' | 'class' | 'session' | 'course' | 'booking' | 'course_purchase' | 'order' | 'review'
 
 const messages: Record<string, string> = {
   FORBIDDEN: 'ليست لديك صلاحية الحذف.',
