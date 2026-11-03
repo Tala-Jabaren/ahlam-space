@@ -24,3 +24,33 @@ body {
   color: var(--foreground);
   font-family: var(--font-true-arabic), Arial, Helvetica, sans-serif;
 }
+
+/* Trip photo strip (TripPhotoStrip component): the track renders the photo
+   list twice back to back, then scrolls exactly half its own width so the
+   loop is seamless. Direction is mirrored for RTL vs LTR so the strip always
+   appears to move toward the start of reading order, not just "left" by
+   coordinate. JS also disables the animation class entirely under reduced
+   motion; this media query is a CSS-level backstop in case that class is
+   ever left on by mistake. */
+@keyframes trip-strip-scroll-rtl {
+  from { transform: translateX(0); }
+  to { transform: translateX(50%); }
+}
+@keyframes trip-strip-scroll-ltr {
+  from { transform: translateX(0); }
+  to { transform: translateX(-50%); }
+}
+.trip-strip-track-animate {
+  animation: trip-strip-scroll-rtl 36s linear infinite;
+}
+[dir='ltr'] .trip-strip-track-animate {
+  animation-name: trip-strip-scroll-ltr;
+}
+.trip-strip-track-animate[data-paused='true'] {
+  animation-play-state: paused;
+}
+@media (prefers-reduced-motion: reduce) {
+  .trip-strip-track-animate {
+    animation: none;
+  }
+}
