@@ -5,7 +5,7 @@ import type { OwnerDigestEvent } from './email/owner-digest-email'
 
 export type NotificationQueueRow = {
   id: string
-  kind: 'booking' | 'session_request' | 'order' | 'course_purchase'
+  kind: 'booking' | 'session_request' | 'order' | 'course_purchase' | 'trip_application'
   ref_id: string
 }
 
@@ -132,33 +132,64 @@ export async function loadNotificationEvent(
     }
   }
 
-  // course_purchase
-  const { data: purchase } = await supabase
-    .from('course_purchases')
-    .select('user_id, status, reference, course_id')
+  if (row.kind === 'course_purchase') {
+    const { data: purchase } = await supabase
+      .from('course_purchases')
+      .select('user_id, status, reference, course_id')
+      .eq('id', row.ref_id)
+      .maybeSingle()
+    if (!purchase) return null
+
+    const { data: course } = await supabase
+      .from('courses')
+      .select('title, price')
+      .eq('id', purchase.course_id)
+      .maybeSingle()
+
+    const { data: profile } = await supabase
+      .from('profiles')
+      .select('full_name, phone')
+      .eq('id', purchase.user_id)
+      .maybeSingle()
+
+    return {
+      kind: 'course_purchase',
+      customerName: profile?.full_name ?? null,
+      customerPhone: profile?.phone ?? null,
+      details: course?.title ?? 'محاضرة',
+      amount: course?.price ?? null,
+      reference: purchase.reference,
+      status: purchase.status,
+    }
+  }
+
+  // trip_application - deliberately loads ONLY the trip title and the
+  // applicant's own name/phone from trip_applications itself (never a
+  // profiles lookup, since the application already carries its own
+  // contact fields). Every health/comfort answer
+  // (intention/attended_details/the boolean fields) is explicitly left
+  // out of this object - OwnerDigestEvent has no field for them at all,
+  // so there's no risk of one slipping into an email body by accident.
+  const { data: application } = await supabase
+    .from('trip_applications')
+    .select('trip_id, full_name, phone, status')
     .eq('id', row.ref_id)
     .maybeSingle()
-  if (!purchase) return null
+  if (!application) return null
 
-  const { data: course } = await supabase
-    .from('courses')
-    .select('title, price')
-    .eq('id', purchase.course_id)
-    .maybeSingle()
-
-  const { data: profile } = await supabase
-    .from('profiles')
-    .select('full_name, phone')
-    .eq('id', purchase.user_id)
+  const { data: trip } = await supabase
+    .from('trips')
+    .select('title')
+    .eq('id', application.trip_id)
     .maybeSingle()
 
   return {
-    kind: 'course_purchase',
-    customerName: profile?.full_name ?? null,
-    customerPhone: profile?.phone ?? null,
-    details: course?.title ?? 'محاضرة',
-    amount: course?.price ?? null,
-    reference: purchase.reference,
-    status: purchase.status,
+    kind: 'trip_application',
+    customerName: application.full_name,
+    customerPhone: application.phone,
+    details: trip?.title ?? 'مشوار',
+    amount: null,
+    reference: null,
+    status: application.status,
   }
 }

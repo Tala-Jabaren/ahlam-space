@@ -1,6 +1,6 @@
 import { escapeHtml, wrapEmailHtml } from './html'
 
-export type OwnerDigestEventKind = 'booking' | 'session_request' | 'order' | 'course_purchase'
+export type OwnerDigestEventKind = 'booking' | 'session_request' | 'order' | 'course_purchase' | 'trip_application'
 
 export type OwnerDigestEvent = {
   kind: OwnerDigestEventKind
@@ -17,6 +17,7 @@ const KIND_LABELS: Record<OwnerDigestEventKind, string> = {
   session_request: 'طلب جلسة فردية',
   order: 'طلب من المتجر',
   course_purchase: 'شراء محاضرة',
+  trip_application: 'طلب مشاركة بمشوار',
 }
 
 // "pending" means two different things depending on the event kind, so the
@@ -45,13 +46,29 @@ const SESSION_REQUEST_STATUS_LABELS: Record<string, string> = {
   closed: 'مغلق',
 }
 
+// trip_application: "pending" here means "submitted, awaiting review" -
+// same reasoning as session_request's own pending above, and just as
+// wrong to label "بانتظار التحويل" (no payment is involved in applying).
+const TRIP_APPLICATION_STATUS_LABELS: Record<string, string> = {
+  pending: 'قيد المراجعة',
+  approved: 'مقبول',
+  waitlisted: 'على قائمة الانتظار',
+  declined: 'مرفوض',
+  withdrawn: 'منسحب',
+}
+
 function statusLabel(kind: OwnerDigestEventKind, status: string) {
-  const map = kind === 'session_request' ? SESSION_REQUEST_STATUS_LABELS : FINANCIAL_STATUS_LABELS
+  const map =
+    kind === 'session_request' ? SESSION_REQUEST_STATUS_LABELS
+    : kind === 'trip_application' ? TRIP_APPLICATION_STATUS_LABELS
+    : FINANCIAL_STATUS_LABELS
   return map[status] ?? status
 }
 
 function eventLink(kind: OwnerDigestEventKind, siteUrl: string) {
-  return kind === 'session_request' ? `${siteUrl}/admin/requests` : `${siteUrl}/admin/payments`
+  if (kind === 'session_request') return `${siteUrl}/admin/requests`
+  if (kind === 'trip_application') return `${siteUrl}/admin/trips`
+  return `${siteUrl}/admin/payments`
 }
 
 function formatAmount(amount: number | null) {
