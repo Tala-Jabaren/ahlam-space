@@ -4,6 +4,7 @@ import { useState } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
+import { getSafeReturnTo } from '@/lib/safe-return-to'
 
 import { useT } from '@/i18n/i18n-context'
 import {
@@ -26,19 +27,10 @@ export default function SignUpPage() {
   const [loading, setLoading] = useState(false)
   const router = useRouter()
 
-  function getSafeReturnTo() {
-    const requestedReturnTo = new URLSearchParams(window.location.search).get(
-      'returnTo',
-    )
-
-    return requestedReturnTo?.startsWith('/') &&
-      !requestedReturnTo.startsWith('//')
-      ? requestedReturnTo
-      : null
-  }
-
   function handleLoginLink(event: React.MouseEvent<HTMLAnchorElement>) {
-    const returnTo = getSafeReturnTo()
+    const returnTo = getSafeReturnTo(
+      new URLSearchParams(window.location.search).get('returnTo'),
+    )
     if (!returnTo) return
 
     event.preventDefault()
@@ -70,7 +62,9 @@ export default function SignUpPage() {
       const loginParams = new URLSearchParams({
         message: 'check-email',
       })
-      const returnTo = getSafeReturnTo()
+      const returnTo = getSafeReturnTo(
+        new URLSearchParams(window.location.search).get('returnTo'),
+      )
       if (returnTo) {
         loginParams.set('returnTo', returnTo)
       }

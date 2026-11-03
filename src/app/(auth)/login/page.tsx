@@ -4,6 +4,7 @@ import { useState, useSyncExternalStore } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
+import { getSafeReturnTo } from '@/lib/safe-return-to'
 
 import { useT } from '@/i18n/i18n-context'
 import {
@@ -33,19 +34,13 @@ export default function LoginPage() {
   const [loading, setLoading] = useState(false)
 
   function handleCreateAccount(event: React.MouseEvent<HTMLAnchorElement>) {
-    const requestedReturnTo = new URLSearchParams(window.location.search).get(
-      'returnTo',
+    const returnTo = getSafeReturnTo(
+      new URLSearchParams(window.location.search).get('returnTo'),
     )
-
-    if (
-      !requestedReturnTo?.startsWith('/') ||
-      requestedReturnTo.startsWith('//')
-    ) {
-      return
-    }
+    if (!returnTo) return
 
     event.preventDefault()
-    router.push(`/sign-up?returnTo=${encodeURIComponent(requestedReturnTo)}`)
+    router.push(`/sign-up?returnTo=${encodeURIComponent(returnTo)}`)
   }
 
   async function handleLogin(e: React.FormEvent) {
@@ -67,14 +62,10 @@ export default function LoginPage() {
         return
       }
 
-      const requestedReturnTo = new URLSearchParams(window.location.search).get(
-        'returnTo',
-      )
       const returnTo =
-        requestedReturnTo?.startsWith('/') &&
-        !requestedReturnTo.startsWith('//')
-          ? requestedReturnTo
-          : '/member-schedule'
+        getSafeReturnTo(
+          new URLSearchParams(window.location.search).get('returnTo'),
+        ) ?? '/member-schedule'
 
       router.replace(returnTo)
       router.refresh()
