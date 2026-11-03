@@ -16,6 +16,18 @@
 --      note there, this is a shared-object change worth reading even
 --      though it isn't a function redefinition.
 --
+-- Revised after first review:
+--   - Column-level grant on trip_applications closes a gap RLS alone
+--     can't: a member could otherwise SELECT admin_note/reviewed_by on
+--     their own row directly through PostgREST (see the note right after
+--     that table's RLS policies).
+--   - submit_trip_application: deadline check now compares against
+--     Asia/Hebron local time instead of the session's date; rejects a
+--     null boolean answer (MISSING_ANSWER) before inserting; and
+--     re-applying after a 'withdrawn' status reopens that same row
+--     instead of raising ALREADY_APPLIED (see the note at that branch).
+--   - admin_list_trip_applications: dropped an unused join to trips.
+--
 -- Deliberately NOT touched by this file: admin_delete_record() (root
 -- admin-delete-record.sql) - trips get their own admin_delete_trip /
 -- admin_delete_trip_photo functions instead, so this file never has to
@@ -47,7 +59,9 @@ create table if not exists public.trips (
   capacity integer,
   cover_image_url text,
   status text not null default 'draft' check (status in ('draft', 'open', 'closed', 'past')),
-  created_at timestamptz not null default now()
+  created_at timestamptz not null default now(),
+  check (ends_on >= starts_on),
+  check (capacity is null or capacity > 0)
 );
 
 alter table public.trips enable row level security;
@@ -130,6 +144,33 @@ drop policy if exists "Admins can view all trip applications" on public.trip_app
 create policy "Admins can view all trip applications" on public.trip_applications
   for select to authenticated using (public.is_admin());
 
+-- SECURITY FIX: RLS alone only filters ROWS, not COLUMNS - the "own rows"
+-- policy above would otherwise let a member SELECT every column of their
+-- own row directly through PostgREST, including admin_note (an internal
+-- note about them, not written for them to read) and reviewed_by (an
+-- admin's user id). Column-level grants close that: no table privilege at
+-- all by default, then a narrow SELECT grant on only the columns that are
+-- safe for a member (or anyone authenticated) to read directly. This does
+-- NOT affect any SECURITY DEFINER function above or below this point -
+-- submit_trip_application/withdraw_trip_application/admin_list_trip_
+-- applications/admin_review_trip_application all run with the function
+-- owner's privileges and bypass table grants entirely, same as they
+-- bypass RLS. A member's own full_name/phone/email/intention/the boolean
+-- answers/consent_at are therefore NOT directly selectable by anyone,
+-- admin included, through PostgREST - only through admin_list_trip_
+-- applications for admin, or the (future, Phase 2) member-facing RPC path
+-- if one is ever added. If Phase 2 needs a member to see their own
+-- submitted answers back, that needs its own deliberate RPC, not a wider
+-- grant here.
+revoke all on public.trip_applications from anon, authenticated;
+grant select (id, trip_id, user_id, status, created_at, reviewed_at)
+  on public.trip_applications to authenticated;
+
+create index if not exists trip_applications_user_id_idx
+  on public.trip_applications(user_id);
+create index if not exists trip_photos_trip_id_display_order_idx
+  on public.trip_photos(trip_id, display_order);
+
 -- =============================================================================
 -- B. Member-facing RPCs
 -- =============================================================================
@@ -158,6 +199,8 @@ declare
   v_trip_status text;
   v_deadline date;
   v_id uuid;
+  v_existing_id uuid;
+  v_existing_status text;
 begin
   if auth.uid() is null then
     raise exception using errcode = '42501', message = 'FORBIDDEN';
@@ -171,7 +214,7 @@ begin
     from public.trips t where t.id = p_trip_id for update;
   if not found then raise exception 'TRIP_NOT_FOUND'; end if;
   if v_trip_status is distinct from 'open' then raise exception 'TRIP_NOT_OPEN'; end if;
-  if v_deadline is not null and v_deadline < current_date then
+  if v_deadline is not null and v_deadline < (now() at time zone 'Asia/Hebron')::date then
     raise exception 'DEADLINE_PASSED';
   end if;
 
@@ -190,12 +233,61 @@ begin
   if p_intention is null or char_length(p_intention) = 0 or char_length(p_intention) > 1500 then
     raise exception 'INVALID_INTENTION';
   end if;
+  if p_attended_before is null or p_comfortable_with_strangers is null
+     or p_surgery_last_6_months is null or p_did_emotional_release is null
+     or p_can_do_physical_activity is null or p_wants_new_experiences is null then
+    raise exception 'MISSING_ANSWER';
+  end if;
 
-  if exists (
-    select 1 from public.trip_applications a
+  select a.id, a.status into v_existing_id, v_existing_status
+    from public.trip_applications a
     where a.trip_id = p_trip_id and a.user_id = auth.uid()
-  ) then
+    for update;
+
+  if found and v_existing_status is distinct from 'withdrawn' then
     raise exception 'ALREADY_APPLIED';
+  end if;
+
+  if found then
+    -- Re-applying after withdrawal reopens the same row instead of a
+    -- second insert (the unique(trip_id, user_id) constraint would
+    -- reject a second row anyway) - fresh answers, back to pending, and
+    -- any previous admin review is cleared since it was a decision about
+    -- the withdrawn application, not this new one.
+    update public.trip_applications set
+      full_name = trim(p_full_name),
+      phone = trim(p_phone),
+      email = trim(p_email),
+      attended_before = p_attended_before,
+      attended_details = nullif(trim(coalesce(p_attended_details, '')), ''),
+      intention = p_intention,
+      comfortable_with_strangers = p_comfortable_with_strangers,
+      surgery_last_6_months = p_surgery_last_6_months,
+      did_emotional_release = p_did_emotional_release,
+      can_do_physical_activity = p_can_do_physical_activity,
+      wants_new_experiences = p_wants_new_experiences,
+      consent_at = now(),
+      status = 'pending',
+      admin_note = null,
+      reviewed_at = null,
+      reviewed_by = null
+    where id = v_existing_id;
+
+    -- The insert trigger below only fires on INSERT, so a reopen (an
+    -- UPDATE) enqueues its own owner notification directly here, rather
+    -- than adding a second AFTER UPDATE ... WHEN (old.status =
+    -- 'withdrawn' and new.status = 'pending') trigger - simpler, and
+    -- keeps every "when does a trip_application notification fire" rule
+    -- in one place. Same resilience pattern as the trigger: never let a
+    -- queue-insert failure fail the reopen itself.
+    begin
+      insert into public.admin_notification_queue (kind, ref_id)
+      values ('trip_application', v_existing_id);
+    exception when others then
+      raise warning 'submit_trip_application (reopen) failed to enqueue notification: % (sqlstate %)', sqlerrm, sqlstate;
+    end;
+
+    return v_existing_id;
   end if;
 
   insert into public.trip_applications (
@@ -297,7 +389,6 @@ begin
     a.did_emotional_release, a.can_do_physical_activity, a.wants_new_experiences,
     a.status, a.admin_note, a.reviewed_at, a.created_at
   from public.trip_applications a
-  left join public.trips t on t.id = a.trip_id
   where a.trip_id = p_trip_id
   order by a.created_at asc;
 end;
@@ -420,7 +511,7 @@ begin
     insert into public.admin_notification_queue (kind, ref_id)
     values ('trip_application', new.id);
   exception when others then
-    raise warning 'enqueue_trip_application_notification failed: %', sqlerrm;
+    raise warning 'enqueue_trip_application_notification failed: % (sqlstate %)', sqlerrm, sqlstate;
   end;
   return new;
 end;
