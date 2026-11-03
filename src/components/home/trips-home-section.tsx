@@ -1,7 +1,7 @@
 import Link from 'next/link'
 import TripPhotoStrip, { type TripPhoto } from '@/components/trips/trip-photo-strip'
 import TripCard from '@/components/trips/trip-card'
-import type { TripRow } from '@/lib/trips'
+import { isTripAcceptingApplications, type TripRow } from '@/lib/trips'
 
 type TripsLabels = {
   eyebrow: string
@@ -11,7 +11,10 @@ type TripsLabels = {
   resumeMotion: string
   photoAlt: string
   registrationOpenBadge: string
+  applicationsClosedBadge: string
   deadlineLabel: string
+  dateLabel: string
+  locationLabel: string
   applyNote: string
   loginToApply: string
   createAccount: string
@@ -22,20 +25,27 @@ type TripsLabels = {
 // Renders nothing at all - no eyebrow, no heading, no strip - when there's
 // neither a published photo nor an open trip to show, same "hide the whole
 // section" rule the reviews section follows for an empty approved list.
+// The caller is expected to have already dropped a trip whose ends_on has
+// passed (hide the card entirely in that case) - this component only
+// decides between "accepting applications" and "deadline passed but trip
+// hasn't ended yet", via isTripAcceptingApplications.
 export default function TripsHomeSection({
   labels,
   photos,
   openTrip,
   isAuthenticated,
+  locale = 'ar',
 }: {
   labels: TripsLabels
   photos: TripPhoto[]
   openTrip: TripRow | null
   isAuthenticated: boolean
+  locale?: string
 }) {
   if (photos.length === 0 && !openTrip) return null
 
   const applyHref = openTrip ? `/trips/${openTrip.id}/apply` : '/trips'
+  const accepting = openTrip ? isTripAcceptingApplications(openTrip) : false
 
   return (
     <section className="border-t border-[#617A55]/10 px-5 py-20 sm:px-8 lg:px-10 lg:py-24">
@@ -62,38 +72,43 @@ export default function TripsHomeSection({
         <div className="mx-auto mt-10 max-w-7xl">
           <TripCard
             trip={openTrip}
-            badgeLabel={labels.registrationOpenBadge}
+            badgeLabel={accepting ? labels.registrationOpenBadge : labels.applicationsClosedBadge}
             deadlineLabel={labels.deadlineLabel}
+            dateLabel={labels.dateLabel}
+            locationLabel={labels.locationLabel}
+            locale={locale}
             cta={
-              <div>
-                <p className="mb-4 text-sm text-[#4f5d49]">{labels.applyNote}</p>
-                {isAuthenticated ? (
-                  <Link
-                    href={applyHref}
-                    className="inline-flex min-h-12 items-center justify-center rounded-full bg-[#617A55] px-7 py-3 text-sm font-semibold text-[#F7F6F0] transition-colors hover:bg-[#617A55]/90"
-                  >
-                    {labels.applyButton}
-                  </Link>
-                ) : (
-                  <>
-                    <div className="flex flex-wrap gap-3">
-                      <Link
-                        href={`/login?returnTo=${encodeURIComponent(applyHref)}`}
-                        className="inline-flex min-h-12 items-center justify-center rounded-full bg-[#617A55] px-7 py-3 text-sm font-semibold text-[#F7F6F0] transition-colors hover:bg-[#617A55]/90"
-                      >
-                        {labels.loginToApply}
-                      </Link>
-                      <Link
-                        href={`/sign-up?returnTo=${encodeURIComponent(applyHref)}`}
-                        className="inline-flex min-h-12 items-center justify-center rounded-full border border-[#617A55]/35 px-7 py-3 text-sm font-semibold text-[#617A55] transition-colors hover:bg-[#D6E2B6]/45"
-                      >
-                        {labels.createAccount}
-                      </Link>
-                    </div>
-                    <p className="mt-3 text-xs text-[#617A55]/70">{labels.membersOnlyNote}</p>
-                  </>
-                )}
-              </div>
+              accepting ? (
+                <div>
+                  <p className="mb-4 text-sm text-[#4f5d49]">{labels.applyNote}</p>
+                  {isAuthenticated ? (
+                    <Link
+                      href={applyHref}
+                      className="inline-flex min-h-12 items-center justify-center rounded-full bg-[#617A55] px-7 py-3 text-sm font-semibold text-[#F7F6F0] transition-colors hover:bg-[#617A55]/90"
+                    >
+                      {labels.applyButton}
+                    </Link>
+                  ) : (
+                    <>
+                      <div className="flex flex-wrap gap-3">
+                        <Link
+                          href={`/login?returnTo=${encodeURIComponent(applyHref)}`}
+                          className="inline-flex min-h-12 items-center justify-center rounded-full bg-[#617A55] px-7 py-3 text-sm font-semibold text-[#F7F6F0] transition-colors hover:bg-[#617A55]/90"
+                        >
+                          {labels.loginToApply}
+                        </Link>
+                        <Link
+                          href={`/sign-up?returnTo=${encodeURIComponent(applyHref)}`}
+                          className="inline-flex min-h-12 items-center justify-center rounded-full border border-[#617A55]/35 px-7 py-3 text-sm font-semibold text-[#617A55] transition-colors hover:bg-[#D6E2B6]/45"
+                        >
+                          {labels.createAccount}
+                        </Link>
+                      </div>
+                      <p className="mt-3 text-xs text-[#617A55]/70">{labels.membersOnlyNote}</p>
+                    </>
+                  )}
+                </div>
+              ) : null
             }
           />
         </div>

@@ -66,8 +66,12 @@ export default function TripPhotoStrip({
 
       <div
         className="overflow-x-auto pb-2 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
-        onMouseEnter={() => setHovering(true)}
-        onMouseLeave={() => setHovering(false)}
+        onPointerEnter={(event) => {
+          if (event.pointerType === 'mouse') setHovering(true)
+        }}
+        onPointerLeave={(event) => {
+          if (event.pointerType === 'mouse') setHovering(false)
+        }}
         onFocus={() => setHovering(true)}
         onBlur={(event) => {
           if (!event.currentTarget.contains(event.relatedTarget as Node | null)) setHovering(false)
@@ -92,14 +96,6 @@ export default function TripPhotoStrip({
                 className="size-full object-cover"
                 loading="lazy"
               />
-              <span
-                aria-hidden="true"
-                className="absolute end-3 top-3 grid size-8 place-items-center rounded-full bg-white/80 text-[#617A55]"
-              >
-                <svg viewBox="0 0 24 24" className="size-4" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                  <circle cx="12" cy="12" r="9" />
-                </svg>
-              </span>
             </li>
           ))}
         </ul>

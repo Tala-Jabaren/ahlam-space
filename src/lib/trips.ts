@@ -61,6 +61,38 @@ export type AdminTripApplicationRow = {
   created_at: string
 }
 
+// 'YYYY-MM-DD' for "today" in the trip owner's timezone, matching the plain
+// date columns (starts_on/ends_on/application_deadline) exactly so string
+// comparison works without a separate date-parsing step. en-CA formats as
+// ISO-like YYYY-MM-DD, same trick used elsewhere in this codebase for
+// timezone-local "today" strings.
+export function todayInHebron(): string {
+  return new Intl.DateTimeFormat('en-CA', {
+    timeZone: 'Asia/Hebron',
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+  }).format(new Date())
+}
+
+// Single source of truth for "can someone apply to this trip right now",
+// used by the public home section, /trips, and the apply page - a trip can
+// be status = 'open' yet no longer actually accepting applications (past
+// its own deadline, or past its own end date if the owner forgot to flip
+// the status). Callers that need to tell "deadline passed" apart from
+// "trip has fully ended" (to decide between showing a closed-for-
+// applications card vs. hiding it entirely) should check ends_on
+// themselves - this function only answers the single yes/no question.
+export function isTripAcceptingApplications(
+  trip: Pick<TripRow, 'status' | 'application_deadline' | 'ends_on'>,
+  today: string = todayInHebron()
+): boolean {
+  if (trip.status !== 'open') return false
+  if (trip.application_deadline && trip.application_deadline < today) return false
+  if (trip.ends_on < today) return false
+  return true
+}
+
 export const tripStatusLabels: Record<TripStatus, string> = {
   draft: 'مسودة',
   open: 'مفتوح للتسجيل',
@@ -90,7 +122,7 @@ export const tripApplicationInputSchema = z.object({
   trip_id: z.uuid(),
   full_name: z.string().trim().min(1).max(200),
   phone: z.string().trim().min(1).max(50),
-  email: z.string().trim().min(1).max(200),
+  email: z.string().trim().min(1).max(200).email(),
   attended_before: z.boolean(),
   attended_details: z.string().trim().max(1000).optional().nullable(),
   intention: z.string().trim().min(1).max(1500),

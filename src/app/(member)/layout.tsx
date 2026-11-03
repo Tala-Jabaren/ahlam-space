@@ -1,6 +1,6 @@
 import Link from 'next/link'
 import { redirect } from 'next/navigation'
-import { ArrowUpRight, BookOpen, CalendarDays, CircleHelp, Package, Plane, ShoppingBag, Ticket, UserRound } from 'lucide-react'
+import { ArrowUpRight, BookOpen, CalendarDays, CircleHelp, Compass, Package, ShoppingBag, Ticket, UserRound } from 'lucide-react'
 import { createClient } from '@/lib/supabase/server'
 import LogoutButton from './dashboard/logout-button'
 import MemberNavLink from './member-nav-link'
@@ -10,7 +10,7 @@ const navItems = [
   { href: '/bookings', label: 'حجوزاتي', icon: <Ticket strokeWidth={1.5} /> },
   { href: '/orders', label: 'طلباتي', icon: <Package strokeWidth={1.5} /> },
   { href: '/courses', label: 'محاضرات', icon: <BookOpen strokeWidth={1.5} /> },
-  { href: '/trips', label: 'المشاوير', icon: <Plane strokeWidth={1.5} /> },
+  { href: '/trips', label: 'المشاوير', icon: <Compass strokeWidth={1.5} /> },
   { href: '/shop', label: 'المتجر', icon: <ShoppingBag strokeWidth={1.5} /> },
   { href: '/account', label: 'حسابي', icon: <UserRound strokeWidth={1.5} /> },
 ]

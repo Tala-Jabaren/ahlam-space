@@ -1,8 +1,7 @@
 'use client'
 
-import { useId, useState, type FormEvent } from 'react'
+import { forwardRef, useId, useRef, useState, type FormEvent } from 'react'
 import Link from 'next/link'
-import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import { tripApplicationInputSchema } from '@/lib/trips'
 
@@ -28,36 +27,44 @@ const inputStyle =
 
 type YesNo = '' | 'yes' | 'no'
 
-function YesNoField({
-  legend,
-  value,
-  onChange,
-  error,
-}: {
-  legend: string
-  value: YesNo
-  onChange: (value: YesNo) => void
-  error?: string
-}) {
+// Visual + submit order of every required field, used to find "the first
+// invalid field" after a failed validation so focus can move there -
+// zod's own issue order isn't relied on for this, this list is the single
+// source of truth for "first" and must stay in sync with the form below.
+const FIELD_ORDER = [
+  'full_name',
+  'phone',
+  'email',
+  'attended_before',
+  'intention',
+  'comfortable_with_strangers',
+  'surgery_last_6_months',
+  'did_emotional_release',
+  'can_do_physical_activity',
+  'wants_new_experiences',
+  'consent',
+] as const
+
+const YesNoField = forwardRef<
+  HTMLFieldSetElement,
+  {
+    legend: string
+    value: YesNo
+    onChange: (value: YesNo) => void
+    error?: string
+    errorId: string
+  }
+>(function YesNoField({ legend, value, onChange, error, errorId }, ref) {
   const name = useId()
   return (
-    <fieldset>
+    <fieldset
+      ref={ref}
+      tabIndex={-1}
+      aria-invalid={Boolean(error)}
+      aria-describedby={error ? errorId : undefined}
+    >
       <legend className="font-semibold text-[#25311f]">{legend}</legend>
       <div className="mt-3 flex flex-wrap gap-3">
-        <label
-          className={`inline-flex min-h-11 cursor-pointer items-center gap-2 rounded-full border px-4 text-sm font-medium transition focus-within:outline-2 focus-within:outline-offset-2 focus-within:outline-[#617A55] ${
-            value === 'no' ? 'border-[#617A55] bg-[#617A55] text-[#F7F6F0]' : 'border-[#617A55]/25 text-[#617A55] hover:bg-[#D6E2B6]/40'
-          }`}
-        >
-          <input
-            type="radio"
-            name={name}
-            className="sr-only"
-            checked={value === 'no'}
-            onChange={() => onChange('no')}
-          />
-          لا
-        </label>
         <label
           className={`inline-flex min-h-11 cursor-pointer items-center gap-2 rounded-full border px-4 text-sm font-medium transition focus-within:outline-2 focus-within:outline-offset-2 focus-within:outline-[#617A55] ${
             value === 'yes' ? 'border-[#617A55] bg-[#617A55] text-[#F7F6F0]' : 'border-[#617A55]/25 text-[#617A55] hover:bg-[#D6E2B6]/40'
@@ -72,11 +79,29 @@ function YesNoField({
           />
           نعم
         </label>
+        <label
+          className={`inline-flex min-h-11 cursor-pointer items-center gap-2 rounded-full border px-4 text-sm font-medium transition focus-within:outline-2 focus-within:outline-offset-2 focus-within:outline-[#617A55] ${
+            value === 'no' ? 'border-[#617A55] bg-[#617A55] text-[#F7F6F0]' : 'border-[#617A55]/25 text-[#617A55] hover:bg-[#D6E2B6]/40'
+          }`}
+        >
+          <input
+            type="radio"
+            name={name}
+            className="sr-only"
+            checked={value === 'no'}
+            onChange={() => onChange('no')}
+          />
+          لا
+        </label>
       </div>
-      {error && <p role="alert" className="mt-2 text-sm text-red-700">{error}</p>}
+      {error && (
+        <p id={errorId} role="alert" className="mt-2 text-sm text-red-700">
+          {error}
+        </p>
+      )}
     </fieldset>
   )
-}
+})
 
 export default function ApplicationForm({
   tripId,
@@ -89,7 +114,6 @@ export default function ApplicationForm({
   defaultPhone: string
   defaultEmail: string
 }) {
-  const router = useRouter()
   const [fullName, setFullName] = useState(defaultName)
   const [phone, setPhone] = useState(defaultPhone)
   const [email, setEmail] = useState(defaultEmail)
@@ -106,6 +130,47 @@ export default function ApplicationForm({
   const [submitError, setSubmitError] = useState('')
   const [busy, setBusy] = useState(false)
   const [submitted, setSubmitted] = useState(false)
+
+  const fullNameRef = useRef<HTMLInputElement>(null)
+  const phoneRef = useRef<HTMLInputElement>(null)
+  const emailRef = useRef<HTMLInputElement>(null)
+  const attendedBeforeRef = useRef<HTMLFieldSetElement>(null)
+  const intentionRef = useRef<HTMLTextAreaElement>(null)
+  const comfortableWithStrangersRef = useRef<HTMLFieldSetElement>(null)
+  const surgeryLast6MonthsRef = useRef<HTMLFieldSetElement>(null)
+  const didEmotionalReleaseRef = useRef<HTMLFieldSetElement>(null)
+  const canDoPhysicalActivityRef = useRef<HTMLFieldSetElement>(null)
+  const wantsNewExperiencesRef = useRef<HTMLFieldSetElement>(null)
+  const consentRef = useRef<HTMLInputElement>(null)
+
+  const fieldRefs: Record<(typeof FIELD_ORDER)[number], React.RefObject<HTMLElement | null>> = {
+    full_name: fullNameRef,
+    phone: phoneRef,
+    email: emailRef,
+    attended_before: attendedBeforeRef,
+    intention: intentionRef,
+    comfortable_with_strangers: comfortableWithStrangersRef,
+    surgery_last_6_months: surgeryLast6MonthsRef,
+    did_emotional_release: didEmotionalReleaseRef,
+    can_do_physical_activity: canDoPhysicalActivityRef,
+    wants_new_experiences: wantsNewExperiencesRef,
+    consent: consentRef,
+  }
+
+  const errorIds = {
+    fullName: 'full-name-error',
+    phone: 'phone-error',
+    email: 'email-error',
+    attended_before: 'attended-before-error',
+    intention: 'intention-error',
+    attendedDetails: 'attended-details-error',
+    comfortable_with_strangers: 'comfortable-with-strangers-error',
+    surgery_last_6_months: 'surgery-error',
+    did_emotional_release: 'did-emotional-release-error',
+    can_do_physical_activity: 'can-do-physical-activity-error',
+    wants_new_experiences: 'wants-new-experiences-error',
+    consent: 'consent-error',
+  }
 
   if (submitted) {
     return (
@@ -128,6 +193,17 @@ export default function ApplicationForm({
     if (value === 'yes') return true
     if (value === 'no') return false
     return null
+  }
+
+  function focusFirstInvalid(fieldErrors: Record<string, string>) {
+    // fieldErrors keys match zod's own path names (e.g. full_name), except
+    // full_name/phone/email which are stored camelCase below for the text
+    // inputs' own error-prop naming - FIELD_ORDER uses the zod/snake_case
+    // names throughout so this lookup stays single-sourced.
+    const keyMap: Record<string, string> = { fullName: 'full_name' }
+    const normalized = new Set(Object.keys(fieldErrors).map((key) => keyMap[key] ?? key))
+    const firstInvalid = FIELD_ORDER.find((field) => normalized.has(field))
+    if (firstInvalid) fieldRefs[firstInvalid].current?.focus()
   }
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
@@ -172,6 +248,7 @@ export default function ApplicationForm({
         }
       }
       setErrors(fieldErrors)
+      focusFirstInvalid(fieldErrors)
       return
     }
     setErrors({})
@@ -206,53 +283,64 @@ export default function ApplicationForm({
   }
 
   return (
-    <form onSubmit={handleSubmit} className="mt-8 rounded-2xl border border-[#617A55]/15 bg-white p-6 sm:p-8">
+    <form onSubmit={handleSubmit} noValidate className="mt-8 rounded-2xl border border-[#617A55]/15 bg-white p-6 sm:p-8">
       <h2 className="font-semibold text-[#25311f]">١. بياناتك للتواصل</h2>
       <div className="mt-3 grid gap-4 sm:grid-cols-2">
         <label className="text-sm text-[#617A55]">
           الاسم
           <input
+            ref={fullNameRef}
             required
             maxLength={200}
             value={fullName}
             onChange={(event) => setFullName(event.target.value)}
+            aria-invalid={Boolean(errors.fullName)}
+            aria-describedby={errors.fullName ? errorIds.fullName : undefined}
             className={inputStyle}
           />
-          {errors.fullName && <p role="alert" className="mt-1 text-xs text-red-700">{errors.fullName}</p>}
+          {errors.fullName && <p id={errorIds.fullName} role="alert" className="mt-1 text-xs text-red-700">{errors.fullName}</p>}
         </label>
         <label className="text-sm text-[#617A55]">
           رقم التواصل
           <input
+            ref={phoneRef}
             required
             maxLength={50}
             value={phone}
             onChange={(event) => setPhone(event.target.value)}
             dir="ltr"
+            aria-invalid={Boolean(errors.phone)}
+            aria-describedby={errors.phone ? errorIds.phone : undefined}
             className={inputStyle}
           />
-          {errors.phone && <p role="alert" className="mt-1 text-xs text-red-700">{errors.phone}</p>}
+          {errors.phone && <p id={errorIds.phone} role="alert" className="mt-1 text-xs text-red-700">{errors.phone}</p>}
         </label>
       </div>
       <label className="mt-4 block text-sm text-[#617A55]">
         الإيميل
         <input
+          ref={emailRef}
           required
           type="email"
           maxLength={200}
           value={email}
           onChange={(event) => setEmail(event.target.value)}
           dir="ltr"
+          aria-invalid={Boolean(errors.email)}
+          aria-describedby={errors.email ? errorIds.email : undefined}
           className={inputStyle}
         />
-        {errors.email && <p role="alert" className="mt-1 text-xs text-red-700">{errors.email}</p>}
+        {errors.email && <p id={errorIds.email} role="alert" className="mt-1 text-xs text-red-700">{errors.email}</p>}
       </label>
 
       <div className="mt-8 border-t border-[#617A55]/10 pt-6">
         <YesNoField
+          ref={attendedBeforeRef}
           legend="٢. هل حضرتِ مثل هذه المشاوير سابقًا؟"
           value={attendedBefore}
           onChange={setAttendedBefore}
           error={errors.attended_before}
+          errorId={errorIds.attended_before}
         />
         <label className="mt-3 block text-sm text-[#617A55]">
           إن كان الجواب نعم، شاركينا بعض التفاصيل (اختياري)
@@ -261,9 +349,11 @@ export default function ApplicationForm({
             maxLength={1000}
             value={attendedDetails}
             onChange={(event) => setAttendedDetails(event.target.value)}
+            aria-invalid={Boolean(errors.attendedDetails)}
+            aria-describedby={errors.attendedDetails ? errorIds.attendedDetails : undefined}
             className={inputStyle}
           />
-          {errors.attendedDetails && <p role="alert" className="mt-1 text-xs text-red-700">{errors.attendedDetails}</p>}
+          {errors.attendedDetails && <p id={errorIds.attendedDetails} role="alert" className="mt-1 text-xs text-red-700">{errors.attendedDetails}</p>}
         </label>
       </div>
 
@@ -271,62 +361,78 @@ export default function ApplicationForm({
         <label className="block text-sm font-semibold text-[#25311f]">
           ٣. في حال تم اختيارك لخوض هذه التجربة معنا، ما هي نيّتك من هذه التجربة؟
           <textarea
+            ref={intentionRef}
             required
             rows={5}
             maxLength={1500}
             value={intention}
             onChange={(event) => setIntention(event.target.value)}
+            aria-invalid={Boolean(errors.intention)}
+            aria-describedby={errors.intention ? errorIds.intention : undefined}
             className={`${inputStyle} font-normal`}
           />
         </label>
         <p className="mt-1 text-xs text-[#617A55]/70">حتى 1500 حرف ({intention.length}/1500)</p>
-        {errors.intention && <p role="alert" className="mt-1 text-xs text-red-700">{errors.intention}</p>}
+        {errors.intention && <p id={errorIds.intention} role="alert" className="mt-1 text-xs text-red-700">{errors.intention}</p>}
       </div>
 
       <div className="mt-8 space-y-6 border-t border-[#617A55]/10 pt-6">
         <YesNoField
+          ref={comfortableWithStrangersRef}
           legend="٤. هل تشعرين بالراحة من مشاركتك في نشاطات جماعية مع أشخاص غرباء؟"
           value={comfortableWithStrangers}
           onChange={setComfortableWithStrangers}
           error={errors.comfortable_with_strangers}
+          errorId={errorIds.comfortable_with_strangers}
         />
         <YesNoField
+          ref={surgeryLast6MonthsRef}
           legend="٥. هل قمتِ بأي عملية جراحية خلال الأشهر الستة الأخيرة؟"
           value={surgeryLast6Months}
           onChange={setSurgeryLast6Months}
           error={errors.surgery_last_6_months}
+          errorId={errorIds.surgery_last_6_months}
         />
         <YesNoField
+          ref={didEmotionalReleaseRef}
           legend="٦. هل شاركتِ بأي حلقات تفريغ مشاعري سابقًا (بالتنفس، بالحركة، بالطاقة)؟"
           value={didEmotionalRelease}
           onChange={setDidEmotionalRelease}
           error={errors.did_emotional_release}
+          errorId={errorIds.did_emotional_release}
         />
         <YesNoField
+          ref={canDoPhysicalActivityRef}
           legend="٧. هل يمكنك ممارسة الأنشطة البدنية؟"
           value={canDoPhysicalActivity}
           onChange={setCanDoPhysicalActivity}
           error={errors.can_do_physical_activity}
+          errorId={errorIds.can_do_physical_activity}
         />
         <YesNoField
+          ref={wantsNewExperiencesRef}
           legend="٨. هل شعرتِ بالرغبة في خوض تجارب جديدة والخروج من منطقة الراحة؟"
           value={wantsNewExperiences}
           onChange={setWantsNewExperiences}
           error={errors.wants_new_experiences}
+          errorId={errorIds.wants_new_experiences}
         />
       </div>
 
       <label className="mt-8 flex items-start gap-3 border-t border-[#617A55]/10 pt-6 text-sm text-[#4f5d49]">
         <input
+          ref={consentRef}
           type="checkbox"
           required
           checked={consent}
           onChange={(event) => setConsent(event.target.checked)}
+          aria-invalid={Boolean(errors.consent)}
+          aria-describedby={errors.consent ? errorIds.consent : undefined}
           className={`mt-0.5 size-5 shrink-0 accent-[#617A55] ${focusRing}`}
         />
         أوافق على حفظ إجاباتي، بما فيها المعلومات الصحية، لتقييم مدى ملاءمة المشوار لي، وأعلم أنها لا تظهر إلا لأحلام.
       </label>
-      {errors.consent && <p role="alert" className="mt-1 text-xs text-red-700">{errors.consent}</p>}
+      {errors.consent && <p id={errorIds.consent} role="alert" className="mt-1 text-xs text-red-700">{errors.consent}</p>}
 
       {submitError && (
         <p role="alert" className="mt-4 rounded-lg bg-red-50 p-4 text-sm text-red-700">
@@ -335,14 +441,12 @@ export default function ApplicationForm({
       )}
 
       <div className="mt-6 flex flex-wrap gap-3">
-        <button
-          type="button"
-          onClick={() => router.back()}
-          disabled={busy}
-          className={`inline-flex min-h-12 items-center justify-center rounded-full border border-[#617A55]/35 px-7 py-3 text-sm font-semibold text-[#617A55] transition hover:bg-[#D6E2B6]/45 disabled:opacity-50 ${focusRing}`}
+        <Link
+          href="/trips"
+          className={`inline-flex min-h-12 items-center justify-center rounded-full border border-[#617A55]/35 px-7 py-3 text-sm font-semibold text-[#617A55] transition hover:bg-[#D6E2B6]/45 ${focusRing}`}
         >
           إلغاء
-        </button>
+        </Link>
         <button
           type="submit"
           disabled={busy}

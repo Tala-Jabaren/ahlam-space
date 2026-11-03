@@ -3,7 +3,7 @@ import { redirect, notFound } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
 import ApplicationForm from '@/components/trips/application-form'
 import { formatTripDate } from '@/components/trips/trip-card'
-import type { TripRow } from '@/lib/trips'
+import { isTripAcceptingApplications, type TripRow } from '@/lib/trips'
 
 export default async function TripApplyPage({
   params,
@@ -37,6 +37,20 @@ export default async function TripApplyPage({
     .eq('id', user.id)
     .maybeSingle()
 
+  // Only the columns a member can actually select directly from
+  // trip_applications (see the column-level grant in supabase/trips.sql) -
+  // id/trip_id/status is all that's needed to decide whether to show the
+  // "already applied" notice instead of the form.
+  const { data: existingApplication } = await supabase
+    .from('trip_applications')
+    .select('id, trip_id, status')
+    .eq('trip_id', tripId)
+    .eq('user_id', user.id)
+    .maybeSingle()
+
+  const alreadyApplied = Boolean(existingApplication && existingApplication.status !== 'withdrawn')
+  const accepting = isTripAcceptingApplications(trip)
+
   return (
     <main className="mx-auto max-w-3xl px-4 py-8 sm:px-6 lg:px-8">
       <nav aria-label="مسار التنقل" className="mb-4 flex flex-wrap items-center gap-1.5 text-sm text-[#617A55]/80">
@@ -50,7 +64,14 @@ export default async function TripApplyPage({
         {trip.title} · <bdi>{formatTripDate(trip.starts_on)}</bdi>
       </p>
 
-      {trip.status !== 'open' ? (
+      {alreadyApplied ? (
+        <div className="mt-8 rounded-lg bg-[#D6E2B6]/40 p-5 text-sm">
+          <p>قدّمتِ طلب مشاركة بهذا المشوار بالفعل.</p>
+          <Link href="/trips" className="mt-2 inline-block font-semibold text-[#617A55] underline-offset-4 hover:underline">
+            العودة إلى المشاوير
+          </Link>
+        </div>
+      ) : !accepting ? (
         <p role="alert" className="mt-8 rounded-lg bg-[#C7D6E8]/50 p-5 text-sm">
           التسجيل في هذا المشوار غير متاح حاليًا.
         </p>

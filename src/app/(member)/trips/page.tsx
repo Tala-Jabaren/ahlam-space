@@ -4,7 +4,9 @@ import { createClient } from '@/lib/supabase/server'
 import TripPhotoStrip, { type TripPhoto } from '@/components/trips/trip-photo-strip'
 import TripCard, { formatTripDate } from '@/components/trips/trip-card'
 import WithdrawApplicationButton from '@/components/trips/withdraw-application-button'
-import type { TripRow } from '@/lib/trips'
+import { isTripAcceptingApplications, todayInHebron, type TripRow } from '@/lib/trips'
+
+type TripPhotoWithTripDate = TripPhoto & { display_order: number; trips: { starts_on: string } | null }
 
 // Gentler member-facing wording, deliberately not tripApplicationStatusLabels
 // from src/lib/trips.ts (that one's for the admin view).
@@ -58,15 +60,16 @@ export default async function MyTripsPage() {
       .select('id, title, description, location, starts_on, ends_on, application_deadline, capacity, cover_image_url, status, created_at')
       .eq('status', 'open')
       .order('starts_on', { ascending: true })
-      .limit(1)
+      .limit(5)
       .returns<TripRow[]>(),
     supabase
       .from('trip_photos')
-      .select('id, photo_url, caption, display_order')
+      .select('id, photo_url, caption, display_order, trips!inner(starts_on)')
       .eq('is_published', true)
+      .order('starts_on', { ascending: false, referencedTable: 'trips' })
       .order('display_order', { ascending: true })
       .limit(16)
-      .returns<TripPhoto[]>(),
+      .returns<TripPhotoWithTripDate[]>(),
     supabase
       .from('trip_applications')
       .select('id, trip_id, status, created_at, reviewed_at, trips(title, starts_on, location)')
@@ -79,12 +82,21 @@ export default async function MyTripsPage() {
   if (photosError) console.error('Failed to load trip photos:', photosError.message)
   if (applicationsError) console.error('Failed to load my trip applications:', applicationsError.message)
 
-  const openTrip = openTrips?.[0] ?? null
-  const visiblePhotos = photos ?? []
+  const today = todayInHebron()
+  // Still "open" but already past ends_on -> no open trip to show at all,
+  // same rule as the public home section.
+  const openTrip = (openTrips ?? []).find((trip) => trip.ends_on >= today) ?? null
+  const visiblePhotos: TripPhoto[] = (photos ?? []).map((photo) => ({
+    id: photo.id,
+    photo_url: photo.photo_url,
+    caption: photo.caption,
+    display_order: photo.display_order,
+  }))
   const myApplications = applications ?? []
   const hasAlreadyAppliedToOpenTrip = Boolean(
     openTrip && myApplications.some((application) => application.trip_id === openTrip.id && application.status !== 'withdrawn')
   )
+  const openTripAccepting = openTrip ? isTripAcceptingApplications(openTrip, today) : false
 
   return (
     <main className="mx-auto max-w-5xl px-4 py-8 sm:px-6 lg:px-8">
@@ -101,10 +113,10 @@ export default async function MyTripsPage() {
           <h2 className="mb-4 font-serif text-2xl text-[#25311f]">المشوار القادم</h2>
           <TripCard
             trip={openTrip}
-            badgeLabel="التسجيل مفتوح"
+            badgeLabel={openTripAccepting ? 'التسجيل مفتوح' : 'انتهى التقديم'}
             deadlineLabel="آخر موعد للتقديم"
             cta={
-              hasAlreadyAppliedToOpenTrip ? (
+              !openTripAccepting ? null : hasAlreadyAppliedToOpenTrip ? (
                 <p className="text-sm text-[#617A55]">
                   قدّمتِ طلب المشاركة بهذا المشوار بالفعل - تابعي حالته في &quot;طلباتي&quot; أدناه.
                 </p>
