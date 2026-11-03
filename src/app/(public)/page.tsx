@@ -10,6 +10,9 @@ import { pageMetadata } from '@/lib/seo'
 import BookSessionButton from './schedule/book-session-button'
 import ReviewsSection from '@/components/home/reviews-section'
 import type { ReviewRow } from '@/lib/reviews'
+import TripsHomeSection from '@/components/home/trips-home-section'
+import type { TripRow } from '@/lib/trips'
+import type { TripPhoto } from '@/components/trips/trip-photo-strip'
 
 export async function generateMetadata(): Promise<Metadata> {
   const locale = await getLocale()
@@ -144,6 +147,8 @@ export default async function HomePage({
     },
     { data: sessions, error: sessionsError },
     { data: reviewRows, error: reviewsError },
+    { data: openTrips, error: openTripError },
+    { data: tripPhotos, error: tripPhotosError },
   ] = await Promise.all([
     supabase.auth.getUser(),
     supabase
@@ -155,6 +160,26 @@ export default async function HomePage({
       .order('start_time', { ascending: true })
       .returns<UpcomingSession[]>(),
     reviewsQuery.returns<ReviewRow[]>(),
+    // Public RLS on trips only ever returns non-draft rows to begin with,
+    // so .eq('status', 'open') here is a real filter, not a redundant one.
+    supabase
+      .from('trips')
+      .select('id, title, description, location, starts_on, ends_on, application_deadline, capacity, cover_image_url, status, created_at')
+      .eq('status', 'open')
+      .order('starts_on', { ascending: true })
+      .limit(1)
+      .returns<TripRow[]>(),
+    // Public RLS on trip_photos already requires is_published = true AND
+    // the parent trip to be non-draft - the .eq() here is redundant with
+    // that policy but kept for clarity/defense in depth, same reasoning as
+    // the reviews query's .eq('approved', true) above.
+    supabase
+      .from('trip_photos')
+      .select('id, photo_url, caption, display_order')
+      .eq('is_published', true)
+      .order('display_order', { ascending: true })
+      .limit(16)
+      .returns<TripPhoto[]>(),
   ])
 
   if (sessionsError) {
@@ -163,7 +188,15 @@ export default async function HomePage({
   if (reviewsError) {
     console.error('Failed to load home page reviews:', reviewsError.message)
   }
+  if (openTripError) {
+    console.error('Failed to load the open trip:', openTripError.message)
+  }
+  if (tripPhotosError) {
+    console.error('Failed to load trip photos:', tripPhotosError.message)
+  }
   const visibleReviews = reviewRows ?? []
+  const openTrip = openTrips?.[0] ?? null
+  const visibleTripPhotos = tripPhotos ?? []
 
   const upcomingSessions = (sessions ?? []).filter(isUpcoming).slice(0, 3)
   const services = t.home.services.map((service, index) => ({
@@ -388,6 +421,13 @@ export default async function HomePage({
           )}
         </div>
       </section>
+
+      <TripsHomeSection
+        labels={t.home.trips}
+        photos={visibleTripPhotos}
+        openTrip={openTrip}
+        isAuthenticated={Boolean(user)}
+      />
 
       <section className="bg-[#D6E2B6]/45 px-5 py-20 text-center sm:px-8 lg:px-10 lg:py-24">
         <div className="mx-auto max-w-3xl">
