@@ -32,7 +32,14 @@ export default function TripPhotoManager({ tripId, photos }: { tripId: string; p
       body.append('image', file)
       const response = await fetch('/admin/trips/upload-photo', { method: 'POST', body })
       const json = await response.json().catch(() => null)
-      if (!response.ok || !json?.url) throw new Error('UPLOAD_FAILED')
+      if (!response.ok || !json?.url) {
+        // Relay the route's own Arabic error (invalid file type, too large,
+        // not an admin, storage failure, etc.) instead of a single generic
+        // message that was hiding which of those actually happened.
+        setFailed(true)
+        setMessage(json?.error || 'تعذر رفع الصورة. تحققي من الاتصال ثم حاولي مجددًا.')
+        return
+      }
 
       const caption = String(form.get('caption') || '').trim() || null
       const nextOrder = photos.length ? Math.max(...photos.map((item) => item.display_order)) + 1 : 0
@@ -43,15 +50,24 @@ export default function TripPhotoManager({ tripId, photos }: { tripId: string; p
         display_order: nextOrder,
         is_published: false,
       })
-      if (error) throw error
+      if (error) {
+        // The file itself uploaded fine here - this is a separate failure
+        // (most likely RLS) saving the trip_photos row, so it gets its own
+        // message rather than being folded into the upload-failed one.
+        console.error('trip_photos insert failed after a successful upload:', error.message)
+        setFailed(true)
+        setMessage('تم رفع الصورة لكن تعذر حفظها في قائمة الصور. حدّثي الصفحة وحاولي مجددًا.')
+        return
+      }
 
       setFailed(false)
       setMessage('تم رفع الصورة. فعّلي النشر عندما تكونين جاهزة.')
       event.currentTarget.reset()
       router.refresh()
-    } catch {
+    } catch (err) {
+      console.error('Trip photo upload failed:', err)
       setFailed(true)
-      setMessage('تعذر رفع الصورة. تحققي من الاتصال ونوع الملف (JPG أو PNG أو WebP) ثم حاولي مجددًا.')
+      setMessage('تعذر رفع الصورة. تحققي من الاتصال ثم حاولي مجددًا.')
     } finally {
       setBusy(false)
     }
