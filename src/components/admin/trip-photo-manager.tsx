@@ -17,7 +17,13 @@ export default function TripPhotoManager({ tripId, photos }: { tripId: string; p
 
   async function upload(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()
-    const form = new FormData(event.currentTarget)
+    // Captured now, not read again after an await below - a SyntheticEvent's
+    // currentTarget is only valid while the event is actively dispatching;
+    // by the time an async handler resumes past its first await it's null,
+    // and event.currentTarget.reset() further down would throw even after
+    // a fully successful upload, making a real success look like a failure.
+    const formEl = event.currentTarget
+    const form = new FormData(formEl)
     const file = form.get('image')
     if (!(file instanceof File) || file.size === 0) {
       setFailed(true)
@@ -62,7 +68,7 @@ export default function TripPhotoManager({ tripId, photos }: { tripId: string; p
 
       setFailed(false)
       setMessage('تم رفع الصورة. فعّلي النشر عندما تكونين جاهزة.')
-      event.currentTarget.reset()
+      formEl.reset()
       router.refresh()
     } catch (err) {
       console.error('Trip photo upload failed:', err)
