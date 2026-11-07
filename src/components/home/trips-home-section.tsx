@@ -7,8 +7,6 @@ type TripsLabels = {
   eyebrow: string
   heading: string
   subtitle: string
-  pauseMotion: string
-  resumeMotion: string
   photoAlt: string
   registrationOpenBadge: string
   applicationsClosedBadge: string
@@ -58,12 +56,7 @@ export default function TripsHomeSection({
       {photos.length > 0 && (
         <div className="mt-10 overflow-hidden">
           <div className="mx-auto max-w-7xl px-0">
-            <TripPhotoStrip
-              photos={photos}
-              pauseLabel={labels.pauseMotion}
-              resumeLabel={labels.resumeMotion}
-              photoAlt={labels.photoAlt}
-            />
+            <TripPhotoStrip photos={photos} photoAlt={labels.photoAlt} />
           </div>
         </div>
       )}

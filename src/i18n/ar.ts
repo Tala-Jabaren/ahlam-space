@@ -127,8 +127,6 @@ export const ar = {
       eyebrow: 'مشاوير أحلام',
       heading: 'نمشي معًا، ونرجع لأنفسنا',
       subtitle: 'مشاوير جماعية صغيرة، فيها حركة وتنفّس ومساحة للإنصات لحالنا. هذه لمحات من مشاويرنا السابقة.',
-      pauseMotion: 'إيقاف حركة الصور',
-      resumeMotion: 'تشغيل حركة الصور',
       photoAlt: 'صورة من مشوار سابق',
       registrationOpenBadge: 'التسجيل مفتوح',
       applicationsClosedBadge: 'انتهى التقديم',

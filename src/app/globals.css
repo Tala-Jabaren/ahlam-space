@@ -46,9 +46,6 @@ body {
 [dir='ltr'] .trip-strip-track-animate {
   animation-name: trip-strip-scroll-ltr;
 }
-.trip-strip-track-animate[data-paused='true'] {
-  animation-play-state: paused;
-}
 @media (prefers-reduced-motion: reduce) {
   .trip-strip-track-animate {
     animation: none;
