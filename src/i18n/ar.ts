@@ -79,31 +79,28 @@ export const ar = {
     heroParagraph:
       'في Ahlam Space نؤمن بأن الحركة ليست فقط تمرينًا للجسم، بل رحلة أعمق نحو حياة أكثر توازنًا ووعيًا.',
     heroCtaExplore: 'استكشفي الحصص',
+    heroCtaServices: 'تعرّفي على خدماتنا',
     heroCtaBookNow: 'احجزي الآن',
     heroImageAlt: 'أحلام تجلس للتأمل على سجادة اليوغا في الاستوديو',
+    heroChips: ['حصص أسبوعية', 'جلسات فردية خاصة', 'حجز سهل من الموقع'],
     services: [
       {
         title: 'جلسات فردية',
-        description: 'جلسات مخصصة حسب احتياجاتك وأهدافك.',
+        description: 'جلسة خاصة معك وحدك، مصممة حسب احتياجاتك وأهدافك.',
       },
       {
         title: 'محاضرات',
-        description: 'برامج متنوعة للوعي، الحركة وتطوير نمط حياة متوازن.',
+        description: 'برامج متنوعة للوعي والحركة وتطوير نمط حياة متوازن.',
       },
       {
         title: 'حصص جماعية',
-        description: 'حصص يوغا وحركة ضمن أجواء مريحة وداعمة.',
+        description: 'يوغا وحركة مع مجموعة، في أجواء مريحة وداعمة.',
       },
       {
         title: 'منتجات مختارة بعناية',
-        description: 'منتجات تساعدك في رحلتك نحو حياة أكثر توازنًا وراحة.',
+        description: 'منتجات تدعم رحلتك نحو حياة أكثر توازنًا وراحة.',
       },
     ],
-    aboutHeading: 'أهلًا بكِ في Ahlam Space',
-    aboutParagraph:
-      'مساحة صُممت لتكون أكثر من مجرد مكان للتمرين؛ هي دعوة للعودة إلى نفسك، من خلال الحركة، الوعي والتوازن في الحياة اليومية.',
-    aboutCta: 'تعرّفي أكثر',
-    aboutImageAlt: 'أحلام تمارس اليوغا في مساحة هادئة',
     weekSectionHeading: 'حصص هذا الأسبوع',
     weekSectionSubtitle: 'اختاري الوقت المناسب إلك وابدئي رحلتك.',
     weekSectionViewAll: 'عرض جميع الحصص',
@@ -115,17 +112,14 @@ export const ar = {
     priceLabel: 'السعر',
     remainingLabel: 'الأماكن المتبقية',
     remainingSeatsSuffix: 'أماكن متبقية',
-    finalCtaHeading: 'خذي وقتًا لنفسك.',
-    finalCtaParagraph:
-      'اختاري الحصة المناسبة وابدئي رحلتك نحو حركة أكثر وعيًا وتوازنًا.',
-    finalCtaButton: 'احجزي حصتك',
+    statsEyebrow: 'بعض ما أنجزناه معًا',
     reviews: {
       heading: 'آراء المشاركات',
       fallbackName: 'مشاركة',
       readMore: 'اقرئي المزيد',
       readLess: 'عرض أقل',
-      previous: 'السابقة',
-      next: 'التالية',
+      pauseReviews: 'إيقاف حركة الآراء',
+      resumeReviews: 'تشغيل حركة الآراء',
       carouselAriaLabel: 'آراء المشاركات',
     },
     trips: {
@@ -133,6 +127,7 @@ export const ar = {
       heading: 'نمشي معًا، ونرجع لأنفسنا',
       subtitle: 'مشاوير جماعية صغيرة، فيها حركة وتنفّس ومساحة للإنصات لحالنا. هذه لمحات من مشاويرنا السابقة.',
       photoAlt: 'صورة من مشوار سابق',
+      viewAllLabel: 'عرض كل المشاوير',
       registrationOpenBadge: 'التسجيل مفتوح',
       applicationsClosedBadge: 'انتهى التقديم',
       deadlineLabel: 'آخر موعد للتقديم',
