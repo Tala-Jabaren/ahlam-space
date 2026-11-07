@@ -38,6 +38,7 @@ export default async function PublicLayout({
                 {t.nav.privateSessions}
               </PublicNavLink>
               <PublicNavLink href="/shop">{t.nav.shop}</PublicNavLink>
+              <PublicNavLink href="/journeys">{t.nav.journeys}</PublicNavLink>
               <PublicNavLink href="/contact">{t.nav.contact}</PublicNavLink>
             </div>
             <div className="flex items-center gap-3">

@@ -1,12 +1,10 @@
 import Link from 'next/link'
 import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
-import TripPhotoStrip, { type TripPhoto } from '@/components/trips/trip-photo-strip'
+import TripPhotoStrip from '@/components/trips/trip-photo-strip'
 import TripCard, { formatTripDate } from '@/components/trips/trip-card'
 import WithdrawApplicationButton from '@/components/trips/withdraw-application-button'
-import { isTripAcceptingApplications, todayInHebron, type TripRow } from '@/lib/trips'
-
-type TripPhotoWithTripDate = TripPhoto & { display_order: number; trips: { starts_on: string } | null }
+import { getOpenTrip, getPublishedTripPhotos, isTripAcceptingApplications, todayInHebron } from '@/lib/trips'
 
 // Gentler member-facing wording, deliberately not tripApplicationStatusLabels
 // from src/lib/trips.ts (that one's for the admin view).
@@ -51,25 +49,12 @@ export default async function MyTripsPage() {
   }
 
   const [
-    { data: openTrips, error: openTripError },
-    { data: photos, error: photosError },
+    { trip: openTrip, error: openTripError },
+    { photos: visiblePhotos, error: photosError },
     { data: applications, error: applicationsError },
   ] = await Promise.all([
-    supabase
-      .from('trips')
-      .select('id, title, description, location, starts_on, ends_on, application_deadline, capacity, cover_image_url, status, created_at')
-      .eq('status', 'open')
-      .order('starts_on', { ascending: true })
-      .limit(5)
-      .returns<TripRow[]>(),
-    supabase
-      .from('trip_photos')
-      .select('id, photo_url, caption, display_order, trips!inner(starts_on)')
-      .eq('is_published', true)
-      .order('starts_on', { ascending: false, referencedTable: 'trips' })
-      .order('display_order', { ascending: true })
-      .limit(16)
-      .returns<TripPhotoWithTripDate[]>(),
+    getOpenTrip(supabase),
+    getPublishedTripPhotos(supabase),
     supabase
       .from('trip_applications')
       .select('id, trip_id, status, created_at, reviewed_at, trips(title, starts_on, location)')
@@ -78,20 +63,11 @@ export default async function MyTripsPage() {
       .returns<MyApplicationRow[]>(),
   ])
 
-  if (openTripError) console.error('Failed to load the open trip:', openTripError.message)
-  if (photosError) console.error('Failed to load trip photos:', photosError.message)
+  if (openTripError) console.error('Failed to load the open trip.')
+  if (photosError) console.error('Failed to load trip photos.')
   if (applicationsError) console.error('Failed to load my trip applications:', applicationsError.message)
 
   const today = todayInHebron()
-  // Still "open" but already past ends_on -> no open trip to show at all,
-  // same rule as the public home section.
-  const openTrip = (openTrips ?? []).find((trip) => trip.ends_on >= today) ?? null
-  const visiblePhotos: TripPhoto[] = (photos ?? []).map((photo) => ({
-    id: photo.id,
-    photo_url: photo.photo_url,
-    caption: photo.caption,
-    display_order: photo.display_order,
-  }))
   const myApplications = applications ?? []
   const hasAlreadyAppliedToOpenTrip = Boolean(
     openTrip && myApplications.some((application) => application.trip_id === openTrip.id && application.status !== 'withdrawn')

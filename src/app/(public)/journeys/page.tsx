@@ -1,0 +1,64 @@
+import type { Metadata } from 'next'
+import { createClient } from '@/lib/supabase/server'
+import { getT } from '@/i18n/get-t'
+import { getLocale } from '@/i18n/get-locale'
+import { getDictionary } from '@/i18n/dictionaries'
+import { pageMetadata } from '@/lib/seo'
+import { getSafeReturnTo } from '@/lib/safe-return-to'
+import JourneysContent from '@/components/trips/journeys-content'
+import { getOpenTrip, getPublishedTripPhotos, isTripAcceptingApplications } from '@/lib/trips'
+
+export async function generateMetadata(): Promise<Metadata> {
+  const locale = await getLocale()
+  const t = getDictionary(locale)
+  return pageMetadata({ ...t.seo.journeys, path: '/journeys', locale })
+}
+
+// Public, no-login page: previous-trip photos in a moving strip, and the
+// currently open trip with its own apply CTA. Never queries trip_
+// applications or anything else that could expose a participant's name -
+// getPublishedTripPhotos/getOpenTrip only ever read is_published photos of
+// non-draft trips and the trips table's own public columns. Rendering
+// itself lives in JourneysContent (pure presentational, data passed in)
+// so it can also be exercised with fabricated data without touching
+// Supabase.
+export default async function JourneysPage() {
+  const supabase = await createClient()
+  const { t, locale, dir } = await getT()
+  const copy = t.journeys
+
+  const [
+    {
+      data: { user },
+    },
+    { trip: openTrip, error: openTripError },
+    { photos, error: photosError },
+  ] = await Promise.all([
+    supabase.auth.getUser(),
+    getOpenTrip(supabase),
+    getPublishedTripPhotos(supabase),
+  ])
+
+  if (openTripError) console.error('Failed to load the open trip for /journeys.')
+  if (photosError) console.error('Failed to load trip photos for /journeys.')
+
+  const accepting = openTrip ? isTripAcceptingApplications(openTrip) : false
+  // openTrip.id is our own database uuid, never user input, so this is
+  // already a safe path by construction - still run through the shared
+  // sanitizer as the single source of truth for "what's a safe returnTo",
+  // same as login/sign-up, rather than trusting that by inspection alone.
+  const applyPath = openTrip ? (getSafeReturnTo(`/trips/${openTrip.id}/apply`) ?? '/trips') : '/trips'
+
+  return (
+    <JourneysContent
+      copy={copy}
+      dir={dir}
+      locale={locale}
+      isAuthenticated={Boolean(user)}
+      openTrip={openTrip}
+      accepting={accepting}
+      applyPath={applyPath}
+      photos={photos}
+    />
+  )
+}

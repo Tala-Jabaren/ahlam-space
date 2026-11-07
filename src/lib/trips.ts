@@ -1,5 +1,6 @@
 import { z } from 'zod'
 import type { SupabaseClient } from '@supabase/supabase-js'
+import type { TripPhoto } from '@/components/trips/trip-photo-strip'
 
 // Shared shapes for public.trips / trip_photos / trip_applications (see
 // supabase/trips.sql), used by both the admin trips area and (in a later
@@ -91,6 +92,63 @@ export function isTripAcceptingApplications(
   if (trip.application_deadline && trip.application_deadline < today) return false
   if (trip.ends_on < today) return false
   return true
+}
+
+// Shared by the public home section, /trips, and /journeys - published
+// photos of non-draft trips, newest trip first (via the parent trip's own
+// starts_on), then display_order within that trip. RLS already enforces
+// is_published = true AND the parent trip being non-draft on its own; the
+// .eq() here is kept for clarity/defense in depth, not because RLS can't
+// be trusted. Never throws - a failed photo fetch just means "show no
+// photos", same as having none published, so every caller treats the
+// error the same way (log it, render nothing) rather than each
+// reimplementing that fallback.
+export async function getPublishedTripPhotos(
+  supabase: SupabaseClient
+): Promise<{ photos: TripPhoto[]; error: boolean }> {
+  const { data, error } = await supabase
+    .from('trip_photos')
+    .select('id, photo_url, caption, display_order, trips!inner(starts_on)')
+    .eq('is_published', true)
+    .order('starts_on', { ascending: false, referencedTable: 'trips' })
+    .order('display_order', { ascending: true })
+    .limit(16)
+    .returns<(TripPhoto & { display_order: number; trips: { starts_on: string } | null })[]>()
+
+  if (error) return { photos: [], error: true }
+
+  return {
+    photos: (data ?? []).map((photo) => ({
+      id: photo.id,
+      photo_url: photo.photo_url,
+      caption: photo.caption,
+    })),
+    error: false,
+  }
+}
+
+// Shared by the public home section, /trips, and /journeys - the nearest
+// trip with status = 'open', skipping past one whose ends_on has already
+// passed in case the owner forgot to flip its status (a trip that's open
+// but only past its application_deadline is still returned here -
+// callers use isTripAcceptingApplications() to tell those two cases apart
+// and decide the badge/CTA). Never throws, same reasoning as the photos
+// helper above.
+export async function getOpenTrip(
+  supabase: SupabaseClient
+): Promise<{ trip: TripRow | null; error: boolean }> {
+  const { data, error } = await supabase
+    .from('trips')
+    .select('id, title, description, location, starts_on, ends_on, application_deadline, capacity, cover_image_url, status, created_at')
+    .eq('status', 'open')
+    .order('starts_on', { ascending: true })
+    .limit(5)
+    .returns<TripRow[]>()
+
+  if (error) return { trip: null, error: true }
+
+  const today = todayInHebron()
+  return { trip: (data ?? []).find((trip) => trip.ends_on >= today) ?? null, error: false }
 }
 
 export const tripStatusLabels: Record<TripStatus, string> = {
