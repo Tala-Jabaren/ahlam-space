@@ -105,7 +105,10 @@ export default function TripPhotoStrip({
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img
                   src={photo.photo_url}
-                  alt={photo.caption ?? photoAlt}
+                  // When the caption is also rendered as visible text below,
+                  // the image itself is decorative - an empty alt avoids a
+                  // screen reader announcing the same caption twice.
+                  alt={showCaptions && photo.caption ? '' : (photo.caption ?? photoAlt)}
                   className="size-full object-cover"
                   loading="lazy"
                 />
