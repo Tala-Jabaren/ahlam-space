@@ -1,5 +1,6 @@
 import Image from 'next/image'
 import Link from 'next/link'
+import WordRevealText from './word-reveal-text'
 
 export type HeroCopy = {
   heroHeadingLine1: string
@@ -36,7 +37,7 @@ export default function HeroSection({ copy, dir }: { copy: HeroCopy; dir: 'rtl' 
           />
           <span aria-hidden="true" className="absolute -left-1 -top-1 size-2.5 rounded-full bg-[#55684A]" />
 
-          <div className="relative aspect-[4/5] overflow-hidden rounded-t-[9999px] rounded-b-3xl">
+          <div className="image-open-frame relative aspect-[4/5] overflow-hidden rounded-t-[9999px] rounded-b-3xl">
             <Image
               src="/images/hero1.jpeg"
               alt={copy.heroImageAlt}
@@ -70,13 +71,16 @@ export default function HeroSection({ copy, dir }: { copy: HeroCopy; dir: 'rtl' 
             MOVE · BALANCE · BLOOM
           </p>
           <h1 className="mt-5 font-serif text-4xl leading-tight text-[#34472B] sm:text-5xl">
-            {copy.heroHeadingLine1}
+            <WordRevealText text={copy.heroHeadingLine1} dimBackground="#F6F5EE" />
             <br />
-            {copy.heroHeadingLine2}
+            <WordRevealText text={copy.heroHeadingLine2} dimBackground="#F6F5EE" accentWord="والتوازن" />
           </h1>
-          <p className="mt-5 max-w-lg text-base leading-8 text-[#34472B]/80 sm:text-lg">
-            {copy.heroParagraph}
-          </p>
+          <WordRevealText
+            as="p"
+            text={copy.heroParagraph}
+            dimBackground="#F6F5EE"
+            className="mt-5 block max-w-lg text-base leading-8 text-[#34472B]/80 sm:text-lg"
+          />
 
           <ul className="mt-6 flex flex-wrap gap-x-5 gap-y-2 text-sm text-[#34472B]/85">
             {copy.heroChips.map((chip) => (

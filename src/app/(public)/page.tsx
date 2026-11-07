@@ -12,6 +12,7 @@ import ReviewsSection from '@/components/home/reviews-section'
 import type { ReviewRow } from '@/lib/reviews'
 import TripsHomeSection from '@/components/home/trips-home-section'
 import WeeklySessionsSection, { type UpcomingSession } from '@/components/home/weekly-sessions-section'
+import CoursesTeaserSection, { type CourseTeaserItem } from '@/components/home/courses-teaser-section'
 import { getOpenTrip, getPublishedTripPhotos } from '@/lib/trips'
 import { siteStats } from '@/content/site-stats'
 
@@ -67,6 +68,7 @@ export default async function HomePage({
     { data: reviewRows, error: reviewsError },
     { trip: openTrip, error: openTripError },
     { photos: visibleTripPhotos, error: tripPhotosError },
+    { data: courseRows, error: coursesError },
   ] = await Promise.all([
     supabase.auth.getUser(),
     supabase
@@ -80,6 +82,13 @@ export default async function HomePage({
     reviewsQuery.returns<ReviewRow[]>(),
     getOpenTrip(supabase),
     getPublishedTripPhotos(supabase),
+    supabase
+      .from('courses')
+      .select('id, title, description, content_type, price, cover_image_url')
+      .eq('is_active', true)
+      .order('created_at', { ascending: false })
+      .limit(3)
+      .returns<CourseTeaserItem[]>(),
   ])
 
   if (sessionsError) {
@@ -94,7 +103,11 @@ export default async function HomePage({
   if (tripPhotosError) {
     console.error('Failed to load trip photos.')
   }
+  if (coursesError) {
+    console.error('Failed to load home page courses teaser:', coursesError.message)
+  }
   const visibleReviews = reviewRows ?? []
+  const teaserCourses = courseRows ?? []
   const upcomingSessions = (sessions ?? []).filter(isUpcoming).slice(0, 3)
   const services = t.home.services.map((service, index) => ({ ...service, href: serviceHrefs[index] }))
 
@@ -113,6 +126,8 @@ export default async function HomePage({
         isAuthenticated={Boolean(user)}
         locale={locale}
       />
+
+      <CoursesTeaserSection copy={t.home.coursesTeaser} courses={teaserCourses} />
 
       <WeeklySessionsSection
         copy={t.home}
