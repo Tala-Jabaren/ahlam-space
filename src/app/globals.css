@@ -46,6 +46,11 @@ body {
 [dir='ltr'] .trip-strip-track-animate {
   animation-name: trip-strip-scroll-ltr;
 }
+/* Only ever set when the strip opted into pausable - see the pausable prop
+   on TripPhotoStrip. */
+.trip-strip-track-animate[data-paused='true'] {
+  animation-play-state: paused;
+}
 @media (prefers-reduced-motion: reduce) {
   .trip-strip-track-animate {
     animation: none;
