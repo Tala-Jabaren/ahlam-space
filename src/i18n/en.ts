@@ -81,12 +81,14 @@ export const en: typeof ar = {
     heroParagraph:
       'At Ahlam Space, we believe movement isn’t just exercise for the body — it’s a deeper journey toward a more balanced, aware life.',
     heroCtaExplore: 'Explore Classes',
+    heroCtaServices: 'Discover Our Services',
     heroCtaBookNow: 'Book Now',
     heroImageAlt: 'Ahlam sitting in meditation on a yoga mat in the studio',
+    heroChips: ['Weekly classes', 'Private sessions', 'Easy online booking'],
     services: [
       {
         title: 'Private Sessions',
-        description: 'Sessions tailored to your needs and goals.',
+        description: 'A private session just for you, tailored to your needs and goals.',
       },
       {
         title: 'Lectures',
@@ -95,7 +97,7 @@ export const en: typeof ar = {
       },
       {
         title: 'Group Classes',
-        description: 'Yoga and movement classes in a warm, supportive space.',
+        description: 'Yoga and movement with a group, in a warm, supportive space.',
       },
       {
         title: 'Thoughtfully Chosen Products',
@@ -103,11 +105,6 @@ export const en: typeof ar = {
           'Products that support your journey toward a more balanced, comfortable life.',
       },
     ],
-    aboutHeading: 'Welcome to Ahlam Space',
-    aboutParagraph:
-      'A space designed to be more than just a place to exercise — an invitation to return to yourself, through movement, awareness, and balance in everyday life.',
-    aboutCta: 'Learn More',
-    aboutImageAlt: 'Ahlam practicing yoga in a calm space',
     weekSectionHeading: 'This Week’s Classes',
     weekSectionSubtitle: 'Pick the time that works for you and start your journey.',
     weekSectionViewAll: 'View All Classes',
@@ -119,17 +116,14 @@ export const en: typeof ar = {
     priceLabel: 'Price',
     remainingLabel: 'Spots remaining',
     remainingSeatsSuffix: 'spots left',
-    finalCtaHeading: 'Take time for yourself.',
-    finalCtaParagraph:
-      'Choose the right class and start your journey toward more mindful, balanced movement.',
-    finalCtaButton: 'Book Your Class',
+    statsEyebrow: 'Some of what we’ve accomplished together',
     reviews: {
       heading: 'Participant Reviews',
       fallbackName: 'Participant',
       readMore: 'Read more',
       readLess: 'Show less',
-      previous: 'Previous',
-      next: 'Next',
+      pauseReviews: 'Pause reviews motion',
+      resumeReviews: 'Resume reviews motion',
       carouselAriaLabel: 'Participant reviews',
     },
     trips: {
@@ -137,6 +131,7 @@ export const en: typeof ar = {
       heading: 'We walk together, and return to ourselves',
       subtitle: 'Small group trips with movement, breath, and space to listen to ourselves. A few glimpses from past trips.',
       photoAlt: 'A photo from a past trip',
+      viewAllLabel: 'View all trips',
       registrationOpenBadge: 'Registration open',
       applicationsClosedBadge: 'Applications closed',
       deadlineLabel: 'Application deadline',
