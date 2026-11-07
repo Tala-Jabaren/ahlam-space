@@ -150,12 +150,9 @@ export const en: typeof ar = {
     },
   },
   journeys: {
-    eyebrow: 'Ahlam’s Trips',
     heading: 'We walk together, and return to ourselves',
     paragraphBase: 'Small group trips. With movement, breath, and space to listen to ourselves.',
     paragraphPhotosSuffix: 'These are glimpses from our past trips.',
-    pauseMotion: 'Pause photo motion',
-    resumeMotion: 'Resume photo motion',
     photoAlt: 'A photo from a past trip',
     registrationOpenBadge: 'Registration open',
     applicationsClosedBadge: 'Applications closed',

@@ -5,12 +5,9 @@ import { formatTripDate } from '@/components/trips/trip-card'
 import type { TripRow } from '@/lib/trips'
 
 export type JourneysCopy = {
-  eyebrow: string
   heading: string
   paragraphBase: string
   paragraphPhotosSuffix: string
-  pauseMotion: string
-  resumeMotion: string
   photoAlt: string
   registrationOpenBadge: string
   applicationsClosedBadge: string
@@ -54,27 +51,19 @@ export default function JourneysContent({
   return (
     <div dir={dir} className="bg-[#F6F5EE] text-[#34472B]">
       <section className="mx-auto max-w-7xl px-5 py-16 sm:px-8 lg:px-10 lg:py-20">
-        <p className="text-xs font-semibold uppercase tracking-[0.24em] text-[#55684A]">{copy.eyebrow}</p>
-        <h1 className="mt-3 font-serif text-4xl leading-tight text-[#34472B] sm:text-5xl">{copy.heading}</h1>
-        <p className="mt-4 max-w-2xl text-base leading-8 text-[#34472B]/80">
+        <h1 className="font-serif text-4xl leading-tight text-[#34472B] sm:text-5xl">{copy.heading}</h1>
+        <p className="mt-3 max-w-2xl text-base leading-8 text-[#34472B]/80">
           {copy.paragraphBase}
           {photos.length > 0 ? ` ${copy.paragraphPhotosSuffix}` : ''}
         </p>
 
         {photos.length > 0 && (
-          <div className="mt-10">
-            <TripPhotoStrip
-              photos={photos}
-              photoAlt={copy.photoAlt}
-              pausable
-              pauseLabel={copy.pauseMotion}
-              resumeLabel={copy.resumeMotion}
-              showCaptions
-            />
+          <div className="mt-6">
+            <TripPhotoStrip photos={photos} photoAlt={copy.photoAlt} showCaptions />
           </div>
         )}
 
-        <div className="mt-12">
+        <div className="mt-8">
           {!openTrip ? (
             <p className="rounded-2xl bg-[#E4ECD6] p-6 text-center text-sm leading-7 text-[#34472B]">
               {copy.noOpenTrip}
