@@ -131,8 +131,6 @@ export const en: typeof ar = {
       eyebrow: 'Ahlam’s Trips',
       heading: 'We walk together, and return to ourselves',
       subtitle: 'Small group trips with movement, breath, and space to listen to ourselves. A few glimpses from past trips.',
-      pauseMotion: 'Pause photo motion',
-      resumeMotion: 'Resume photo motion',
       photoAlt: 'A photo from a past trip',
       registrationOpenBadge: 'Registration open',
       applicationsClosedBadge: 'Applications closed',
