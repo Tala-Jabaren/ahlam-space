@@ -2,6 +2,7 @@ import Link from 'next/link'
 import TripPhotoStrip, { type TripPhoto } from '@/components/trips/trip-photo-strip'
 import TripCard from '@/components/trips/trip-card'
 import { isTripAcceptingApplications, type TripRow } from '@/lib/trips'
+import WordRevealText from './word-reveal-text'
 
 type TripsLabels = {
   eyebrow: string
@@ -54,7 +55,12 @@ export default function TripsHomeSection({
         <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
           <div>
             <p className="text-xs font-semibold uppercase tracking-[0.24em] text-[#55684A]">{labels.eyebrow}</p>
-            <h2 className="mt-3 font-serif text-4xl leading-tight text-[#34472B] sm:text-5xl">{labels.heading}</h2>
+            <WordRevealText
+              as="h2"
+              text={labels.heading}
+              dimBackground="#F6F5EE"
+              className="mt-3 block font-serif text-4xl leading-tight text-[#34472B] sm:text-5xl"
+            />
             <p className="mt-4 max-w-2xl text-base leading-8 text-[#34472B]/75">{labels.subtitle}</p>
           </div>
           <Link href="/journeys" className="text-sm font-semibold text-[#55684A] underline-offset-4 hover:underline">
