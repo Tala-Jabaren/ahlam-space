@@ -78,15 +78,15 @@ export default function StatsSection({ stats }: { stats: SiteStat[] }) {
           : 'grid-cols-1'
 
   return (
-    <section ref={sectionRef} className="scroll-reveal px-5 py-14 sm:px-8 lg:px-10">
+    <section ref={sectionRef} className="scroll-reveal bg-[var(--blue-mist)] px-5 py-14 sm:px-8 lg:px-10">
       <div className={`mx-auto grid max-w-5xl ${colsClass}`}>
         {confirmed.map((stat, index) => (
-          <div key={stat.label} className={`px-4 text-center ${index > 0 ? 'border-s border-[#55684A]/15' : ''}`}>
+          <div key={stat.label} className={`px-4 text-center ${index > 0 ? 'border-s border-[var(--blue-soft)]' : ''}`}>
             <p className="stat-value font-serif text-4xl sm:text-5xl" data-counting={counting || undefined}>
               {reducedMotion ? stat.value : values[index]}+
             </p>
             <p
-              className="mt-2 text-sm text-[#34472B]/75 transition-opacity duration-500 ease-out"
+              className="mt-2 text-sm text-[var(--blue-deep)] transition-opacity duration-500 ease-out"
               style={{ opacity: started || reducedMotion ? 1 : 0, transitionDelay: started ? '1.3s' : '0s' }}
             >
               {stat.label}
