@@ -78,7 +78,6 @@ export const ar = {
     heroHeadingLine2: 'الوعي والتوازن.',
     heroParagraph:
       'في Ahlam Space نؤمن بأن الحركة ليست فقط تمرينًا للجسم، بل رحلة أعمق نحو حياة أكثر توازنًا ووعيًا.',
-    heroCtaServices: 'تعرّفي على خدماتنا',
     heroCtaBookNow: 'احجزي حصتك',
     heroJoinCta: 'انضمّي كعضوة',
     heroMySessions: 'حصصي',
