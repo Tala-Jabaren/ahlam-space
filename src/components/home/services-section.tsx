@@ -56,7 +56,7 @@ function ServiceIcon({ children }: { children: ReactNode }) {
 export default function ServicesSection({ services }: { services: ServiceItem[] }) {
   return (
     <section id="services" className="scroll-mt-24 px-5 py-10 sm:px-8 lg:px-10">
-      <div className="scroll-reveal mx-auto max-w-7xl rounded-[2.5rem] bg-gradient-to-br from-[#55684A] to-[#34472B] p-5 shadow-[0_16px_40px_rgba(52,71,43,0.18)] sm:p-8 lg:p-10">
+      <div className="scroll-reveal mx-auto max-w-7xl rounded-[2.5rem] bg-gradient-to-br from-[#55684A] to-[var(--blue-soft)] p-5 shadow-[0_16px_40px_rgba(52,71,43,0.18)] sm:p-8 lg:p-10">
         <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
           {services.map((service, index) => (
             <Link

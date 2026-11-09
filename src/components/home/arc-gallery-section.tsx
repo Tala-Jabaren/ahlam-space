@@ -55,14 +55,17 @@ export default function ArcGallerySection({ copy, photos }: { copy: ArcGalleryCo
   const fan = showArc ? computeFan(photos.length) : []
 
   return (
-    <section className="scroll-reveal overflow-hidden bg-[#F6F5EE] px-5 pb-20 pt-8 sm:px-8 sm:pt-12 lg:px-10">
+    <section
+      className="scroll-reveal overflow-hidden px-5 pb-20 pt-8 sm:px-8 sm:pt-12 lg:px-10"
+      style={{ background: 'linear-gradient(to bottom, var(--blue-mist), #F6F5EE)' }}
+    >
       <div className="relative mx-auto max-w-5xl">
         {showArc && (
           <div className="relative mx-auto h-[300px] max-w-3xl sm:h-[400px]" aria-hidden="false">
             <svg
               aria-hidden="true"
               viewBox="0 0 400 200"
-              className="pointer-events-none absolute inset-x-0 top-0 mx-auto h-full w-full text-[#55684A]/30"
+              className="pointer-events-none absolute inset-x-0 top-0 mx-auto h-full w-full text-[var(--blue-soft)]/60"
             >
               {Array.from({ length: 37 }, (_, i) => {
                 const angle = (-90 + i * 5) * (Math.PI / 180)
@@ -115,7 +118,7 @@ export default function ArcGallerySection({ copy, photos }: { copy: ArcGalleryCo
         )}
 
         <div className={`mx-auto max-w-xl text-center ${showArc ? 'mt-6' : ''}`}>
-          <span className="inline-flex rounded-full bg-[#E4ECD6] px-4 py-1.5 text-xs font-semibold uppercase tracking-[0.2em] text-[#34472B]" dir="ltr">
+          <span className="inline-flex rounded-full bg-[var(--blue-soft)] px-4 py-1.5 text-xs font-semibold uppercase tracking-[0.2em] text-[var(--blue-deep)]" dir="ltr">
             {copy.eyebrow}
           </span>
           <WordRevealText

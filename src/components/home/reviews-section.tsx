@@ -20,7 +20,7 @@ const focusRing = 'focus-visible:outline-2 focus-visible:outline-offset-2 focus-
 
 function QuoteMark() {
   return (
-    <svg aria-hidden="true" viewBox="0 0 32 32" className="absolute -top-2 start-4 size-10 text-[#55684A]/10 sm:size-12" fill="currentColor">
+    <svg aria-hidden="true" viewBox="0 0 32 32" className="absolute -top-2 start-4 size-10 text-[var(--blue-soft)]/40 sm:size-12" fill="currentColor">
       <path d="M9.6 8C5.4 10.9 3 14.6 3 19.1c0 4.1 2.6 6.9 6 6.9 3 0 5.2-2.3 5.2-5.3 0-2.8-1.9-4.9-4.4-5.2-.3 0-.5-.2-.4-.5.6-2.5 2.6-5 5.4-6.6.3-.2.2-.7-.1-.8L9.9 7.9c-.1-.1-.2-.1-.3.1Zm16 0c-4.2 2.9-6.6 6.6-6.6 11.1 0 4.1 2.6 6.9 6 6.9 3 0 5.2-2.3 5.2-5.3 0-2.8-1.9-4.9-4.4-5.2-.3 0-.5-.2-.4-.5.6-2.5 2.6-5 5.4-6.6.3-.2.2-.7-.1-.8L25.9 7.9c-.1-.1-.2-.1-.3.1Z" />
     </svg>
   )
@@ -68,7 +68,7 @@ function ReviewCard({
             className="size-12 shrink-0 rounded-full border-4 border-[#F6F5EE] object-cover shadow-sm"
           />
         ) : (
-          <span className="grid size-12 shrink-0 place-items-center rounded-full border-4 border-[#F6F5EE] bg-[#55684A] text-base font-semibold text-white shadow-sm">
+          <span className="grid size-12 shrink-0 place-items-center rounded-full border-4 border-[#F6F5EE] bg-[var(--blue-soft)] text-base font-semibold text-[var(--blue-deep)] shadow-sm">
             {initial}
           </span>
         )}
