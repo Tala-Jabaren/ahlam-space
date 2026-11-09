@@ -3,7 +3,6 @@
 import { useState, useSyncExternalStore } from 'react'
 import { useT } from '@/i18n/i18n-context'
 import type { ReviewRow } from '@/lib/reviews'
-import WordRevealText from './word-reveal-text'
 
 // Every card shows only the first ~5 "sentences" by default. These reviews
 // don't punctuate consistently - some use periods/!/؟, some rely on \n line
@@ -43,7 +42,6 @@ function ReviewCard({
 }) {
   const dir = review.lang === 'en' ? 'ltr' : 'rtl'
   const name = review.name ?? labels.fallbackName
-  const initial = name.charAt(0)
 
   const chunks = splitIntoSentenceChunks(review.body)
   const hasMore = chunks.length > EXCERPT_SENTENCE_COUNT
@@ -52,30 +50,12 @@ function ReviewCard({
 
   return (
     <figure
-      className={`relative mt-6 flex h-full flex-col rounded-2xl border border-[#55684A]/15 bg-white p-6 shadow-[0_1px_2px_rgba(52,71,43,0.05)] sm:p-7 ${
+      className={`relative flex h-full flex-col rounded-2xl border border-[#55684A]/15 bg-white p-6 shadow-[0_1px_2px_rgba(52,71,43,0.05)] sm:p-7 ${
         expanded ? '' : 'max-h-[420px] overflow-hidden'
       }`}
     >
-      {/* The avatar overlaps the card's own top edge - the li wrapper's
-          mt-6 is what keeps it from being clipped by the strip's overflow
-          container. */}
-      <div className="absolute -top-6 start-6">
-        {review.photo_url ? (
-          // eslint-disable-next-line @next/next/no-img-element
-          <img
-            src={review.photo_url}
-            alt=""
-            className="size-12 shrink-0 rounded-full border-4 border-[#F6F5EE] object-cover shadow-sm"
-          />
-        ) : (
-          <span className="grid size-12 shrink-0 place-items-center rounded-full border-4 border-[#F6F5EE] bg-[#55684A] text-base font-semibold text-white shadow-sm">
-            {initial}
-          </span>
-        )}
-      </div>
-
       <QuoteMark />
-      <blockquote dir={dir} className={`relative mt-4 text-[15px] leading-[1.9] text-[#34472B] sm:text-base ${expanded ? '' : 'line-clamp-5'}`}>
+      <blockquote dir={dir} className={`relative text-[15px] leading-[1.9] text-[#34472B] sm:text-base ${expanded ? '' : 'line-clamp-5'}`}>
         {displayedText.split('\n').map((paragraph, index) => (
           <p key={index} className={index > 0 ? 'mt-3' : ''}>
             {paragraph}
@@ -96,7 +76,15 @@ function ReviewCard({
           </button>
         )}
 
-        <figcaption className="mt-5 text-sm font-semibold text-[#34472B]">{name}</figcaption>
+        <figcaption className="mt-5 flex min-h-11 items-center gap-2">
+          {review.photo_url && (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img src={review.photo_url} alt="" className="size-11 shrink-0 rounded-full border border-[#55684A]/20 object-cover" />
+          )}
+          <span className="inline-flex rounded-full bg-[#E4ECD6]/70 px-4 py-1.5 text-xs font-semibold text-[#34472B]">
+            {name}
+          </span>
+        </figcaption>
       </div>
     </figure>
   )
@@ -142,12 +130,7 @@ export default function ReviewsSection({ reviews }: { reviews: ReviewRow[] }) {
   return (
     <section className="scroll-reveal border-t border-[#55684A]/10 bg-[#F6F5EE] px-5 py-16 sm:px-8 lg:px-10 lg:py-20">
       <div className="mx-auto max-w-7xl">
-        <WordRevealText
-          as="h2"
-          text={labels.heading}
-          dimBackground="#F6F5EE"
-          className="block text-center font-serif text-4xl text-[#34472B] sm:text-5xl"
-        />
+        <h2 className="text-center font-serif text-4xl text-[#34472B] sm:text-5xl">{labels.heading}</h2>
 
         {!reducedMotion && (
           <div className="mt-5 flex justify-center">
