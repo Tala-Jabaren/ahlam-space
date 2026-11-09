@@ -5,6 +5,7 @@ import { I18nProvider } from '@/i18n/i18n-context'
 import { LanguageSwitcher } from '@/i18n/language-switcher'
 import CartBottomBar from './cart-bottom-bar'
 import SiteHeader from './site-header'
+import MainContent from './main-content'
 
 export default async function PublicLayout({
   children,
@@ -22,7 +23,7 @@ export default async function PublicLayout({
       <div className="min-h-screen bg-[#F7F6F0] text-[#25311f]">
         <div aria-hidden="true" className="scroll-progress-bar fixed inset-x-0 top-0 z-40 h-[2px]" />
         <SiteHeader user={Boolean(user)} t={t} locale={locale} />
-        <main className="pt-24 sm:pt-28">{children}</main>
+        <MainContent>{children}</MainContent>
         <CartBottomBar />
         <footer className="relative overflow-hidden border-t border-[#617A55]/15 bg-[#34472B] px-5 py-10 text-[#E4ECD6] sm:px-8 lg:px-10">
           <div className="mx-auto flex max-w-7xl flex-col gap-3 text-sm sm:flex-row sm:items-center sm:justify-between">

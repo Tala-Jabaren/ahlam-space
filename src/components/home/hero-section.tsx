@@ -29,9 +29,12 @@ function CheckIcon() {
 
 // Full-bleed photo hero with the header floating transparently on top of
 // it (see SiteHeader, which switches to the floating pill after ~40px of
-// scroll) - this section itself pulls up under that header via a negative
-// margin matching <main>'s own top padding, so the photo truly starts at
-// the very top of the viewport rather than below a gap.
+// scroll). <main> itself gives this page no top padding (see
+// MainContent), so the section starts at the very top of the viewport
+// without needing any margin trick. bg-[#34472B] on the section is a
+// safety net, not decoration: if the photo fails to load, that solid
+// colour is what's actually behind it, so the white header/text stay
+// readable either way.
 export default function HeroSection({
   copy,
   nav,
@@ -44,7 +47,7 @@ export default function HeroSection({
   isAuthenticated: boolean
 }) {
   return (
-    <section className="relative -mt-24 flex min-h-[92vh] items-end overflow-hidden sm:-mt-28 sm:min-h-[92vh]">
+    <section className="relative flex min-h-[100svh] items-end overflow-hidden bg-[#34472B]">
       <Image
         src="/images/newhero.png"
         alt={copy.heroImageAlt}
@@ -52,6 +55,16 @@ export default function HeroSection({
         priority
         sizes="100vw"
         className="hero-kenburns object-cover"
+        style={{ objectPosition: '42% 12%' }}
+      />
+      {/* Top scrim: keeps the header's white logo/nav legible over
+          whatever the photo happens to show right at the top edge,
+          regardless of the side scrim below (which is for the headline,
+          not the header). */}
+      <div
+        aria-hidden="true"
+        className="absolute inset-x-0 top-0 h-[220px]"
+        style={{ background: 'linear-gradient(to bottom, rgba(52,71,43,0.75) 0%, rgba(52,71,43,0) 100%)' }}
       />
       {/* Scrim: dark on the text side (end, i.e. right in RTL), fading to
           transparent toward the subject - mirrored for LTR so the text
