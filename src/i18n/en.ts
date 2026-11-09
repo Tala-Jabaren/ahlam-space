@@ -80,7 +80,6 @@ export const en: typeof ar = {
     heroHeadingLine2: 'awareness, and balance.',
     heroParagraph:
       'At Ahlam Space, we believe movement isn’t just exercise for the body — it’s a deeper journey toward a more balanced, aware life.',
-    heroCtaServices: 'Discover Our Services',
     heroCtaBookNow: 'Book Your Session',
     heroJoinCta: 'Join as a Member',
     heroMySessions: 'My Classes',

@@ -127,16 +127,7 @@ export default async function HomePage({
     <div className="overflow-hidden bg-[#F6F5EE] text-[#34472B]" dir={dir}>
       <HeroSection copy={t.home} nav={t.nav} dir={dir} isAuthenticated={Boolean(user)} />
 
-      <ArcGallerySection
-        copy={{
-          eyebrow: 'MOVE · BALANCE · BLOOM',
-          heading: `${t.home.heroHeadingLine1} ${t.home.heroHeadingLine2}`,
-          accentWord: 'والتوازن',
-          paragraph: t.home.heroParagraph,
-          button: t.home.heroCtaServices,
-        }}
-        photos={galleryPhotos}
-      />
+      <ArcGallerySection photos={galleryPhotos} />
 
       <StatsSection stats={siteStats} />
       <ServicesSection services={services} />
