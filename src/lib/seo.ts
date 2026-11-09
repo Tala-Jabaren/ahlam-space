@@ -5,7 +5,7 @@ import type { Locale } from '@/i18n/config'
 // to the real production domain before launch (see docs/LAUNCH-CHECKLIST.md).
 export const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000'
 
-export const DEFAULT_OG_IMAGE = '/images/hero.png'
+export const DEFAULT_OG_IMAGE = '/images/newhero.png'
 
 export function pageMetadata({
   title,
