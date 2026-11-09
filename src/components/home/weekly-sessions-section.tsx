@@ -1,7 +1,6 @@
 import Link from 'next/link'
 import type { Locale } from '@/i18n/config'
 import BookSessionButton from '@/app/(public)/schedule/book-session-button'
-import WordRevealText from './word-reveal-text'
 
 export type UpcomingSession = {
   id: string
@@ -79,12 +78,7 @@ export default function WeeklySessionsSection({
       <div className="mx-auto max-w-7xl">
         <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
           <div>
-            <WordRevealText
-              as="h2"
-              text={copy.weekSectionHeading}
-              dimBackground="#F6F5EE"
-              className="block font-serif text-4xl text-[#34472B] sm:text-5xl"
-            />
+            <h2 className="font-serif text-4xl text-[#34472B] sm:text-5xl">{copy.weekSectionHeading}</h2>
             <p className="mt-3 text-base leading-8 text-[#34472B]/75">{copy.weekSectionSubtitle}</p>
           </div>
           <Link

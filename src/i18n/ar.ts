@@ -139,11 +139,6 @@ export const ar = {
       membersOnlyNote: 'التسجيل في المشاوير متاح للأعضاء فقط.',
       applyButton: 'قدّمي طلب المشاركة',
     },
-    coursesTeaser: {
-      heading: 'اكتشفي أحدث الكورسات',
-      subheading: 'تأمّلات وتمارين ومحتوى صُمّم ليرافقك بالوقت الذي يناسبك.',
-      detailsLabel: 'التفاصيل',
-    },
   },
   journeys: {
     heading: 'نمشي معًا، ونرجع لأنفسنا',

@@ -35,9 +35,21 @@ const serviceIcons: ReactNode[] = [
   ),
 ]
 
-function ServiceIcon({ children }: { children: ReactNode }) {
+// Card 01 (private sessions) through 04 (shop) each get their own fixed
+// palette slot, same order and count as the design - not generated from
+// index parity, since the four colors/numbers are a specific, intentional
+// sequence, not an alternating pattern that would still make sense with a
+// different number of cards.
+const cardVariants = [
+  { bg: 'bg-[#E4ECD6]', text: 'text-[#34472B]', iconBg: 'bg-white/70', number: '01' },
+  { bg: 'bg-white', text: 'text-[#34472B]', iconBg: 'bg-[#EFE6D2]', number: '02' },
+  { bg: 'bg-[#55684A]', text: 'text-white', iconBg: 'bg-white/15', number: '03' },
+  { bg: 'bg-[#EFE6D2]', text: 'text-[#34472B]', iconBg: 'bg-white/70', number: '04' },
+]
+
+function ServiceIcon({ children, className }: { children: ReactNode; className: string }) {
   return (
-    <span className="grid size-11 place-items-center rounded-full bg-[#E4ECD6] text-[#55684A]">
+    <span className={`grid size-11 place-items-center rounded-full ${className}`}>
       <svg aria-hidden="true" viewBox="0 0 24 24" className="size-5" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
         {children}
       </svg>
@@ -46,33 +58,31 @@ function ServiceIcon({ children }: { children: ReactNode }) {
 }
 
 // Pulled up to overlap the hero's bottom edge (negative margin matches the
-// hero's own bottom padding) - the first thing visible as the hero's
-// padding ends. Cards sit on one big rounded sage panel and start as
-// translucent glass, turning solid white with a per-card stagger as the
-// panel crosses into view (.panel-card in globals.css) - static solid
-// white outside @supports/reduced-motion, so the cards are always
-// readable against the panel regardless.
+// hero's own bottom padding) - a scroll-reveal section, not a "below the
+// fold" one, so it's the first thing visible as the hero's padding ends.
 export default function ServicesSection({ services }: { services: ServiceItem[] }) {
   return (
     <section id="services" className="relative z-10 -mt-20 scroll-mt-24 px-5 sm:px-8 lg:-mt-24 lg:px-10">
-      <div className="scroll-reveal mx-auto max-w-7xl rounded-[2.5rem] bg-gradient-to-br from-[#55684A] to-[#34472B] p-5 shadow-[0_16px_40px_rgba(52,71,43,0.18)] sm:p-8 lg:p-10">
-        <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
-          {services.map((service, index) => (
+      <div className="scroll-reveal mx-auto grid max-w-7xl gap-5 sm:grid-cols-2 lg:grid-cols-4">
+        {services.map((service, index) => {
+          const variant = cardVariants[index]
+          return (
             <Link
               key={service.title}
               href={service.href}
-              className="panel-card group rounded-2xl p-6 text-[#34472B] backdrop-blur transition hover:-translate-y-1"
-              style={{ '--stagger': `${index * 90}ms` } as React.CSSProperties}
+              className={`group rounded-2xl p-6 shadow-[0_8px_24px_rgba(52,71,43,0.08)] transition hover:-translate-y-1 ${variant.bg} ${variant.text}`}
             >
               <div className="flex items-start justify-between">
-                <span className="text-xs font-semibold text-[#34472B]/50">{String(index + 1).padStart(2, '0')}</span>
-                <ServiceIcon>{serviceIcons[index]}</ServiceIcon>
+                <span className="text-xs font-semibold opacity-60">{variant.number}</span>
+                <ServiceIcon className={variant.iconBg}>{serviceIcons[index]}</ServiceIcon>
               </div>
               <h2 className="mt-5 font-serif text-xl">{service.title}</h2>
-              <p className="mt-2 text-sm leading-6 text-[#34472B]/75">{service.description}</p>
+              <p className={`mt-2 text-sm leading-6 ${variant.text === 'text-white' ? 'text-white/85' : 'opacity-75'}`}>
+                {service.description}
+              </p>
             </Link>
-          ))}
-        </div>
+          )
+        })}
       </div>
     </section>
   )

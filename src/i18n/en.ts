@@ -143,11 +143,6 @@ export const en: typeof ar = {
       membersOnlyNote: 'Registering for trips is available to members only.',
       applyButton: 'Submit your application',
     },
-    coursesTeaser: {
-      heading: 'Discover our latest courses',
-      subheading: 'Meditations, practices, and content designed to accompany you whenever suits you.',
-      detailsLabel: 'Details',
-    },
   },
   journeys: {
     heading: 'We walk together, and return to ourselves',
