@@ -86,22 +86,6 @@ body {
   }
 }
 
-/* Decorative MOVE / BALANCE / BLOOM marquee band - purely aria-hidden
-   decoration, always moving, no pause control (nothing to pause for, no
-   interactive content inside), stopped outright under reduced motion. */
-@keyframes marquee-band-scroll {
-  from { transform: translateX(0); }
-  to { transform: translateX(-50%); }
-}
-.marquee-band-animate {
-  animation: marquee-band-scroll 28s linear infinite;
-}
-@media (prefers-reduced-motion: reduce) {
-  .marquee-band-animate {
-    animation: none;
-  }
-}
-
 /* Scroll-reveal, CSS-only: progresses each section's own opacity/transform
    as it crosses into the viewport. Behind @supports so browsers without
    animation-timeline just render sections fully visible with no
@@ -185,33 +169,86 @@ body {
   }
 }
 
-/* Image-that-opens (hero photo): starts as a narrow tall card and opens to
-   the full container width as it crosses the viewport, via clip-path
-   (never width/height, so there's no layout shift). The corner-radius
-   profile (round ...) matches the hero image's own arch shape
-   (rounded-t-full/rounded-b-3xl) and stays constant throughout - only the
-   horizontal insets move - so the arch never gets flattened into a plain
-   rounded rect mid-animation. Fully open by default/reduced-motion. */
-.image-open-frame {
-  clip-path: inset(0 0% 0 0% round 9999px 9999px 24px 24px);
+/* Hero Ken Burns: a slow, continuous zoom on the photo only (never the
+   text/scrim above it), tied to the hero's own exit from the viewport via
+   a scroll timeline - scale only, never width/height, so nothing shifts
+   layout. Static (scale 1) outside @supports/reduced-motion. */
+.hero-kenburns {
+  transform: scale(1);
 }
 @supports (animation-timeline: view()) {
   @media (prefers-reduced-motion: no-preference) {
-    .image-open-frame {
-      clip-path: inset(0 30% 0 30% round 9999px 9999px 24px 24px);
-      animation: image-open-in linear both;
+    .hero-kenburns {
+      animation: hero-kenburns-zoom linear both;
       animation-timeline: view();
-      animation-range: entry 0% entry 90%;
+      animation-range: cover 0% cover 100%;
     }
   }
 }
-@keyframes image-open-in {
-  from {
-    clip-path: inset(0 30% 0 30% round 9999px 9999px 24px 24px);
+@keyframes hero-kenburns-zoom {
+  from { transform: scale(1); }
+  to { transform: scale(1.06); }
+}
+
+/* On-load word fade-up (hero headline only): unlike WordRevealText's
+   scroll-linked reveal, the hero headline is visible the instant the page
+   loads - there's nothing to scroll past first - so this is a plain,
+   time-based, play-once animation staggered per word via animation-delay
+   (set inline, i * 60ms), not a scroll timeline. Static/fully visible
+   under reduced motion. */
+.word-reveal-load .word {
+  display: inline-block;
+}
+@media (prefers-reduced-motion: no-preference) {
+  .word-reveal-load .word {
+    opacity: 0;
+    translate: 0 12px;
+    animation: word-fade-up-in 0.6s cubic-bezier(.22,.61,.36,1) both;
   }
+}
+@keyframes word-fade-up-in {
   to {
-    clip-path: inset(0 0% 0 0% round 9999px 9999px 24px 24px);
+    opacity: 1;
+    translate: 0 0;
   }
+}
+
+/* Frosted-glass hero chips, sitting directly on the hero photo. */
+.hero-chip-glass {
+  background: rgb(255 255 255 / 0.15);
+  border: 1px solid rgb(255 255 255 / 0.25);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+}
+
+/* Arc gallery rotation: the whole fan of photos sweeps a few degrees as
+   the section crosses the viewport, via an animated, inherited custom
+   property (registered with @property so keyframes can interpolate it,
+   not just jump between values) rather than JS. Each photo then applies
+   the inverse of that same live value on top of its own fixed tilt, so
+   its OWN orientation stays visually put while its position still sweeps
+   with the rest of the fan. Stays at the registered initial value (0deg)
+   - i.e. fully static - outside @supports or under reduced motion. */
+@property --arc-rotate {
+  syntax: '<angle>';
+  inherits: true;
+  initial-value: 0deg;
+}
+.arc-rotate-wrapper {
+  transform: rotate(var(--arc-rotate));
+}
+@supports (animation-timeline: view()) {
+  @media (prefers-reduced-motion: no-preference) {
+    .arc-rotate-wrapper {
+      animation: arc-rotate-sweep linear both;
+      animation-timeline: view();
+      animation-range: entry 0% exit 100%;
+    }
+  }
+}
+@keyframes arc-rotate-sweep {
+  from { --arc-rotate: -10deg; }
+  to { --arc-rotate: 10deg; }
 }
 
 /* Panel cards (ServicesSection): translucent glass at rest, turn solid as
@@ -267,7 +304,8 @@ body {
    transition to an instant swap; the header is never hidden while
    anything inside it has focus (see SiteHeader). */
 .site-header {
-  transition: translate 0.35s cubic-bezier(.22,.61,.36,1), box-shadow 0.25s ease-out;
+  transition: translate 0.35s cubic-bezier(.22,.61,.36,1), box-shadow 0.25s ease-out,
+    background-color 0.3s ease-out, border-color 0.3s ease-out, color 0.3s ease-out;
 }
 .site-header[data-hidden='true'] {
   translate: 0 calc(-100% - 24px);

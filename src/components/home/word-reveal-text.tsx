@@ -1,15 +1,24 @@
 import { Fragment, type ElementType } from 'react'
 
-type WordStyle = React.CSSProperties & { animationRange?: string; '--word-full'?: string }
+type WordStyle = React.CSSProperties & {
+  animationRange?: string
+  animationDelay?: string
+  '--word-full'?: string
+}
 
 const PUNCTUATION = /[،.؟!]/g
 
 // Splits on spaces only - never on letters, since Arabic letters connect
-// within a word and splitting there would break shaping. Each word gets
-// its own slice of the parent's scroll-through range (i/n as a
-// percentage, computed here rather than with CSS calc() so it doesn't
-// depend on calc()-in-animation-range support) - see .word-reveal in
-// globals.css for the actual animation.
+// within a word and splitting there would break shaping.
+//
+// reveal="scroll" (default): each word gets its own slice of the parent's
+// scroll-through range (i/n as a percentage, computed here rather than
+// with CSS calc() so it doesn't depend on calc()-in-animation-range
+// support) - see .word-reveal in globals.css.
+// reveal="load": a plain, time-based, play-once fade-up staggered by
+// i * 60ms (see .word-reveal-load) - for text that's visible the instant
+// the page loads (the hero headline), where there's nothing to scroll
+// past first, so a scroll-linked reveal wouldn't have anything to key off.
 //
 // accentWord (optional) marks one word, compared with trailing
 // punctuation stripped, to end on the sage accent colour instead of the
@@ -22,6 +31,7 @@ export default function WordRevealText({
   fullColor,
   dimBackground,
   accentWord,
+  reveal = 'scroll',
 }: {
   text: string
   as?: ElementType
@@ -29,6 +39,7 @@ export default function WordRevealText({
   fullColor?: string
   dimBackground?: string
   accentWord?: string
+  reveal?: 'scroll' | 'load'
 }) {
   const Tag = as
   const words = text.split(' ').filter(Boolean)
@@ -38,7 +49,7 @@ export default function WordRevealText({
   return (
     <Tag
       aria-label={text}
-      className={`word-reveal ${className}`}
+      className={`${reveal === 'load' ? 'word-reveal-load' : 'word-reveal'} ${className}`}
       style={
         {
           ...(fullColor ? { '--word-full': fullColor } : {}),
@@ -58,18 +69,21 @@ export default function WordRevealText({
               <span
                 className={`word relative inline-block ${isAccent ? 'text-[#55684A]' : ''}`}
                 style={
-                  {
-                    // Scoped to the "entry" phase specifically (the subject
-                    // crossing INTO view), not the bare/"cover" range - a
-                    // bare percentage is shorthand for cover 0%..100%, which
-                    // spans the subject's entire scroll lifetime including
-                    // the long "just sitting in view" middle, so nearly all
-                    // of a short heading's reveal would finish within the
-                    // first few percent of that range (right as it enters)
-                    // instead of across a meaningful scroll distance.
-                    animationRange: `entry ${Math.round((i / n) * 100)}% entry ${Math.round(((i + 1) / n) * 100)}%`,
-                    ...(isAccent ? { '--word-full': '#55684A' } : {}),
-                  } as WordStyle
+                  reveal === 'load'
+                    ? ({ animationDelay: `${i * 60}ms` } as WordStyle)
+                    : ({
+                        // Scoped to the "entry" phase specifically (the
+                        // subject crossing INTO view), not the bare/"cover"
+                        // range - a bare percentage is shorthand for
+                        // cover 0%..100%, which spans the subject's entire
+                        // scroll lifetime including the long "just sitting
+                        // in view" middle, so nearly all of a short
+                        // heading's reveal would finish within the first
+                        // few percent of that range (right as it enters)
+                        // instead of across a meaningful scroll distance.
+                        animationRange: `entry ${Math.round((i / n) * 100)}% entry ${Math.round(((i + 1) / n) * 100)}%`,
+                        ...(isAccent ? { '--word-full': '#55684A' } : {}),
+                      } as WordStyle)
                 }
               >
                 {word}

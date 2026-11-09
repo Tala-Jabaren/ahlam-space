@@ -45,16 +45,17 @@ function ServiceIcon({ children }: { children: ReactNode }) {
   )
 }
 
-// Pulled up to overlap the hero's bottom edge (negative margin matches the
-// hero's own bottom padding) - the first thing visible as the hero's
-// padding ends. Cards sit on one big rounded sage panel and start as
-// translucent glass, turning solid white with a per-card stagger as the
-// panel crosses into view (.panel-card in globals.css) - static solid
-// white outside @supports/reduced-motion, so the cards are always
-// readable against the panel regardless.
+// No longer overlaps the hero (the hero is now a full-bleed photo with
+// its own text on top, not a two-column layout this could tuck under) -
+// it simply opens the services panel as its own section. Cards sit on one
+// big rounded sage panel and start as translucent glass, turning solid
+// white with a per-card stagger as the panel crosses into view
+// (.panel-card in globals.css) - static solid white outside
+// @supports/reduced-motion, so the cards are always readable against the
+// panel regardless.
 export default function ServicesSection({ services }: { services: ServiceItem[] }) {
   return (
-    <section id="services" className="relative z-10 -mt-20 scroll-mt-24 px-5 sm:px-8 lg:-mt-24 lg:px-10">
+    <section id="services" className="scroll-mt-24 px-5 py-10 sm:px-8 lg:px-10">
       <div className="scroll-reveal mx-auto max-w-7xl rounded-[2.5rem] bg-gradient-to-br from-[#55684A] to-[#34472B] p-5 shadow-[0_16px_40px_rgba(52,71,43,0.18)] sm:p-8 lg:p-10">
         <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
           {services.map((service, index) => (

@@ -80,9 +80,10 @@ export const en: typeof ar = {
     heroHeadingLine2: 'awareness, and balance.',
     heroParagraph:
       'At Ahlam Space, we believe movement isn’t just exercise for the body — it’s a deeper journey toward a more balanced, aware life.',
-    heroCtaExplore: 'Explore Classes',
     heroCtaServices: 'Discover Our Services',
-    heroCtaBookNow: 'Book Now',
+    heroCtaBookNow: 'Book Your Session',
+    heroJoinCta: 'Join as a Member',
+    heroMySessions: 'My Classes',
     heroImageAlt: 'Ahlam sitting in meditation on a yoga mat in the studio',
     heroChips: ['Weekly classes', 'Private sessions', 'Easy online booking'],
     services: [
@@ -116,7 +117,6 @@ export const en: typeof ar = {
     priceLabel: 'Price',
     remainingLabel: 'Spots remaining',
     remainingSeatsSuffix: 'spots left',
-    statsEyebrow: 'Some of what we’ve accomplished together',
     reviews: {
       heading: 'Participant Reviews',
       fallbackName: 'Participant',

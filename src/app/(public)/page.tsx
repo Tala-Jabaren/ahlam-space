@@ -5,8 +5,8 @@ import { getLocale } from '@/i18n/get-locale'
 import { getDictionary } from '@/i18n/dictionaries'
 import { pageMetadata } from '@/lib/seo'
 import HeroSection from '@/components/home/hero-section'
+import ArcGallerySection from '@/components/home/arc-gallery-section'
 import ServicesSection from '@/components/home/services-section'
-import MarqueeBand from '@/components/home/marquee-band'
 import StatsSection from '@/components/home/stats-section'
 import ReviewsSection from '@/components/home/reviews-section'
 import type { ReviewRow } from '@/lib/reviews'
@@ -15,6 +15,7 @@ import WeeklySessionsSection, { type UpcomingSession } from '@/components/home/w
 import CoursesTeaserSection, { type CourseTeaserItem } from '@/components/home/courses-teaser-section'
 import { getOpenTrip, getPublishedTripPhotos } from '@/lib/trips'
 import { siteStats } from '@/content/site-stats'
+import { homeGalleryPhotos } from '@/content/home-gallery'
 
 export async function generateMetadata(): Promise<Metadata> {
   const locale = await getLocale()
@@ -111,12 +112,34 @@ export default async function HomePage({
   const upcomingSessions = (sessions ?? []).filter(isUpcoming).slice(0, 3)
   const services = t.home.services.map((service, index) => ({ ...service, href: serviceHrefs[index] }))
 
+  // home-gallery.ts is the curated source; only published photos of
+  // non-draft trips (never anything unapproved) back-fill it when it's
+  // empty. ArcGallerySection itself hides the photo arc below 3 photos.
+  const galleryPhotos =
+    homeGalleryPhotos.length > 0
+      ? homeGalleryPhotos
+      : visibleTripPhotos.map((photo) => ({
+          src: photo.photo_url,
+          alt: photo.caption ?? t.home.trips.photoAlt,
+        }))
+
   return (
     <div className="overflow-hidden bg-[#F6F5EE] text-[#34472B]" dir={dir}>
-      <HeroSection copy={t.home} dir={dir} />
+      <HeroSection copy={t.home} nav={t.nav} dir={dir} isAuthenticated={Boolean(user)} />
+
+      <ArcGallerySection
+        copy={{
+          eyebrow: 'MOVE · BALANCE · BLOOM',
+          heading: `${t.home.heroHeadingLine1} ${t.home.heroHeadingLine2}`,
+          accentWord: 'والتوازن',
+          paragraph: t.home.heroParagraph,
+          button: t.home.heroCtaServices,
+        }}
+        photos={galleryPhotos}
+      />
+
+      <StatsSection stats={siteStats} />
       <ServicesSection services={services} />
-      <MarqueeBand />
-      <StatsSection stats={siteStats} eyebrow={t.home.statsEyebrow} />
       <ReviewsSection reviews={visibleReviews} />
 
       <TripsHomeSection
