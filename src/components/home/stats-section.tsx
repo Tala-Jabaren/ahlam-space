@@ -7,10 +7,11 @@ import type { SiteStat } from '@/content/site-stats'
 // reach the page - see src/content/site-stats.ts. With nothing confirmed
 // yet, this renders nothing at all rather than a strip of zeros or
 // placeholder numbers.
-export default function StatsSection({ stats, eyebrow }: { stats: SiteStat[]; eyebrow: string }) {
+export default function StatsSection({ stats }: { stats: SiteStat[] }) {
   const confirmed = stats.filter((stat) => stat.confirmed)
   const sectionRef = useRef<HTMLElement>(null)
   const [started, setStarted] = useState(false)
+  const [counting, setCounting] = useState(false)
   const [values, setValues] = useState<number[]>(() => confirmed.map(() => 0))
 
   // Same useSyncExternalStore matchMedia pattern already used by
@@ -52,6 +53,7 @@ export default function StatsSection({ stats, eyebrow }: { stats: SiteStat[]; ey
     function tick(now: number) {
       const t = Math.min(1, (now - startTime) / duration)
       const eased = 1 - Math.pow(1 - t, 3)
+      setCounting(t < 1)
       setValues(confirmed.map((stat) => Math.round(stat.value * eased)))
       if (t < 1) raf = requestAnimationFrame(tick)
     }
@@ -76,21 +78,21 @@ export default function StatsSection({ stats, eyebrow }: { stats: SiteStat[]; ey
           : 'grid-cols-1'
 
   return (
-    <section ref={sectionRef} className="scroll-reveal px-5 py-6 sm:px-8 lg:px-10">
-      <div className="mx-auto max-w-5xl text-center">
-        <span className="inline-flex rounded-full bg-[#E4ECD6] px-4 py-1.5 text-sm font-semibold text-[#34472B]">
-          {eyebrow}
-        </span>
-        <div
-          className={`mt-8 grid gap-8 rounded-2xl bg-white p-8 shadow-[0_8px_24px_rgba(52,71,43,0.08)] sm:p-10 ${colsClass}`}
-        >
-          {confirmed.map((stat, index) => (
-            <div key={stat.label}>
-              <p className="font-serif text-5xl text-[#55684A]">{reducedMotion ? stat.value : values[index]}+</p>
-              <p className="mt-2 text-sm text-[#34472B]/75">{stat.label}</p>
-            </div>
-          ))}
-        </div>
+    <section ref={sectionRef} className="scroll-reveal px-5 py-14 sm:px-8 lg:px-10">
+      <div className={`mx-auto grid max-w-5xl ${colsClass}`}>
+        {confirmed.map((stat, index) => (
+          <div key={stat.label} className={`px-4 text-center ${index > 0 ? 'border-s border-[#55684A]/15' : ''}`}>
+            <p className="stat-value font-serif text-4xl sm:text-5xl" data-counting={counting || undefined}>
+              {reducedMotion ? stat.value : values[index]}+
+            </p>
+            <p
+              className="mt-2 text-sm text-[#34472B]/75 transition-opacity duration-500 ease-out"
+              style={{ opacity: started || reducedMotion ? 1 : 0, transitionDelay: started ? '1.3s' : '0s' }}
+            >
+              {stat.label}
+            </p>
+          </div>
+        ))}
       </div>
     </section>
   )

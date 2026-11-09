@@ -78,9 +78,10 @@ export const ar = {
     heroHeadingLine2: 'الوعي والتوازن.',
     heroParagraph:
       'في Ahlam Space نؤمن بأن الحركة ليست فقط تمرينًا للجسم، بل رحلة أعمق نحو حياة أكثر توازنًا ووعيًا.',
-    heroCtaExplore: 'استكشفي الحصص',
     heroCtaServices: 'تعرّفي على خدماتنا',
-    heroCtaBookNow: 'احجزي الآن',
+    heroCtaBookNow: 'احجزي حصتك',
+    heroJoinCta: 'انضمّي كعضوة',
+    heroMySessions: 'حصصي',
     heroImageAlt: 'أحلام تجلس للتأمل على سجادة اليوغا في الاستوديو',
     heroChips: ['حصص أسبوعية', 'جلسات فردية خاصة', 'حجز سهل من الموقع'],
     services: [
@@ -112,7 +113,6 @@ export const ar = {
     priceLabel: 'السعر',
     remainingLabel: 'الأماكن المتبقية',
     remainingSeatsSuffix: 'أماكن متبقية',
-    statsEyebrow: 'بعض ما أنجزناه معًا',
     reviews: {
       heading: 'آراء المشاركات',
       fallbackName: 'مشاركة',
@@ -138,6 +138,11 @@ export const ar = {
       createAccount: 'إنشاء حساب جديد',
       membersOnlyNote: 'التسجيل في المشاوير متاح للأعضاء فقط.',
       applyButton: 'قدّمي طلب المشاركة',
+    },
+    coursesTeaser: {
+      heading: 'اكتشفي أحدث الكورسات',
+      subheading: 'تأمّلات وتمارين ومحتوى صُمّم ليرافقك بالوقت الذي يناسبك.',
+      detailsLabel: 'التفاصيل',
     },
   },
   journeys: {

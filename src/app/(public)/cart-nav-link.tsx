@@ -4,7 +4,7 @@ import Link from 'next/link'
 import { useCart } from '@/lib/cart/cart-context'
 import { useT } from '@/i18n/i18n-context'
 
-export default function CartNavLink() {
+export default function CartNavLink({ iconClassName = 'size-6 text-[#617A55]' }: { iconClassName?: string }) {
   const { totalQuantity } = useCart()
   const { t } = useT()
 
@@ -22,7 +22,7 @@ export default function CartNavLink() {
         strokeWidth="1.75"
         strokeLinecap="round"
         strokeLinejoin="round"
-        className="size-6 text-[#617A55]"
+        className={iconClassName}
       >
         <path d="M3 4h2l1.5 12.5a2 2 0 0 0 2 1.8h8.4a2 2 0 0 0 2-1.7L20 8H6" />
         <circle cx="9.5" cy="20" r="1.3" fill="currentColor" stroke="none" />

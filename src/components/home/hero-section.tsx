@@ -1,105 +1,125 @@
 import Image from 'next/image'
 import Link from 'next/link'
+import WordRevealText from './word-reveal-text'
 
 export type HeroCopy = {
   heroHeadingLine1: string
   heroHeadingLine2: string
   heroParagraph: string
-  heroCtaExplore: string
-  heroCtaServices: string
+  heroCtaBookNow: string
+  heroJoinCta: string
+  heroMySessions: string
   heroImageAlt: string
   heroChips: string[]
 }
 
-const focusRing = 'focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#55684A]'
+type HeroNavCopy = {
+  login: string
+}
+
+const focusRing = 'focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white'
 
 function CheckIcon() {
   return (
-    <svg aria-hidden="true" viewBox="0 0 24 24" className="size-4 shrink-0 text-[#55684A]" fill="none" stroke="currentColor" strokeWidth="2.25" strokeLinecap="round" strokeLinejoin="round">
+    <svg aria-hidden="true" viewBox="0 0 24 24" className="size-4 shrink-0 text-white" fill="none" stroke="currentColor" strokeWidth="2.25" strokeLinecap="round" strokeLinejoin="round">
       <path d="M20 6 9 17l-5-5" />
     </svg>
   )
 }
 
-// Fixed left-to-right in both languages, same convention as the previous
-// hero (the photo always sits toward the start of the layout, text always
-// toward the end) - only the text block inside follows the active
-// language's direction.
-export default function HeroSection({ copy, dir }: { copy: HeroCopy; dir: 'rtl' | 'ltr' }) {
+// Full-bleed photo hero with the header floating transparently on top of
+// it (see SiteHeader, which switches to the floating pill after ~40px of
+// scroll) - this section itself pulls up under that header via a negative
+// margin matching <main>'s own top padding, so the photo truly starts at
+// the very top of the viewport rather than below a gap.
+export default function HeroSection({
+  copy,
+  nav,
+  dir,
+  isAuthenticated,
+}: {
+  copy: HeroCopy
+  nav: HeroNavCopy
+  dir: 'rtl' | 'ltr'
+  isAuthenticated: boolean
+}) {
   return (
-    <section className="relative overflow-hidden bg-[#F6F5EE] pb-28 pt-10 sm:pt-14 lg:pb-36 lg:pt-20" dir="ltr">
-      <div className="mx-auto grid max-w-7xl items-center gap-12 px-5 sm:px-8 lg:grid-cols-2 lg:gap-16 lg:px-10">
-        <div className="relative mx-auto w-full max-w-md lg:mx-0">
-          <span
-            aria-hidden="true"
-            className="absolute -left-6 -top-6 size-28 rounded-full border border-[#55684A]/25"
-          />
-          <span aria-hidden="true" className="absolute -left-1 -top-1 size-2.5 rounded-full bg-[#55684A]" />
+    <section className="relative -mt-24 flex min-h-[92vh] items-end overflow-hidden sm:-mt-28 sm:min-h-[92vh]">
+      <Image
+        src="/images/newhero.png"
+        alt={copy.heroImageAlt}
+        fill
+        priority
+        sizes="100vw"
+        className="hero-kenburns object-cover"
+      />
+      {/* Scrim: dark on the text side (end, i.e. right in RTL), fading to
+          transparent toward the subject - mirrored for LTR so the text
+          side is always the darker one regardless of language. */}
+      <div
+        aria-hidden="true"
+        className="absolute inset-0"
+        style={{
+          background:
+            dir === 'rtl'
+              ? 'linear-gradient(to left, rgba(52,71,43,0.82) 0%, rgba(52,71,43,0.55) 35%, rgba(52,71,43,0.15) 65%, rgba(52,71,43,0) 100%)'
+              : 'linear-gradient(to right, rgba(52,71,43,0.82) 0%, rgba(52,71,43,0.55) 35%, rgba(52,71,43,0.15) 65%, rgba(52,71,43,0) 100%)',
+        }}
+      />
+      <div
+        aria-hidden="true"
+        className="absolute inset-x-0 bottom-0 h-40 bg-gradient-to-t from-[#34472B]/70 to-transparent"
+      />
 
-          <div className="relative aspect-[4/5] overflow-hidden rounded-t-[9999px] rounded-b-3xl">
-            <Image
-              src="/images/hero1.jpeg"
-              alt={copy.heroImageAlt}
-              fill
-              priority
-              sizes="(min-width: 1024px) 480px, 90vw"
-              className="object-cover"
-            />
-          </div>
+      <div dir={dir} className="relative z-10 w-full px-5 pb-16 pt-32 sm:px-8 sm:pb-20 lg:px-10">
+        <div className="mx-auto max-w-7xl">
+          <div className="max-w-2xl">
+            <h1 className="font-serif leading-[1.05] text-white" style={{ fontSize: 'clamp(2.5rem, 6vw, 5.5rem)' }}>
+              <WordRevealText text={copy.heroHeadingLine1} reveal="load" className="block" />
+              <WordRevealText text={copy.heroHeadingLine2} reveal="load" className="block" />
+            </h1>
+            <p className="mt-6 max-w-lg text-base leading-8 text-white/85 sm:text-lg">{copy.heroParagraph}</p>
 
-          <span className="absolute end-4 top-10 inline-flex rounded-full bg-white px-4 py-1.5 text-xs font-bold tracking-wide text-[#34472B] shadow-sm">
-            MOVE
-          </span>
-          <span className="absolute -start-4 top-[38%] inline-flex rounded-full bg-[#34472B] px-4 py-1.5 text-xs font-bold tracking-wide text-white shadow-sm">
-            BALANCE
-          </span>
-          <span className="absolute end-6 bottom-24 inline-flex rounded-full bg-[#EFE6D2] px-4 py-1.5 text-xs font-bold tracking-wide text-[#34472B] shadow-sm">
-            BLOOM
-          </span>
+            <div className="mt-8 flex flex-wrap gap-3">
+              <Link
+                href="/classes"
+                className={`inline-flex min-h-12 items-center justify-center rounded-full bg-[#55684A] px-7 py-3 text-sm font-semibold text-white transition hover:bg-[#34472B] ${focusRing}`}
+              >
+                {copy.heroCtaBookNow}
+              </Link>
+              {isAuthenticated ? (
+                <Link
+                  href="/member-schedule"
+                  className={`hero-chip-glass inline-flex min-h-12 items-center justify-center rounded-full px-7 py-3 text-sm font-semibold text-white transition hover:bg-white/25 ${focusRing}`}
+                >
+                  {copy.heroMySessions}
+                </Link>
+              ) : (
+                <>
+                  <Link
+                    href="/sign-up"
+                    className={`hero-chip-glass inline-flex min-h-12 items-center justify-center rounded-full px-7 py-3 text-sm font-semibold text-white transition hover:bg-white/25 ${focusRing}`}
+                  >
+                    {copy.heroJoinCta}
+                  </Link>
+                  <Link
+                    href="/login"
+                    className={`inline-flex min-h-12 items-center text-sm font-semibold text-white underline-offset-4 hover:underline ${focusRing}`}
+                  >
+                    {nav.login}
+                  </Link>
+                </>
+              )}
+            </div>
 
-          <Link
-            href="/classes"
-            className={`absolute bottom-4 start-4 inline-flex min-h-11 items-center rounded-full bg-[#34472B] px-4 text-sm font-semibold text-white shadow-sm transition hover:bg-[#55684A] ${focusRing}`}
-          >
-            {copy.heroCtaExplore}
-          </Link>
-        </div>
-
-        <div dir={dir} className="relative z-10">
-          <p className="text-xs font-semibold uppercase tracking-[0.24em] text-[#55684A]" dir="ltr">
-            MOVE · BALANCE · BLOOM
-          </p>
-          <h1 className="mt-5 font-serif text-4xl leading-tight text-[#34472B] sm:text-5xl">
-            {copy.heroHeadingLine1}
-            <br />
-            {copy.heroHeadingLine2}
-          </h1>
-          <p className="mt-5 max-w-lg text-base leading-8 text-[#34472B]/80 sm:text-lg">
-            {copy.heroParagraph}
-          </p>
-
-          <ul className="mt-6 flex flex-wrap gap-x-5 gap-y-2 text-sm text-[#34472B]/85">
-            {copy.heroChips.map((chip) => (
-              <li key={chip} className="flex items-center gap-1.5">
-                <CheckIcon />
-                {chip}
-              </li>
-            ))}
-          </ul>
-
-          <div className="mt-8 flex flex-wrap gap-3">
-            <Link
-              href="/classes"
-              className={`inline-flex min-h-12 items-center justify-center rounded-full bg-[#55684A] px-7 py-3 text-sm font-semibold text-white transition hover:bg-[#34472B] ${focusRing}`}
-            >
-              {copy.heroCtaExplore}
-            </Link>
-            <a
-              href="#services"
-              className={`inline-flex min-h-12 items-center justify-center rounded-full border border-[#55684A]/40 px-7 py-3 text-sm font-semibold text-[#55684A] transition hover:bg-[#E4ECD6] ${focusRing}`}
-            >
-              {copy.heroCtaServices}
-            </a>
+            <ul className="mt-8 flex flex-wrap gap-3">
+              {copy.heroChips.map((chip) => (
+                <li key={chip} className="hero-chip-glass flex items-center gap-1.5 rounded-full px-4 py-2 text-sm text-white">
+                  <CheckIcon />
+                  {chip}
+                </li>
+              ))}
+            </ul>
           </div>
         </div>
       </div>
