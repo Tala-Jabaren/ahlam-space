@@ -295,17 +295,17 @@ body {
    ring) and below (the dome's downward spread, up to ~0.66 * radius,
    plus half a photo's height) within the box's own height. */
 .arc-sticky-box {
-  --radius: 80vw;
-  --peak: 90px;
+  --radius: 58vw;
+  --peak: 80px;
   position: relative;
-  height: calc(var(--peak) + var(--radius) * 0.66 + 180px);
+  height: calc(var(--peak) + var(--radius) * 0.66 + 150px);
   overflow-x: clip;
 }
 @media (min-width: 768px) {
   .arc-sticky-box {
-    --radius: min(42vw, 560px);
-    --peak: 120px;
-    height: calc(var(--peak) + var(--radius) * 0.66 + 220px);
+    --radius: min(36vw, 450px);
+    --peak: 100px;
+    height: calc(var(--peak) + var(--radius) * 0.66 + 180px);
     overflow-x: visible;
   }
 }

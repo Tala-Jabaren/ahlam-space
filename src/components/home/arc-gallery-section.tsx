@@ -54,7 +54,7 @@ export default function ArcGallerySection({ photos }: { photos: ArcGalleryPhoto[
             return (
               <div
                 key={photo.src}
-                className={`arc-photo w-[130px] h-[170px] md:w-[220px] md:h-[280px] ${isMobileVisible(index, n) ? '' : 'hidden md:block'}`}
+                className={`arc-photo w-[105px] h-[140px] md:w-[170px] md:h-[215px] ${isMobileVisible(index, n) ? '' : 'hidden md:block'}`}
                 style={
                   {
                     '--angle-lg': `${angleLg}deg`,
@@ -67,8 +67,8 @@ export default function ArcGallerySection({ photos }: { photos: ArcGalleryPhoto[
                   <Image
                     src={photo.src}
                     alt={photo.alt}
-                    width={220}
-                    height={280}
+                    width={170}
+                    height={215}
                     loading="lazy"
                     className="size-full object-cover"
                   />
