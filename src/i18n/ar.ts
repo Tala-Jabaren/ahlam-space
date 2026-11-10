@@ -112,6 +112,7 @@ export const ar = {
     priceLabel: 'السعر',
     remainingLabel: 'الأماكن المتبقية',
     remainingSeatsSuffix: 'أماكن متبقية',
+    statsEyebrow: 'بعض ما أنجزناه معًا',
     reviews: {
       heading: 'آراء المشاركات',
       fallbackName: 'مشاركة',

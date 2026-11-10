@@ -116,6 +116,7 @@ export const en: typeof ar = {
     priceLabel: 'Price',
     remainingLabel: 'Spots remaining',
     remainingSeatsSuffix: 'spots left',
+    statsEyebrow: 'Some of what we’ve accomplished together',
     reviews: {
       heading: 'Participant Reviews',
       fallbackName: 'Participant',

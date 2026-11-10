@@ -11,6 +11,11 @@
   --blue-mist: #EAF1F8;
   --blue-soft: #C7D6E8;
   --blue-deep: #3F5F7A;
+  /* Services card 02 specifically - a separate token from the blue-*
+     accent trio above, since it's not used as a general secondary
+     accent, just this one card's own colour. */
+  --baby-blue: #D3E7F8;
+  --baby-blue-deep: #2F4B66;
 }
 
 @theme inline {
@@ -19,6 +24,8 @@
   --color-blue-mist: var(--blue-mist);
   --color-blue-soft: var(--blue-soft);
   --color-blue-deep: var(--blue-deep);
+  --color-baby-blue: var(--baby-blue);
+  --color-baby-blue-deep: var(--baby-blue-deep);
   --font-sans: var(--font-true-arabic);
   --font-serif: var(--font-true-arabic);
 }
@@ -262,45 +269,13 @@ body {
   to { --arc-rotate: 10deg; }
 }
 
-/* Panel cards (ServicesSection): translucent glass at rest, turn solid as
-   they cross into view, rising slightly with a per-card stagger via
-   --stagger (set inline per card, 0/90/180/270ms). Solid/static by
-   default/reduced-motion so the cards are always readable against the
-   panel behind them. */
-.panel-card {
-  background-color: rgb(255 255 255 / 1);
-}
-@supports (animation-timeline: view()) {
-  @media (prefers-reduced-motion: no-preference) {
-    .panel-card {
-      background-color: rgb(255 255 255 / 0.35);
-      animation: panel-card-in linear both;
-      animation-timeline: view();
-      animation-range: entry 0% entry 60%;
-      animation-delay: var(--stagger, 0ms);
-    }
-  }
-}
-@keyframes panel-card-in {
-  from {
-    background-color: rgb(255 255 255 / 0.35);
-    opacity: 0.6;
-    translate: 0 24px;
-  }
-  to {
-    background-color: rgb(255 255 255 / 1);
-    opacity: 1;
-    translate: 0 0;
-  }
-}
-
 /* Stats numbers (StatsSection): the digits move from muted grey to full
    colour over the same window the count-up JS runs, toggled by a single
    class once the IntersectionObserver fires - not scroll-linked, since
    the count-up itself is a one-shot JS animation, not a scroll position.
    Reduced motion/no-JS: full colour immediately, set as the base style. */
 .stat-value {
-  color: #34472B;
+  color: #55684A;
   transition: color 1.2s ease-out;
 }
 .stat-value[data-counting='true'] {
