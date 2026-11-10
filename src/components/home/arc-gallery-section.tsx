@@ -37,7 +37,7 @@ export default function ArcGallerySection({ photos }: { photos: ArcGalleryPhoto[
 
   return (
     <section
-      className="scroll-reveal overflow-hidden px-5 pb-10 pt-8 sm:px-8 sm:pt-12 lg:px-10"
+      className="scroll-reveal px-5 pb-10 pt-8 sm:px-8 sm:pt-12 lg:px-10"
       style={{ background: 'linear-gradient(to bottom, var(--blue-mist), #F6F5EE)' }}
     >
       {/* arc-spread-container is the tall (200vh), scroll-timeline-driven

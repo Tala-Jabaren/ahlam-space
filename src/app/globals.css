@@ -268,7 +268,7 @@ body {
 @supports (animation-timeline: view()) {
   @media (prefers-reduced-motion: no-preference) {
     .arc-spread-container {
-      height: 200vh;
+      height: 130vh;
       animation: arc-spread-progress linear both;
       animation-timeline: view();
       animation-range: entry 15% cover 50%;
@@ -297,7 +297,6 @@ body {
 .arc-sticky-box {
   --radius: 58vw;
   --peak: 80px;
-  position: relative;
   height: calc(var(--peak) + var(--radius) * 0.66 + 150px);
   overflow-x: clip;
 }

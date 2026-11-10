@@ -105,7 +105,7 @@ export default async function HomePage({
         }))
 
   return (
-    <div className="overflow-hidden bg-[#F6F5EE] text-[#34472B]" dir={dir}>
+    <div className="overflow-x-clip bg-[#F6F5EE] text-[#34472B]" dir={dir}>
       <HeroSection copy={t.home} nav={t.nav} dir={dir} isAuthenticated={Boolean(user)} />
 
       <ArcGallerySection photos={galleryPhotos} />
