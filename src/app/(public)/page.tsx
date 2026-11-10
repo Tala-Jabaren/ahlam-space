@@ -10,10 +10,9 @@ import ServicesSection from '@/components/home/services-section'
 import StatsSection from '@/components/home/stats-section'
 import ReviewsSection from '@/components/home/reviews-section'
 import type { ReviewRow } from '@/lib/reviews'
-import TripsHomeSection from '@/components/home/trips-home-section'
 import WeeklySessionsSection, { type UpcomingSession } from '@/components/home/weekly-sessions-section'
 import CoursesTeaserSection, { type CourseTeaserItem } from '@/components/home/courses-teaser-section'
-import { getOpenTrip, getPublishedTripPhotos } from '@/lib/trips'
+import { getPublishedTripPhotos } from '@/lib/trips'
 import { siteStats } from '@/content/site-stats'
 import { homeGalleryPhotos } from '@/content/home-gallery'
 
@@ -67,7 +66,6 @@ export default async function HomePage({
     },
     { data: sessions, error: sessionsError },
     { data: reviewRows, error: reviewsError },
-    { trip: openTrip, error: openTripError },
     { photos: visibleTripPhotos, error: tripPhotosError },
     { data: courseRows, error: coursesError },
   ] = await Promise.all([
@@ -81,7 +79,6 @@ export default async function HomePage({
       .order('start_time', { ascending: true })
       .returns<UpcomingSession[]>(),
     reviewsQuery.returns<ReviewRow[]>(),
-    getOpenTrip(supabase),
     getPublishedTripPhotos(supabase),
     supabase
       .from('courses')
@@ -97,9 +94,6 @@ export default async function HomePage({
   }
   if (reviewsError) {
     console.error('Failed to load home page reviews:', reviewsError.message)
-  }
-  if (openTripError) {
-    console.error('Failed to load the open trip.')
   }
   if (tripPhotosError) {
     console.error('Failed to load trip photos.')
@@ -132,14 +126,6 @@ export default async function HomePage({
       <StatsSection stats={siteStats} />
       <ServicesSection services={services} />
       <ReviewsSection reviews={visibleReviews} />
-
-      <TripsHomeSection
-        labels={t.home.trips}
-        photos={visibleTripPhotos}
-        openTrip={openTrip}
-        isAuthenticated={Boolean(user)}
-        locale={locale}
-      />
 
       <CoursesTeaserSection copy={t.home.coursesTeaser} courses={teaserCourses} />
 

@@ -126,21 +126,10 @@ export const en: typeof ar = {
       carouselAriaLabel: 'Participant reviews',
     },
     trips: {
-      eyebrow: 'Ahlam’s Trips',
-      heading: 'We walk together, and return to ourselves',
-      subtitle: 'Small group trips with movement, breath, and space to listen to ourselves. A few glimpses from past trips.',
+      // Only the trip photos themselves still feed the arc gallery's
+      // fallback (see page.tsx) - the rest of this used to label the
+      // home page's own trips section, removed along with it.
       photoAlt: 'A photo from a past trip',
-      viewAllLabel: 'View all trips',
-      registrationOpenBadge: 'Registration open',
-      applicationsClosedBadge: 'Applications closed',
-      deadlineLabel: 'Application deadline',
-      dateLabel: 'Date',
-      locationLabel: 'Location',
-      applyNote: 'Submitting the form is a request to join, not a confirmed booking - Ahlam will review your request and reach out.',
-      loginToApply: 'Log in to register',
-      createAccount: 'Create a new account',
-      membersOnlyNote: 'Registering for trips is available to members only.',
-      applyButton: 'Submit your application',
     },
     coursesTeaser: {
       heading: 'Discover our latest courses',
