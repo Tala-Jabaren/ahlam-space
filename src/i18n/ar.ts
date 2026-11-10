@@ -127,11 +127,6 @@ export const ar = {
       // home page's own trips section, removed along with it.
       photoAlt: 'صورة من مشوار سابق',
     },
-    coursesTeaser: {
-      heading: 'اكتشفي أحدث الكورسات',
-      subheading: 'تأمّلات وتمارين ومحتوى صُمّم ليرافقك بالوقت الذي يناسبك.',
-      detailsLabel: 'التفاصيل',
-    },
   },
   journeys: {
     heading: 'نمشي معًا، ونرجع لأنفسنا',
