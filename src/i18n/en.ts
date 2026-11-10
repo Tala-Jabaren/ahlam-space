@@ -156,7 +156,7 @@ export const en: typeof ar = {
     paragraph:
       'Ahlam is a yoga and movement instructor who believes that caring for the body and mind isn’t a luxury — it’s a way of life. Through her experience and passion, she aims to create a space that helps everyone move mindfully, connect with themselves, and reach greater balance in their daily life.',
     ctaDiscoverStory: 'Discover My Story',
-    imageAlt: 'Ahlam in a yoga pose at the studio',
+    imageAlt: 'Ahlam smiling while exercising outdoors',
     myStoryHeading: 'My Story',
     myStoryParagraph1:
       'My journey with movement and yoga began as a search for balance and calm, and over time this passion grew into a message I share with others.',

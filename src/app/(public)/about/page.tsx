@@ -94,7 +94,7 @@ export default async function AboutPage() {
         <div className="flex min-h-[520px] items-center justify-center py-8 md:min-h-[680px]">
           <div className="relative aspect-[1/1.05] w-full max-w-[600px] overflow-hidden rounded-[24px] shadow-sm">
             <Image
-              src="/images/about2.png"
+              src="/images/aboutpic.jpeg"
               alt={t.about.imageAlt}
               fill
               priority
