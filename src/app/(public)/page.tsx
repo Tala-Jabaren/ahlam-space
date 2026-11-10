@@ -110,7 +110,7 @@ export default async function HomePage({
 
       <ArcGallerySection photos={galleryPhotos} />
 
-      <StatsSection stats={siteStats} />
+      <StatsSection stats={siteStats} eyebrow={t.home.statsEyebrow} />
       <ServicesSection services={services} />
       <ReviewsSection reviews={visibleReviews} />
 
