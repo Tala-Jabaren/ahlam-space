@@ -122,21 +122,10 @@ export const ar = {
       carouselAriaLabel: 'آراء المشاركات',
     },
     trips: {
-      eyebrow: 'مشاوير أحلام',
-      heading: 'نمشي معًا، ونرجع لأنفسنا',
-      subtitle: 'مشاوير جماعية صغيرة، فيها حركة وتنفّس ومساحة للإنصات لحالنا. هذه لمحات من مشاويرنا السابقة.',
+      // Only the trip photos themselves still feed the arc gallery's
+      // fallback (see page.tsx) - the rest of this used to label the
+      // home page's own trips section, removed along with it.
       photoAlt: 'صورة من مشوار سابق',
-      viewAllLabel: 'عرض كل المشاوير',
-      registrationOpenBadge: 'التسجيل مفتوح',
-      applicationsClosedBadge: 'انتهى التقديم',
-      deadlineLabel: 'آخر موعد للتقديم',
-      dateLabel: 'التاريخ',
-      locationLabel: 'الموقع',
-      applyNote: 'إرسال الاستمارة هو طلب مشاركة وليس تأكيدًا للحجز، وستراجع أحلام طلبك وتتواصل معك.',
-      loginToApply: 'سجّلي دخولك للتسجيل',
-      createAccount: 'إنشاء حساب جديد',
-      membersOnlyNote: 'التسجيل في المشاوير متاح للأعضاء فقط.',
-      applyButton: 'قدّمي طلب المشاركة',
     },
     coursesTeaser: {
       heading: 'اكتشفي أحدث الكورسات',
