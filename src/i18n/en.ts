@@ -131,11 +131,6 @@ export const en: typeof ar = {
       // home page's own trips section, removed along with it.
       photoAlt: 'A photo from a past trip',
     },
-    coursesTeaser: {
-      heading: 'Discover our latest courses',
-      subheading: 'Meditations, practices, and content designed to accompany you whenever suits you.',
-      detailsLabel: 'Details',
-    },
   },
   journeys: {
     heading: 'We walk together, and return to ourselves',
