@@ -239,34 +239,115 @@ body {
   -webkit-backdrop-filter: blur(8px);
 }
 
-/* Arc gallery rotation: the whole fan of photos sweeps a few degrees as
-   the section crosses the viewport, via an animated, inherited custom
-   property (registered with @property so keyframes can interpolate it,
-   not just jump between values) rather than JS. Each photo then applies
-   the inverse of that same live value on top of its own fixed tilt, so
-   its OWN orientation stays visually put while its position still sweeps
-   with the rest of the fan. Stays at the registered initial value (0deg)
-   - i.e. fully static - outside @supports or under reduced motion. */
-@property --arc-rotate {
-  syntax: '<angle>';
+/* Arc gallery spread (ArcGallerySection): photos start collapsed in an
+   overlapping fan and spread out along a half-circle arc as the section
+   scrolls through view, driven by one inherited, animatable custom
+   property (--spread, 0 = collapsed, 1 = fully spread - registered with
+   @property so a scroll-timeline keyframe can interpolate it smoothly
+   instead of just jumping between values). Each photo reads its own
+   --angle (set inline, per-photo, and overridden by the sm: media query
+   below for the shallower mobile spread) and derives its own position
+   from --spread/--angle/--radius with plain calc()+trig, no JS. Default
+   (outside @supports or under reduced motion): --spread sits at its
+   registered initial value of 1 - i.e. straight to the fully-spread,
+   non-overlapping state, statically, with the container at its normal
+   (non-sticky, auto-height) layout - motion is additive, never required
+   to see the end state. */
+@property --spread {
+  syntax: '<number>';
   inherits: true;
-  initial-value: 0deg;
+  initial-value: 1;
 }
-.arc-rotate-wrapper {
-  transform: rotate(var(--arc-rotate));
+.arc-spread-container {
+  position: relative;
+  height: auto;
+}
+.arc-sticky-box {
+  position: static;
 }
 @supports (animation-timeline: view()) {
   @media (prefers-reduced-motion: no-preference) {
-    .arc-rotate-wrapper {
-      animation: arc-rotate-sweep linear both;
+    .arc-spread-container {
+      height: 200vh;
+      animation: arc-spread-progress linear both;
       animation-timeline: view();
-      animation-range: entry 0% exit 100%;
+      animation-range: entry 15% cover 50%;
+    }
+    .arc-sticky-box {
+      position: sticky;
+      top: 8vh;
+    }
+    .arc-photo {
+      will-change: transform;
     }
   }
 }
-@keyframes arc-rotate-sweep {
-  from { --arc-rotate: -10deg; }
-  to { --arc-rotate: 10deg; }
+@keyframes arc-spread-progress {
+  from { --spread: 0; }
+  to { --spread: 1; }
+}
+
+/* --radius is the arc's own radius; --peak is a fixed pixel offset from
+   the sticky box's own top edge for the a_i=0 "peak" photo - every
+   photo and the tick ring share that same single anchor point (left:
+   50%, top: var(--peak)) and move purely via transform from there, so
+   this one value is the only thing that has to leave room above (the
+   ring) and below (the dome's downward spread, up to ~0.66 * radius,
+   plus half a photo's height) within the box's own height. */
+.arc-sticky-box {
+  --radius: 80vw;
+  --peak: 90px;
+  position: relative;
+  height: calc(var(--peak) + var(--radius) * 0.66 + 180px);
+  overflow-x: clip;
+}
+@media (min-width: 768px) {
+  .arc-sticky-box {
+    --radius: min(42vw, 560px);
+    --peak: 120px;
+    height: calc(var(--peak) + var(--radius) * 0.66 + 220px);
+    overflow-x: visible;
+  }
+}
+
+.arc-photo {
+  --angle: var(--angle-sm);
+  position: absolute;
+  left: 50%;
+  top: var(--peak);
+  transform:
+    translate(-50%, -50%)
+    translate(
+      calc(var(--spread) * var(--radius) * sin(var(--angle))),
+      calc(var(--spread) * (var(--radius) - var(--radius) * cos(var(--angle))))
+    )
+    rotate(calc(var(--angle) * (0.35 + var(--spread) * 0.65)));
+}
+@media (min-width: 768px) {
+  .arc-photo {
+    --angle: var(--angle-lg);
+  }
+}
+
+/* Tick ring: a dashed circle sharing the photos' own peak anchor and
+   --radius (plus a fixed margin, so it always sits one ring-width
+   further out than the photos, never behind their centres), clipped to
+   roughly the top two-thirds - the same vertical extent the +/-70deg
+   photo sweep actually reaches (1 - cos(70deg) =~ 0.66). Drawn in via
+   opacity/scale only as --spread goes 0 -> 1 (both accept var(--spread)
+   - a plain 0..1 number - directly, no calc() needed for opacity). */
+.arc-tick-ring {
+  position: absolute;
+  left: 50%;
+  top: var(--peak);
+  width: calc(var(--radius) * 2 + 60px);
+  height: calc(var(--radius) * 2 + 60px);
+  border-radius: 50%;
+  border: 1.5px dashed var(--blue-soft);
+  clip-path: inset(0 0 34% 0);
+  pointer-events: none;
+  opacity: var(--spread);
+  transform: translate(-50%, -30px) scale(calc(0.85 + var(--spread) * 0.15));
 }
 
 /* Stats numbers (StatsSection): the digits move from muted grey to full
