@@ -14,9 +14,15 @@ to click through after each deploy).
    `NEXT_PUBLIC_SITE_URL` silently falls back to `http://localhost:3000` in SEO tags,
    `robots.txt`, and `sitemap.xml`, which you don't want live).
 3. `vercel.json` at the repo root already declares both cron jobs
-   (`/api/cron/class-reminders` hourly, `/api/cron/admin-notifications` every 5 minutes) -
+   (`/api/cron/class-reminders` hourly, `/api/cron/admin-notifications` every 10 minutes -
+   hourly is enough resolution for a 24h-ahead reminder window, since it sends within at
+   most ~1h of a booking first becoming due; the admin digest runs more often since it's
+   effectively "how fast does the owner hear about a new booking/order") -
    Vercel picks these up automatically from the repo, nothing to configure in the
    dashboard for the crons themselves beyond the `CRON_SECRET` env var (step 3 below).
+   **Confirm your Vercel plan tier supports this schedule first** - the Hobby plan
+   limits Cron Jobs to once per day as of Vercel's current pricing; both schedules here
+   need at least a Pro plan to actually fire as written.
 
 ## 2. Supabase Auth URL configuration
 
@@ -49,11 +55,10 @@ sending domain:
    propagate) - Resend rejects sends from an unverified domain.
 3. Once verified, set `EMAIL_FROM` (step 4) to an address on that domain, e.g.
    `Ahlam Space <notifications@ahlamspace.com>`.
-4. Note: `src/app/api/contact/route.ts` (the contact form) still sends from Resend's
-   shared `onboarding@resend.dev` address, hardcoded in that file - it does not read
-   `EMAIL_FROM`. Update that line too if you want contact-form emails to come from your
-   own verified domain as well; otherwise they'll keep working, just from Resend's shared
-   address.
+4. `src/app/api/contact/route.ts` (the contact form) reads this same `EMAIL_FROM` too, so
+   setting it covers the contact form as well as both cron emails - nothing extra to do
+   here. If `EMAIL_FROM` is ever unset, the contact form still works, just falling back to
+   Resend's shared `onboarding@resend.dev` sender.
 
 ## 4. Environment variables
 
@@ -67,7 +72,7 @@ otherwise create a second Supabase project for previews and use its values there
 | `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Supabase dashboard > Project Settings > API | No (public - RLS-governed) |
 | `SUPABASE_SERVICE_ROLE_KEY` | Supabase dashboard > Project Settings > API | **Yes** - server-only, never prefix with `NEXT_PUBLIC_` |
 | `RESEND_API_KEY` | Resend dashboard > API Keys | **Yes** |
-| `EMAIL_FROM` | An address on your Resend-verified domain (step 3) | No (not sensitive, but required - see note below) |
+| `EMAIL_FROM` | An address on your Resend-verified domain (step 3) | No (not sensitive, but required for both crons; contact form falls back to Resend's shared sender if unset) |
 | `ADMIN_NOTIFY_EMAIL` | Your own choice; defaults to `nmi.ahlam@gmail.com` if unset | No - optional |
 | `CONTACT_TO_EMAIL` | Your own choice; defaults to `nmi.ahlam@gmail.com` if unset | No - optional |
 | `CRON_SECRET` | Generate with `openssl rand -hex 32` | **Yes** |

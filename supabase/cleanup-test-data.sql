@@ -3,13 +3,24 @@
 -- Removes ONLY test data created while building and testing the site:
 --   A. profiles matching known test-account email patterns, and everything
 --      those accounts own (bookings, orders+order_items, course_purchases,
---      payments). Also session_requests matching the same patterns.
+--      payments, trip_applications). Also session_requests matching the
+--      same patterns.
 --   B. NOT done here anymore - the four named test records (order AS-1029,
 --      booking AS-1030, course purchases AS-1032/AS-1034). Delete those
 --      from the admin UI instead; see the comment in section B below.
 --   C. public.admin_notification_queue, cleared entirely (ephemeral queue
 --      data, not user data - safe to clear in full regardless of test vs
 --      real, since every row there just gets re-queued by normal app use).
+--   D. trips / trip_photos - PREVIEW ONLY, nothing deleted here. Unlike
+--      bookings/orders/course_purchases, a trip has no owner/email column
+--      of its own - the only test-data signal available is "every
+--      application on it came from a test account" (or it has none at
+--      all), which is a judgment call, not a safe automatic match. See the
+--      note in section D: this prints each trip's real (non-test)
+--      application count and every trip_photos storage path under
+--      trips/... so you can decide by eye, then delete through the admin
+--      UI's admin_delete_trip / admin_delete_trip_photo (same reasoning as
+--      section B - this file never calls either).
 --
 -- Does NOT touch: admin accounts (profiles.role = 'admin'), products,
 -- product_variants, classes, class_sessions, or courses. Does NOT delete
@@ -79,6 +90,29 @@ where email like '%@example.com'
    or email like 'meditation-reload-test-%'
    or email like 'meditation-rpc-bypass-%'
 order by created_at;
+
+-- (c2) run this alone and read the result: trip_applications belonging to
+-- the same matched test profiles. Only the non-sensitive columns - never
+-- select attended_details/intention/surgery_last_6_months/
+-- did_emotional_release/admin_note here, matching this file's existing
+-- practice of not surfacing health-related or admin-only answers.
+select ta.id, ta.trip_id, ta.full_name, ta.email, ta.status, ta.created_at
+from public.trip_applications ta
+where ta.user_id in (
+  select p.id
+  from public.profiles p
+  join auth.users u on u.id = p.id
+  where p.role is distinct from 'admin'
+    and (
+      u.email like '%@example.com'
+      or u.email like 'security-bump-smoketest-%'
+      or u.email like 'media-upload-guard-check-%'
+      or u.email like 'meditation-state-test-%'
+      or u.email like 'meditation-reload-test-%'
+      or u.email like 'meditation-rpc-bypass-%'
+    )
+)
+order by ta.created_at;
 
 -- (d) run this alone and read the result: the four named test records, by
 -- reference, with exactly the columns that determine whether admin_delete_
@@ -193,6 +227,11 @@ where user_id in (select id from matched_test_profiles);
 delete from public.course_purchases
 where user_id in (select id from matched_test_profiles);
 
+delete from public.trip_applications
+where user_id in (select id from matched_test_profiles);
+-- Note: this does not touch trips or trip_photos - see section D below for
+-- why those aren't auto-deleted here.
+
 -- session_requests has no login requirement and no user_id column (it's a
 -- public form: full_name/phone/email as free text) - matched by email
 -- directly against the same patterns, not via matched_test_profiles.
@@ -299,6 +338,62 @@ where p.role is distinct from 'admin'
     or u.email like 'meditation-reload-test-%'
     or u.email like 'meditation-rpc-bypass-%'
   );
+
+-- Leftover trip_applications matching the test patterns - expected to be
+-- empty after a committed run.
+select ta.id, ta.trip_id, ta.email, ta.status
+from public.trip_applications ta
+where ta.user_id in (
+  select p.id
+  from public.profiles p
+  join auth.users u on u.id = p.id
+  where p.role is distinct from 'admin'
+    and (
+      u.email like '%@example.com'
+      or u.email like 'security-bump-smoketest-%'
+      or u.email like 'media-upload-guard-check-%'
+      or u.email like 'meditation-state-test-%'
+      or u.email like 'meditation-reload-test-%'
+      or u.email like 'meditation-rpc-bypass-%'
+    )
+);
+
+-- =============================================================================
+-- D. trips / trip_photos - PREVIEW ONLY, never deleted by this file. Unlike
+-- everything above, a trip has no owner/email of its own, so there's no
+-- safe automatic match - run these two by eye and decide manually. Same
+-- reasoning as section B's admin_delete_record note: trips get their own
+-- admin-facing admin_delete_trip / admin_delete_trip_photo (see
+-- supabase/trips.sql), which enforces its own rules (e.g. a trip with
+-- approved applications may be protected) - this file never calls either,
+-- so nothing here is ever actually deleted by running this file.
+-- =============================================================================
+
+-- Every trip, with how many real (non-test) applications it still has, now
+-- that the test ones above are gone. real_application_count = 0 is a
+-- signal to go look at the trip by eye - it does NOT by itself prove the
+-- trip was only ever used for testing (a genuinely new/unapplied-to real
+-- trip looks identical here).
+select
+  t.id,
+  t.title,
+  t.status,
+  t.created_at,
+  (select count(*) from public.trip_applications ta where ta.trip_id = t.id) as real_application_count,
+  (select count(*) from public.trip_photos tp where tp.trip_id = t.id) as photo_count
+from public.trips t
+order by t.created_at;
+
+-- Every uploaded trip photo's storage path (all live under trips/<trip_id>/
+-- in the shared product-images bucket - see
+-- src/app/(admin)/admin/trips/upload-photo/route.ts). Printed for manual
+-- review only - deleting a trip_photos row would not remove the underlying
+-- object from Storage anyway; that's a separate, deliberate step in the
+-- Storage dashboard if you decide a trip's photos are disposable.
+select tp.trip_id, t.title, tp.id as trip_photo_id, tp.photo_url, tp.is_published, tp.created_at
+from public.trip_photos tp
+join public.trips t on t.id = tp.trip_id
+order by tp.trip_id, tp.display_order;
 
 -- Leftover rows for the four named references - expected to be empty only
 -- once you've also deleted them from the admin UI per section B.
