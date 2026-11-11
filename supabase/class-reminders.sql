@@ -6,6 +6,18 @@
 -- Written to be safely re-runnable (CREATE OR REPLACE, IF NOT EXISTS,
 -- idempotent triggers/grants).
 --
+-- Deploy-audit fix (chore/deploy-final-prep): the due-reminder window below
+-- now uses 'Asia/Hebron', not 'Asia/Jerusalem'. They are NOT always the same
+-- offset - Israel and the Palestinian territories have changed their clocks
+-- on different dates in some years (confirmed e.g. on 2025-10-25: Jerusalem
+-- was still UTC+3, Hebron had already fallen back to UTC+2). Using the wrong
+-- zone would shift the 24h reminder window by an hour during that gap. The
+-- rest of this project (admin-payments.sql, weekly-class-sessions.sql,
+-- schedule-final-oct.sql) still hardcodes 'Asia/Jerusalem' for the same kind
+-- of wall-clock math (refund-window cutoffs, weekly session generation) -
+-- that's a wider, separate decision for the owner and is deliberately left
+-- untouched here (see the deploy-audit report).
+--
 -- Two functions beyond what was asked for: count_due_class_reminders() and
 -- count_pending_admin_notifications(), both read-only. Added because the
 -- ?dry=1 mode on both cron routes needs to report a count without claiming
@@ -74,7 +86,14 @@ alter table public.bookings
 -- join nested in the FROM list. Splitting the UPDATE into its own CTE
 -- (returning only bookings columns) and joining class_sessions/classes in a
 -- separate, final SELECT avoids the problem entirely.
-create or replace function public.claim_due_class_reminders(p_hours integer default 24)
+-- Deploy-audit fix: added p_limit below (a new argument, not a default-only
+-- change) - Postgres treats that as a distinct overload from the original
+-- claim_due_class_reminders(integer), so CREATE OR REPLACE alone would
+-- leave the old one-arg version in place alongside this one. Drop it first
+-- so a re-run of this file ends up with exactly one version again.
+drop function if exists public.claim_due_class_reminders(integer);
+
+create or replace function public.claim_due_class_reminders(p_hours integer default 24, p_limit integer default 50)
 returns table (
   booking_id uuid,
   user_id uuid,
@@ -99,9 +118,14 @@ begin
       and b.payment_status = 'paid'
       and b.reminder_sent_at is null
       and cs.status = 'scheduled'
-      and (cs.session_date + cs.start_time) at time zone 'Asia/Jerusalem' > now()
-      and (cs.session_date + cs.start_time) at time zone 'Asia/Jerusalem'
+      and (cs.session_date + cs.start_time) at time zone 'Asia/Hebron' > now()
+      and (cs.session_date + cs.start_time) at time zone 'Asia/Hebron'
           <= now() + make_interval(hours => p_hours)
+    -- Soonest-starting sessions first, so a backlog larger than p_limit
+    -- (e.g. after an outage) claims the most time-sensitive reminders
+    -- first rather than an arbitrary subset.
+    order by (cs.session_date + cs.start_time)
+    limit p_limit
     for update of b skip locked
   ),
   upd as (
@@ -126,13 +150,16 @@ begin
 end;
 $$;
 
-revoke all on function public.claim_due_class_reminders(integer)
+revoke all on function public.claim_due_class_reminders(integer, integer)
   from public, anon, authenticated;
-grant execute on function public.claim_due_class_reminders(integer) to service_role;
+grant execute on function public.claim_due_class_reminders(integer, integer) to service_role;
 -- Test (as service_role, with a confirmed+paid test booking whose session is
 --   18h from now): one row returned, that booking's reminder_sent_at now set.
 --   Call it again immediately: that booking is NOT returned a second time
 --   (reminder_sent_at is no longer null).
+-- Test (p_limit): with 3 due bookings and p_limit => 2, exactly 2 are
+--   claimed (reminder_sent_at set), the soonest-starting 2 of the 3; the
+--   3rd is untouched and still due on the next call.
 -- Test (same booking, but reminder_sent_at manually reset to null and the
 --   session moved to 48h from now, outside the default 24h window): not
 --   returned by claim_due_class_reminders() with no argument; IS returned by
@@ -160,8 +187,8 @@ as $$
     and b.payment_status = 'paid'
     and b.reminder_sent_at is null
     and cs.status = 'scheduled'
-    and (cs.session_date + cs.start_time) at time zone 'Asia/Jerusalem' > now()
-    and (cs.session_date + cs.start_time) at time zone 'Asia/Jerusalem'
+    and (cs.session_date + cs.start_time) at time zone 'Asia/Hebron' > now()
+    and (cs.session_date + cs.start_time) at time zone 'Asia/Hebron'
         <= now() + make_interval(hours => p_hours);
 $$;
 

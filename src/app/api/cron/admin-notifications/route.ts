@@ -4,21 +4,23 @@ import { createMailer, sendEmail } from '@/lib/email/mailer'
 import { buildOwnerDigestEmail } from '@/lib/email/owner-digest-email'
 import { loadNotificationEvent, type NotificationQueueRow } from '@/lib/admin-notifications'
 import type { OwnerDigestEvent } from '@/lib/email/owner-digest-email'
+import { isAuthorizedCronRequest } from '@/lib/cron-auth'
 import { SITE_URL } from '@/lib/seo'
 
 const DEFAULT_ADMIN_NOTIFY_EMAIL = 'nmi.ahlam@gmail.com'
 
-function isAuthorized(request: Request): boolean {
-  const secret = process.env.CRON_SECRET
-  return Boolean(secret) && request.headers.get('authorization') === `Bearer ${secret}`
-}
+// See src/app/api/cron/class-reminders/route.ts for why these two are set -
+// same reasoning applies here (this route's own claim is already capped at
+// p_limit: 50 below, so 60s is comfortably enough).
+export const dynamic = 'force-dynamic'
+export const maxDuration = 60
 
 // GET /api/cron/admin-notifications[?dry=1]
 // Claims every queued booking/order/session-request/course-purchase event
 // and sends the owner ONE digest email covering all of them. Never logs a
 // customer name, phone number, or email address - only counts.
 export async function GET(request: Request) {
-  if (!isAuthorized(request)) {
+  if (!isAuthorizedCronRequest(request)) {
     return new Response(null, { status: 401 })
   }
 

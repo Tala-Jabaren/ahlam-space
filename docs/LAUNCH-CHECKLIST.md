@@ -33,10 +33,11 @@ See also `docs/DEPLOY-STEPS.md` (the exact Vercel/Supabase/Resend setup order) a
       status to flip to "Verified" (can take a few minutes to a few hours for DNS
       to propagate) - sends from an unverified domain are rejected. Once verified,
       set `EMAIL_FROM` to an address on that domain, e.g.
-      `Ahlam Space <notifications@ahlamspace.com>`. This is used by the contact
-      form (which still relies on Resend's shared `onboarding@resend.dev` sender,
-      hardcoded in `src/app/api/contact/route.ts` - update that too) and by the
-      class-reminder / admin-notification cron emails (`src/lib/email/mailer.ts`).
+      `Ahlam Space <notifications@ahlamspace.com>`. Used by the contact form
+      (`src/app/api/contact/route.ts`, as of the `chore/deploy-final-prep` pass -
+      it falls back to Resend's shared `onboarding@resend.dev` sender only if
+      `EMAIL_FROM` is unset) and by the class-reminder / admin-notification
+      cron emails (`src/lib/email/mailer.ts`).
 - [ ] **Set `CRON_SECRET`** to a random value (e.g. `openssl rand -hex 32`) in the
       production environment. Vercel Cron sends it automatically as
       `Authorization: Bearer <CRON_SECRET>` to the two jobs in `vercel.json`
@@ -55,10 +56,10 @@ See also `docs/DEPLOY-STEPS.md` (the exact Vercel/Supabase/Resend setup order) a
       `process.env.CONTACT_TO_EMAIL || 'nmi.ahlam@gmail.com'` (no hardcoded
       TODO left). Only remaining action: set `CONTACT_TO_EMAIL` in production if
       contact-form messages should go somewhere other than that default - same
-      as the `ADMIN_NOTIFY_EMAIL` item above. The sender address is still
-      hardcoded to Resend's shared `onboarding@resend.dev` though (see the
-      "Set up Resend's sending domain" item above) - that part of the old note
-      was accurate and still applies.
+      as the `ADMIN_NOTIFY_EMAIL` item above. The sender address now reads
+      `EMAIL_FROM` too (as of the `chore/deploy-final-prep` pass) - falls back
+      to Resend's shared `onboarding@resend.dev` only if that's unset (see the
+      "Set up Resend's sending domain" item above).
 - [ ] **Update Auth redirect URLs** (Authentication > URL Configuration) to the
       real domain - Site URL and every Redirect URL currently pointing at a
       localhost or preview URL. Login, signup, and password-reset emails link
