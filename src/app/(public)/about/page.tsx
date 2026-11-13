@@ -67,10 +67,10 @@ export default async function AboutPage() {
       {/* Fixed left-to-right composition (text column, then image column) in
           both languages, same reasoning as the home page hero. */}
       <section
-        className="mx-auto grid min-h-[680px] max-w-[1350px] px-5 sm:px-8 md:grid-cols-[minmax(0,0.82fr)_minmax(0,1fr)] md:gap-16 lg:gap-20 lg:px-10"
+        className="mx-auto grid max-w-[1350px] px-5 sm:px-8 md:grid-cols-[minmax(0,0.82fr)_minmax(0,1fr)] md:gap-16 lg:gap-20 lg:px-10"
         dir="ltr"
       >
-        <div className="flex items-center py-14 sm:py-16">
+        <div className="flex items-start pb-8 pt-0 sm:pb-10">
           <div className="max-w-2xl" dir={dir}>
             <div className="flex items-center justify-end gap-4" dir="ltr">
               <p className="text-xs font-semibold uppercase tracking-[0.24em] text-[#617A55]">
@@ -79,7 +79,7 @@ export default async function AboutPage() {
               <span className="h-px w-16 bg-[#617A55]/35" />
             </div>
 
-            <h1 className="mt-8 font-serif text-5xl leading-tight text-[#25311f] sm:text-6xl">
+            <h1 className="mt-4 font-serif text-5xl leading-tight text-[#25311f] sm:text-6xl">
               {t.about.heading}
             </h1>
             <p className="mt-5 font-serif text-xl leading-9 text-[#617A55] sm:text-2xl">
@@ -91,7 +91,7 @@ export default async function AboutPage() {
           </div>
         </div>
 
-        <div className="flex min-h-[520px] items-center justify-center py-8 md:min-h-[680px]">
+        <div className="flex items-start justify-center pb-8 pt-0">
           <div className="relative aspect-[1/1.05] w-full max-w-[600px] overflow-hidden rounded-[24px] shadow-sm">
             <Image
               src="/images/aboutpic.jpeg"

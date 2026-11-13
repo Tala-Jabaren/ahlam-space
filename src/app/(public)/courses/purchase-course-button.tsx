@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation'
 import PaymentConfirmationBlock from '@/components/payment-confirmation-block'
 import { createClient } from '@/lib/supabase/client'
 import { useT } from '@/i18n/i18n-context'
+import { useExperienceRoutes } from '@/components/commerce/experience-provider'
 
 type Props = {
   courseId: string
@@ -15,7 +16,8 @@ type Props = {
 
 type PurchaseState = 'idle' | 'saving' | 'success' | 'error'
 
-export default function PurchaseCourseButton({ courseId, price, returnTo = '/courses', successMessage }: Props) {
+export default function PurchaseCourseButton({ courseId, price, returnTo, successMessage }: Props) {
+  const routes = useExperienceRoutes()
   const router = useRouter()
   const { t, dir } = useT()
   const [state, setState] = useState<PurchaseState>('idle')
@@ -28,7 +30,7 @@ export default function PurchaseCourseButton({ courseId, price, returnTo = '/cou
     } = await supabase.auth.getUser()
 
     if (!user) {
-      router.push(`/login?returnTo=${encodeURIComponent(returnTo)}`)
+      router.push(`/login?returnTo=${encodeURIComponent(returnTo ?? routes.courses)}`)
       return
     }
 

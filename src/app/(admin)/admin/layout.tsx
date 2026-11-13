@@ -1,6 +1,7 @@
 import Link from 'next/link'
 import AdminNavLink from '@/components/admin/admin-nav-link'
 import { getAdminSession } from '@/components/admin/admin-session'
+import rhythm from '@/components/layout/page-rhythm.module.css'
 
 export default async function AdminLayout({
   children,
@@ -41,7 +42,7 @@ export default async function AdminLayout({
           </nav>
         </div>
       </header>
-      {children}
+      <div className={rhythm.adminEntry}>{children}</div>
     </div>
   )
 }

@@ -27,12 +27,14 @@ export default function CourseCard({
   purchase,
   t,
   locale,
+  coursesHref = '/courses',
 }: {
   course: CourseCardData
   isLoggedIn: boolean
   purchase?: { status: 'pending' | 'paid'; reference: string | null }
   t: Dictionary
   locale: Locale
+  coursesHref?: string
 }) {
   const c = t.meditations
   const BadgeIcon = badgeIcons[course.content_type]
@@ -92,15 +94,15 @@ export default function CourseCard({
           </p>
 
           {course.content_type === 'audio' ? (
-            <Link href={`/courses/${course.id}`} className={buttonStyle}>
+            <Link href={`${coursesHref}/${course.id}`} className={buttonStyle}>
               {hasAccess ? c?.listen : c?.details}
             </Link>
           ) : !isLoggedIn ? (
-            <Link href="/login?returnTo=%2Fcourses" className={buttonStyle}>
+            <Link href={`/login?returnTo=${encodeURIComponent(coursesHref)}`} className={buttonStyle}>
               {t.courses.list.loginToBuy}
             </Link>
           ) : purchase?.status === 'paid' ? (
-            <Link href={`/courses/${course.id}`} className={buttonStyle}>
+            <Link href={`${coursesHref}/${course.id}`} className={buttonStyle}>
               {t.courses.list.watchNow}
             </Link>
           ) : purchase?.status === 'pending' ? (
@@ -108,7 +110,7 @@ export default function CourseCard({
               {t.courses.list.pendingPayment}
             </span>
           ) : (
-            <PurchaseCourseButton courseId={course.id} price={course.price} />
+            <PurchaseCourseButton courseId={course.id} price={course.price} returnTo={coursesHref} />
           )}
         </div>
 

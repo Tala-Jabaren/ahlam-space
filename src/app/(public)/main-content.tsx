@@ -1,6 +1,8 @@
 'use client'
 
 import { usePathname } from 'next/navigation'
+import { useEffect, useRef } from 'react'
+import rhythm from '@/components/layout/page-rhythm.module.css'
 
 // The home page's hero is full-bleed and sits behind the header itself
 // (SiteHeader goes transparent there), so <main> must not reserve any
@@ -18,5 +20,23 @@ import { usePathname } from 'next/navigation'
 export default function MainContent({ children }: { children: React.ReactNode }) {
   const pathname = usePathname()
   const isHome = pathname === '/'
-  return <main className={isHome ? '' : 'pt-24 sm:pt-28'}>{children}</main>
+  const main = useRef<HTMLElement>(null)
+  useEffect(() => {
+    if (isHome) return
+    const header = document.querySelector<HTMLElement>('.site-header')
+    const content = main.current
+    if (!header || !content) return
+    function measure() {
+      // Fixed header: 16px top inset, its wrapped height, then 24px entry gap.
+      content!.style.setProperty('--public-header-clearance', `${Math.ceil(header!.getBoundingClientRect().height) + 40}px`)
+    }
+    measure()
+    const observer = new ResizeObserver(measure)
+    observer.observe(header)
+    return () => {
+      observer.disconnect()
+      content.style.removeProperty('--public-header-clearance')
+    }
+  }, [isHome])
+  return <main ref={main} className={isHome ? '' : rhythm.publicEntry}>{children}</main>
 }

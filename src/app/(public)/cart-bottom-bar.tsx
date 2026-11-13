@@ -5,8 +5,10 @@ import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { useCart } from '@/lib/cart/cart-context'
 import { useT } from '@/i18n/i18n-context'
+import { useExperienceRoutes } from '@/components/commerce/experience-provider'
 
-export default function CartBottomBar() {
+export default function CartBottomBar({ member = false }: { member?: boolean }) {
+  const routes = useExperienceRoutes()
   const pathname = usePathname()
   const { totalQuantity } = useCart()
   const { t, dir } = useT()
@@ -24,7 +26,7 @@ export default function CartBottomBar() {
     previousQuantity.current = totalQuantity
   }, [totalQuantity])
 
-  if (totalQuantity === 0 || pathname === '/cart') {
+  if (totalQuantity === 0 || pathname === routes.cart || (member && pathname === routes.checkout)) {
     return null
   }
 
@@ -45,7 +47,7 @@ export default function CartBottomBar() {
 
       <div
         dir={dir}
-        className="fixed inset-x-4 bottom-4 z-50 mx-auto max-w-xl rounded-2xl border border-[#617A55]/15 bg-[#D6E2B6] p-3 shadow-[0_8px_28px_rgba(37,49,31,0.14)] sm:bottom-6"
+        className={member ? 'fixed inset-x-4 bottom-24 z-40 mx-auto max-w-xl rounded-2xl border border-[#617A55]/15 bg-[#D6E2B6] p-3 shadow-sm md:end-[304px] md:bottom-6' : 'fixed inset-x-4 bottom-4 z-50 mx-auto max-w-xl rounded-2xl border border-[#617A55]/15 bg-[#D6E2B6] p-3 shadow-[0_8px_28px_rgba(37,49,31,0.14)] sm:bottom-6'}
       >
         <div className="flex items-center justify-between gap-4">
           <div className="flex min-w-0 items-center gap-3 text-[#25311f]">
@@ -80,7 +82,7 @@ export default function CartBottomBar() {
           </div>
 
           <Link
-            href="/cart"
+            href={routes.cart}
             className="inline-flex min-h-11 shrink-0 items-center justify-center rounded-full bg-[#617A55] px-5 text-sm font-semibold text-white transition hover:bg-[#526849]"
           >
             {t.shop.cartBar.viewCart}
