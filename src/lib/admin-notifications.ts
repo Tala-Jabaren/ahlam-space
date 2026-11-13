@@ -1,7 +1,7 @@
 import 'server-only'
 import type { SupabaseClient } from '@supabase/supabase-js'
 import { formatSessionDate, formatSessionTime } from './email/class-reminder-email'
-import type { OwnerDigestEvent } from './email/owner-digest-email'
+import type { OwnerNotificationEvent } from './email/owner-notification-email'
 
 export type NotificationQueueRow = {
   id: string
@@ -25,7 +25,7 @@ type OrderItemRow = {
 export async function loadNotificationEvent(
   supabase: SupabaseClient,
   row: NotificationQueueRow
-): Promise<OwnerDigestEvent | null> {
+): Promise<OwnerNotificationEvent | null> {
   if (row.kind === 'booking') {
     const { data: booking } = await supabase
       .from('bookings')
@@ -168,7 +168,7 @@ export async function loadNotificationEvent(
   // profiles lookup, since the application already carries its own
   // contact fields). Every health/comfort answer
   // (intention/attended_details/the boolean fields) is explicitly left
-  // out of this object - OwnerDigestEvent has no field for them at all,
+  // out of this object - OwnerNotificationEvent has no field for them at all,
   // so there's no risk of one slipping into an email body by accident.
   const { data: application } = await supabase
     .from('trip_applications')

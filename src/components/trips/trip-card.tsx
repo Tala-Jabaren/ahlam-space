@@ -8,6 +8,14 @@ export function formatTripDate(date: string, locale: string = 'ar') {
   }).format(new Date(`${date}T00:00:00Z`))
 }
 
+// meeting_time is a plain 'HH:MM:SS' wall-clock value, same display
+// convention as formatSessionTime in src/lib/email/class-reminder-email.ts
+// (just slice off the seconds) - no timezone conversion, since it's not a
+// timestamp.
+export function formatMeetingTime(time: string) {
+  return time.slice(0, 5)
+}
+
 // Shared by the public home section and the member /trips page - same
 // badge/title/meta/description layout, the caller owns the CTA area
 // (login+signup buttons, a single apply button, or nothing) since that
@@ -20,6 +28,7 @@ export default function TripCard({
   deadlineLabel,
   dateLabel = 'التاريخ',
   locationLabel = 'الموقع',
+  meetingLabel = 'ساعة التجمع',
   locale = 'ar',
   cta,
   photoSlot,
@@ -29,6 +38,7 @@ export default function TripCard({
   deadlineLabel: string
   dateLabel?: string
   locationLabel?: string
+  meetingLabel?: string
   locale?: string
   cta: React.ReactNode
   photoSlot?: React.ReactNode
@@ -59,6 +69,18 @@ export default function TripCard({
               <div className="flex gap-1">
                 <dt>{deadlineLabel}:</dt>
                 <dd>{formatTripDate(trip.application_deadline, locale)}</dd>
+              </div>
+            </>
+          )}
+          {trip.meeting_time && (
+            <>
+              <span aria-hidden="true">·</span>
+              <div className="flex gap-1">
+                <dt>{meetingLabel}:</dt>
+                <dd>
+                  <bdi dir="ltr">{formatMeetingTime(trip.meeting_time)}</bdi>
+                  {trip.meeting_point ? ` - ${trip.meeting_point}` : ''}
+                </dd>
               </div>
             </>
           )}

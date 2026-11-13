@@ -37,6 +37,10 @@ export default function TripEditor({ record }: { record?: TripRow }) {
     const deadline = String(form.get('application_deadline') || '').trim() || null
     const capacityRaw = String(form.get('capacity') || '').trim()
     const status = String(form.get('status') || 'draft') as TripStatus
+    const meetingTimeRaw = String(form.get('meeting_time') || '').trim()
+    // <input type="time"> gives "HH:MM" - the time column wants "HH:MM:SS".
+    const meetingTime = meetingTimeRaw ? `${meetingTimeRaw}:00` : null
+    const meetingPoint = String(form.get('meeting_point') || '').trim() || null
 
     if (!title || !description || !location) {
       setFailed(true)
@@ -78,6 +82,8 @@ export default function TripEditor({ record }: { record?: TripRow }) {
         capacity,
         cover_image_url: coverImageUrl,
         status,
+        meeting_time: meetingTime,
+        meeting_point: meetingPoint,
       }
 
       const supabase = createClient()
@@ -116,6 +122,19 @@ export default function TripEditor({ record }: { record?: TripRow }) {
         <label className="text-sm">تاريخ النهاية<input name="ends_on" type="date" required defaultValue={record?.ends_on} className={inputStyle} /></label>
         <label className="text-sm">آخر موعد للتسجيل (اختياري)<input name="application_deadline" type="date" defaultValue={record?.application_deadline ?? ''} className={inputStyle} /></label>
         <label className="text-sm">السعة (اختياري)<input name="capacity" type="number" min="1" step="1" defaultValue={record?.capacity ?? ''} className={inputStyle} /></label>
+        <label className="text-sm">
+          ساعة التجمع (اختياري)
+          <input
+            name="meeting_time"
+            type="time"
+            defaultValue={record?.meeting_time?.slice(0, 5) ?? ''}
+            className={inputStyle}
+          />
+          <span className="mt-1 block text-xs text-[#617A55]/70">
+            إذا تُركت فارغة، لن يُرسَل تذكير تلقائي للمقبولات بهذا المشوار.
+          </span>
+        </label>
+        <label className="text-sm">مكان التجمع (اختياري)<input name="meeting_point" maxLength={300} defaultValue={record?.meeting_point ?? ''} className={inputStyle} /></label>
         <label className="text-sm">الحالة<select name="status" required defaultValue={record?.status ?? 'draft'} className={inputStyle}>
           {(Object.keys(tripStatusLabels) as TripStatus[]).map((value) => <option key={value} value={value}>{tripStatusLabels[value]}</option>)}
         </select></label>

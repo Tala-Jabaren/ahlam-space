@@ -3,7 +3,7 @@
 import { useState } from 'react'
 import { useT } from '@/i18n/i18n-context'
 import { checkoutAr } from '@/i18n/checkout-ar'
-import { bankDetails, bankDetailsArePlaceholders } from '@/lib/bank-details'
+import { BANK, bankDetailsArePlaceholders } from '@/content/site-contact'
 
 type Props = {
   amount: number
@@ -27,8 +27,8 @@ export default function PaymentConfirmationBlock({
     currency: 'ILS',
   }).format(amount)
   // Grouped in 4s for readability only - the raw, unspaced value is what
-  // gets copied and what's stored in bankDetails.accountNumber.
-  const groupedAccountNumber = bankDetails.accountNumber.replace(/(.{4})/g, '$1 ').trim()
+  // gets copied and what's stored in BANK.iban.
+  const groupedAccountNumber = BANK.iban.replace(/(.{4})/g, '$1 ').trim()
 
   async function copyReference() {
     try {
@@ -44,7 +44,7 @@ export default function PaymentConfirmationBlock({
 
   async function copyAccountNumber() {
     try {
-      await navigator.clipboard.writeText(bankDetails.accountNumber)
+      await navigator.clipboard.writeText(BANK.iban)
       setAccountCopied(true)
       setTimeout(() => setAccountCopied(false), 2000)
     } catch {
@@ -88,17 +88,17 @@ export default function PaymentConfirmationBlock({
       <div className="mt-3 border-t border-[#617A55]/15 pt-3">
         <p className="font-semibold">{c.bank.details}</p>
         <p>
-          {c.bank.holder}: {bankDetails.accountHolder}
+          {c.bank.holder}: {BANK.accountHolder}
         </p>
         <p>
           {c.bank.bank}:{' '}
-          {bankDetails.bankName === 'اسم البنك'
+          {BANK.bankName === 'اسم البنك'
             ? c.bank.bankPlaceholder
-            : bankDetails.bankName}
+            : BANK.bankName}
         </p>
         <p className="flex flex-wrap items-center gap-2">
           {c.bank.account}:{' '}
-          {bankDetails.accountNumber === 'رقم الحساب / IBAN' ? (
+          {BANK.iban === 'رقم الحساب / IBAN' ? (
             c.bank.accountPlaceholder
           ) : (
             <>
@@ -116,6 +116,7 @@ export default function PaymentConfirmationBlock({
           )}
         </p>
         <p className="mt-2 font-semibold">{c.bank.transferNote}</p>
+        <p className="mt-1 text-[#4f5d49]">{BANK.note}</p>
       </div>
     </div>
   )

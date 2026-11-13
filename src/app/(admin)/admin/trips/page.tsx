@@ -2,13 +2,13 @@ import Link from 'next/link'
 import TripDeleteButton from '@/components/admin/trip-delete-button'
 import TripEditor from '@/components/admin/trip-editor'
 import { getAdminSession } from '@/components/admin/admin-session'
-import { tripStatusLabels, type TripRow } from '@/lib/trips'
+import { TRIP_COLUMNS, tripStatusLabels, type TripRow } from '@/lib/trips'
 
 export default async function AdminTripsPage() {
   const supabase = await getAdminSession()
   const { data, error } = await supabase
     .from('trips')
-    .select('id, title, description, location, starts_on, ends_on, application_deadline, capacity, cover_image_url, status, created_at')
+    .select(TRIP_COLUMNS)
     .order('starts_on', { ascending: false })
     .returns<TripRow[]>()
 

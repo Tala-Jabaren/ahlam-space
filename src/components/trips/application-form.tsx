@@ -177,7 +177,7 @@ export default function ApplicationForm({
       <div className="mt-10 rounded-2xl border border-[#617A55]/15 bg-white p-8 text-center">
         <h2 className="font-serif text-2xl text-[#25311f]">تم إرسال طلبك</h2>
         <p className="mt-3 text-sm leading-7 text-[#4f5d49]">
-          استلمنا طلب مشاركتك. ستراجع أحلام طلبك وتتواصل معك قريبًا.
+          استلمنا طلب مشاركتك. ستراجع أحلام طلبك، وسنرسل لك بريدًا إلكترونيًا فور تأكيد مشاركتك.
         </p>
         <Link
           href="/trips"

@@ -1,4 +1,5 @@
 // Shared HTML helpers for every transactional email this app sends.
+import { PHONE_DISPLAY, PHONE_E164, SUPPORT_EMAIL, WHATSAPP_URL } from '@/content/site-contact'
 
 export function escapeHtml(value: string): string {
   return value
@@ -7,6 +8,24 @@ export function escapeHtml(value: string): string {
     .replace(/>/g, '&gt;')
     .replace(/"/g, '&quot;')
     .replace(/'/g, '&#39;')
+}
+
+// Shared contact footer for every CUSTOMER-facing email (reminders, trip
+// approved/declined) - never used on the owner's own notification email,
+// which isn't a "contact us" context. Phone/WhatsApp from site-contact.ts;
+// the support address here is the public one (SUPPORT_EMAIL), not
+// CONTACT_TO_EMAIL/ADMIN_NOTIFY_EMAIL - those stay the owner's own inbox
+// default and are never shown to a customer.
+export function emailFooterHtml(): string {
+  return `<p style="font-size:13px;line-height:1.8;color:#617A55;margin:16px 0 0;">
+للتواصل: <a href="tel:${PHONE_E164}" style="color:#617A55;">${PHONE_DISPLAY}</a>
+· <a href="${WHATSAPP_URL}" style="color:#617A55;">واتساب</a>
+· <a href="mailto:${SUPPORT_EMAIL}" style="color:#617A55;">${SUPPORT_EMAIL}</a>
+</p>`
+}
+
+export function emailFooterText(): string {
+  return `للتواصل: ${PHONE_DISPLAY} / واتساب: ${WHATSAPP_URL} / ${SUPPORT_EMAIL}`
 }
 
 // Minimal, table-free, RTL email shell. Inline styles throughout (email

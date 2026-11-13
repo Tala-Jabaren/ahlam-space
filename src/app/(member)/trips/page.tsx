@@ -2,7 +2,7 @@ import Link from 'next/link'
 import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
 import TripPhotoStrip from '@/components/trips/trip-photo-strip'
-import TripCard, { formatTripDate } from '@/components/trips/trip-card'
+import TripCard, { formatMeetingTime, formatTripDate } from '@/components/trips/trip-card'
 import WithdrawApplicationButton from '@/components/trips/withdraw-application-button'
 import { getOpenTrip, getPublishedTripPhotos, isTripAcceptingApplications, todayInHebron } from '@/lib/trips'
 
@@ -33,7 +33,7 @@ type MyApplicationRow = {
   status: string
   created_at: string
   reviewed_at: string | null
-  trips: { title: string; starts_on: string; location: string } | null
+  trips: { title: string; starts_on: string; location: string; meeting_time: string | null; meeting_point: string | null } | null
 }
 
 export default async function MyTripsPage() {
@@ -57,7 +57,7 @@ export default async function MyTripsPage() {
     getPublishedTripPhotos(supabase),
     supabase
       .from('trip_applications')
-      .select('id, trip_id, status, created_at, reviewed_at, trips(title, starts_on, location)')
+      .select('id, trip_id, status, created_at, reviewed_at, trips(title, starts_on, location, meeting_time, meeting_point)')
       .eq('user_id', user.id)
       .order('created_at', { ascending: false })
       .returns<MyApplicationRow[]>(),
@@ -135,6 +135,12 @@ export default async function MyTripsPage() {
                   <p className="mt-1 text-sm text-[#617A55]/75">
                     أرسلتِ الطلب في <bdi>{formatTripDate(application.created_at.slice(0, 10))}</bdi>
                   </p>
+                  {application.status === 'approved' && application.trips?.meeting_time && (
+                    <p className="mt-1 text-sm font-semibold text-[#617A55]">
+                      ساعة التجمع: <bdi dir="ltr">{formatMeetingTime(application.trips.meeting_time)}</bdi>
+                      {application.trips.meeting_point ? ` - ${application.trips.meeting_point}` : ''}
+                    </p>
+                  )}
                 </div>
                 <div className="flex shrink-0 items-center gap-3">
                   <span

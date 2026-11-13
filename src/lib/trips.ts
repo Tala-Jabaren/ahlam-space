@@ -20,7 +20,18 @@ export type TripRow = {
   cover_image_url: string | null
   status: TripStatus
   created_at: string
+  // Both optional/nullable - existing trips stay without one (no backfill).
+  // meeting_time is 'HH:MM:SS'; when it's null the automatic trip reminder
+  // never fires for this trip (see claim_due_trip_reminders).
+  meeting_time: string | null
+  meeting_point: string | null
 }
+
+// Every .select() against public.trips, in one place, so a column never
+// drifts out of sync between call sites the way it would if each one
+// spelled out its own column list.
+export const TRIP_COLUMNS =
+  'id, title, description, location, starts_on, ends_on, application_deadline, capacity, cover_image_url, status, created_at, meeting_time, meeting_point'
 
 export type TripPhotoRow = {
   id: string
@@ -139,7 +150,7 @@ export async function getOpenTrip(
 ): Promise<{ trip: TripRow | null; error: boolean }> {
   const { data, error } = await supabase
     .from('trips')
-    .select('id, title, description, location, starts_on, ends_on, application_deadline, capacity, cover_image_url, status, created_at')
+    .select(TRIP_COLUMNS)
     .eq('status', 'open')
     .order('starts_on', { ascending: true })
     .limit(5)

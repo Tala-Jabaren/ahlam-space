@@ -1,5 +1,6 @@
 import type { Metadata } from 'next'
 import { LegalDocument, LegalSection } from '@/components/legal/legal-document'
+import { SUPPORT_EMAIL } from '@/content/site-contact'
 
 export const metadata: Metadata = {
   title: 'سياسة الخصوصية | مساحة أحلام',
@@ -27,7 +28,7 @@ export default function PrivacyPage() {
         <p>لا نبيع بياناتك الشخصية.</p>
       </LegalSection>
       <LegalSection title="طلب حذف البيانات">
-        <p>يمكنك طلب حذف بياناتك عبر البريد nmi.ahlam@gmail.com. اذكري في الرسالة أنك تريدين حذف بياناتك، وأضيفي البريد أو رقم الهاتف المرتبط بحسابك أو طلبك حتى نتمكن من تحديد البيانات المطلوبة.</p>
+        <p>يمكنك طلب حذف بياناتك عبر البريد <bdi dir="ltr">{SUPPORT_EMAIL}</bdi>. اذكري في الرسالة أنك تريدين حذف بياناتك، وأضيفي البريد أو رقم الهاتف المرتبط بحسابك أو طلبك حتى نتمكن من تحديد البيانات المطلوبة.</p>
         <p>قد نطلب معلومات تساعدنا على التحقق من أن الطلب يخصك قبل متابعة الحذف.</p>
       </LegalSection>
     </LegalDocument>
