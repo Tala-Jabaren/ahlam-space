@@ -7,6 +7,7 @@ import { isAuthSessionMissingError } from '@supabase/supabase-js'
 import PaymentConfirmationBlock from '@/components/payment-confirmation-block'
 import { useCart } from '@/lib/cart/cart-context'
 import { createClient } from '@/lib/supabase/client'
+import { useExperienceRoutes } from './experience-provider'
 
 import { useT } from '@/i18n/i18n-context'
 import {
@@ -36,6 +37,7 @@ export default function CheckoutForm({
   const formatNumber = (value: number) =>
     new Intl.NumberFormat(locale === 'ar' ? 'ar' : 'en-US').format(value)
   const router = useRouter()
+  const routes = useExperienceRoutes()
   const { items, totalPrice, clearCart } = useCart()
   const isMounted = useSyncExternalStore(
     subscribeToHydration,
@@ -62,8 +64,8 @@ export default function CheckoutForm({
       return
     }
 
-    router.replace('/cart?message=empty-checkout')
-  }, [isMounted, items.length, orderId, router])
+    router.replace(`${routes.cart}?message=empty-checkout`)
+  }, [isMounted, items.length, orderId, router, routes.cart])
 
   async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault()
@@ -91,7 +93,7 @@ export default function CheckoutForm({
     }
 
     if (items.length === 0) {
-      router.replace('/cart?message=empty-checkout')
+      router.replace(`${routes.cart}?message=empty-checkout`)
       return
     }
 
@@ -187,7 +189,7 @@ export default function CheckoutForm({
           {!isGuest && (
             <button
               type="button"
-              onClick={() => router.replace('/orders')}
+              onClick={() => router.replace(routes.orders)}
               className="mt-6 inline-flex min-h-11 items-center justify-center rounded-full bg-[#617A55] px-6 py-3 text-sm font-semibold text-white transition hover:bg-[#526849]"
             >
               {c.order.viewOrders}
@@ -199,7 +201,7 @@ export default function CheckoutForm({
   }
 
   return (
-    <div className="bg-[#F7F6F0] px-5 py-12 sm:px-8 lg:px-10" dir={dir}>
+    <div className="bg-[#F7F6F0] px-5 py-6 sm:px-8 sm:py-8 lg:px-10" dir={dir}>
       <div className="mx-auto max-w-6xl">
         <p className="text-sm font-medium text-[#617A55]">{c.order.eyebrow}</p>
         <h1 className="mt-2 text-4xl font-semibold text-[#25311f] sm:text-5xl">
@@ -405,11 +407,11 @@ export default function CheckoutForm({
             </button>
             <p className="mt-3 text-center text-xs leading-6 text-[#617A55]/70">
               {c.consent.prefix}{' '}
-              <Link href="/legal/terms" className="underline">
+              <Link href="/legal/terms" target={routes.scope === 'member' ? '_blank' : undefined} rel={routes.scope === 'member' ? 'noopener noreferrer' : undefined} className="underline">
                 {c.consent.terms}
               </Link>{' '}
               {c.consent.and}{' '}
-              <Link href="/legal/cancellation" className="underline">
+              <Link href="/legal/cancellation" target={routes.scope === 'member' ? '_blank' : undefined} rel={routes.scope === 'member' ? 'noopener noreferrer' : undefined} className="underline">
                 {c.consent.cancellation}
               </Link>
             </p>

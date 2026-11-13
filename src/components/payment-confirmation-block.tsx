@@ -9,6 +9,7 @@ type Props = {
   amount: number
   reference: string
   title?: string
+  showAdminWarning?: boolean
 }
 
 // Shown right after placing an order / buying a course / booking a paid
@@ -17,6 +18,7 @@ export default function PaymentConfirmationBlock({
   amount,
   reference,
   title,
+  showAdminWarning = true,
 }: Props) {
   const { t, locale, dir } = useT()
   const c = t.checkout ?? checkoutAr
@@ -79,7 +81,7 @@ export default function PaymentConfirmationBlock({
         </button>
       </p>
 
-      {bankDetailsArePlaceholders && (
+      {showAdminWarning && bankDetailsArePlaceholders && (
         <p role="alert" className="mt-3 rounded-lg border-2 border-red-600 bg-red-50 p-3 font-semibold text-red-700">
           تنبيه للإدارة: بيانات الحساب البنكي ما زالت نموذجية (placeholder) في src/lib/bank-details.ts. يجب استبدالها بالبيانات الحقيقية قبل الإطلاق.
         </p>

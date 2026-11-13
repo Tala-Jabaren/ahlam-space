@@ -2,6 +2,8 @@
 
 import { useMemo, useState } from 'react'
 import Image from 'next/image'
+import Link from 'next/link'
+import { useExperienceRoutes } from '@/components/commerce/experience-provider'
 import { useT } from '@/i18n/i18n-context'
 import AddToCartButton from './[id]/add-to-cart-button'
 import type { ShopProduct } from './page'
@@ -23,6 +25,7 @@ export default function ShopCatalog({
   hasError: boolean
 }) {
   const { t, locale, dir } = useT()
+  const routes = useExperienceRoutes()
   const [search, setSearch] = useState('')
   const [category, setCategory] = useState<Category>('all')
   const [sortOrder, setSortOrder] = useState<SortOrder>('default')
@@ -62,7 +65,10 @@ export default function ShopCatalog({
 
   return (
     <div className="bg-[#F7F6F0] pb-16" dir={dir}>
-      <section className="overflow-hidden border-b border-[#617A55]/10 bg-[#D6E2B6]/35">
+      {routes.scope === 'member' ? <header className="mx-auto max-w-7xl px-4 sm:px-8 lg:px-10">
+        <h1 className="font-serif text-3xl text-[#25311f] sm:text-4xl">{t.nav.shop}</h1>
+        <p className="mt-2 text-sm leading-7 text-[#617A55]">{t.shop.list.heroParagraph}</p>
+      </header> : <section className="overflow-hidden border-b border-[#617A55]/10 bg-[#D6E2B6]/35">
         <div className="mx-auto grid min-h-[300px] max-w-7xl lg:grid-cols-[1.05fr_0.95fr]">
           <div className="relative min-h-56 overflow-hidden bg-[#C7D6E8]/45 lg:min-h-full">
             <Image
@@ -85,7 +91,7 @@ export default function ShopCatalog({
             </p>
           </div>
         </div>
-      </section>
+      </section>}
 
       <main className="mx-auto max-w-7xl px-4 pt-7 sm:px-8 lg:px-10">
         <div className="grid gap-4 border-b border-[#617A55]/12 pb-7 lg:grid-cols-[minmax(220px,0.8fr)_minmax(0,1.4fr)_220px] lg:items-center">
@@ -180,7 +186,7 @@ export default function ShopCatalog({
                   </div>
 
                   <div className="flex flex-1 flex-col p-4">
-                    <h2 className="font-serif text-xl leading-tight text-[#25311f] sm:text-2xl">{product.name}</h2>
+                    <h2 className="font-serif text-xl leading-tight text-[#25311f] sm:text-2xl"><Link href={`${routes.shop}/${product.id}`} className="rounded underline-offset-4 hover:underline focus-visible:outline-2 focus-visible:outline-[#617A55]">{product.name}</Link></h2>
                     {product.description && (
                       <p className="mt-2 line-clamp-2 text-sm leading-6 text-[#617A55]/80">{product.description}</p>
                     )}
