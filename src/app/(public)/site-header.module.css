@@ -2,6 +2,21 @@
    global .site-header behaviour are deliberately left unchanged. */
 .mobileControls { display: none; }
 
+.headerAccount {
+  display: inline-flex;
+  flex-shrink: 0;
+  align-items: center;
+  justify-content: center;
+  border-radius: 9999px;
+  background: var(--blue-soft);
+  color: var(--blue-deep);
+  font-weight: 600;
+  white-space: nowrap;
+  transition: background-color 0.2s ease, color 0.2s ease;
+}
+.headerAccount:hover { background: var(--blue-mist); }
+.headerAccount:focus-visible { outline: 2px solid currentColor; outline-offset: 3px; }
+
 .iconButton {
   display: inline-flex;
   flex: 0 0 auto;
@@ -191,7 +206,14 @@
   .barLogo { white-space: nowrap; font-size: 22px; }
   .barLogo:focus-visible { outline: 2px solid currentColor; outline-offset: 3px; }
   .desktopLinks { display: none; }
-  .mobileControls { display: flex; align-items: center; gap: 6px; }
+  .mobileControls { display: flex; flex-shrink: 0; align-items: center; gap: 4px; }
+  .mobileControls .headerAccount { min-block-size: 36px; padding-inline: 10px; font-size: 13px; }
+}
+
+@media (width < 400px) {
+  .bar { gap: 6px; padding-inline: 12px 8px; }
+  .barLogo { font-size: clamp(18px, 5vw, 20px); }
+  .mobileControls .headerAccount { padding-inline: 8px; font-size: 12px; }
 }
 
 @media (min-width: 1024px) {
@@ -205,7 +227,8 @@
   .drawer .languageHighlight,
   .iconButton,
   .drawer a,
-  .drawer button { transition: none; animation: none; }
+  .drawer button,
+  .headerAccount { transition: none; animation: none; }
 }
 @media (width < 1024px) and (prefers-reduced-motion: reduce) {
   .bar { transition: none; }

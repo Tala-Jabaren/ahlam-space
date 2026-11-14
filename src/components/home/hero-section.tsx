@@ -8,13 +8,8 @@ export type HeroCopy = {
   heroParagraph: string
   heroCtaBookNow: string
   heroJoinCta: string
-  heroMySessions: string
   heroImageAlt: string
   heroChips: string[]
-}
-
-type HeroNavCopy = {
-  login: string
 }
 
 const focusRing = 'focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white'
@@ -37,12 +32,10 @@ function CheckIcon() {
 // readable either way.
 export default function HeroSection({
   copy,
-  nav,
   dir,
   isAuthenticated,
 }: {
   copy: HeroCopy
-  nav: HeroNavCopy
   dir: 'rtl' | 'ltr'
   isAuthenticated: boolean
 }) {
@@ -96,32 +89,17 @@ export default function HeroSection({
             <div className="mt-8 flex flex-wrap gap-3">
               <Link
                 href="/classes"
-                className={`inline-flex min-h-12 items-center justify-center rounded-full bg-[#55684A] px-7 py-3 text-sm font-semibold text-white transition hover:bg-[#34472B] ${focusRing}`}
+                className={`inline-flex min-h-12 items-center justify-center rounded-full bg-blue-soft px-7 py-3 text-sm font-semibold text-blue-deep transition hover:bg-blue-mist ${focusRing}`}
               >
                 {copy.heroCtaBookNow}
               </Link>
-              {isAuthenticated ? (
+              {!isAuthenticated && (
                 <Link
-                  href="/member-schedule"
+                  href="/sign-up"
                   className={`hero-chip-glass inline-flex min-h-12 items-center justify-center rounded-full px-7 py-3 text-sm font-semibold text-white transition hover:bg-white/25 ${focusRing}`}
                 >
-                  {copy.heroMySessions}
+                  {copy.heroJoinCta}
                 </Link>
-              ) : (
-                <>
-                  <Link
-                    href="/sign-up"
-                    className={`hero-chip-glass inline-flex min-h-12 items-center justify-center rounded-full px-7 py-3 text-sm font-semibold text-white transition hover:bg-white/25 ${focusRing}`}
-                  >
-                    {copy.heroJoinCta}
-                  </Link>
-                  <Link
-                    href="/login"
-                    className={`inline-flex min-h-12 items-center text-sm font-semibold text-white underline-offset-4 hover:underline ${focusRing}`}
-                  >
-                    {nav.login}
-                  </Link>
-                </>
               )}
             </div>
 
