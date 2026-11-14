@@ -81,7 +81,12 @@ export default function StatsSection({ stats, eyebrow }: { stats: SiteStat[]; ey
 
   if (confirmed.length === 0) return null
 
-  const colsClass = confirmed.length >= 2 ? 'grid-cols-2' : 'grid-cols-1'
+  // 3 confirmed stats reads much better as one clean row than as a 2+1
+  // wrap (grid-cols-2 would leave the 3rd item alone on its own line) -
+  // dividerClass's existing "border-s on every item but the first"
+  // fallback (anything other than the 4-item cross) already produces
+  // plain vertical dividers that fit a single row perfectly as-is.
+  const colsClass = confirmed.length === 3 ? 'grid-cols-3' : confirmed.length >= 2 ? 'grid-cols-2' : 'grid-cols-1'
 
   // No own <section>/outer padding - the caller (ArcGallerySection)
   // positions this (inside the desktop arc's circle, or below the mobile
