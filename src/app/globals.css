@@ -259,24 +259,24 @@ body {
 /* ============================================================= */
 
 /* Photos start collapsed in an overlapping fan and spread out along a
-   half-circle arc WHILE the section scrolls through the viewport - no
-   pinning, no tall scroll runway (an earlier pass used position: sticky
-   inside a 130vh container specifically to hold the fully-spread state
-   on screen for a while; that meant the content after the stats had to
-   wait for that whole runway to scroll past first, leaving a large empty
-   band under the stats the entire time - removed for exactly that
-   reason). The container's own height is now just its one child's
-   natural height (.arc-sticky-box's explicit ring-span height, below) -
-   the next section starts right after it, normal document flow, normal
-   rhythm.
+   half-circle arc as the section scrolls through view, driven by one
+   inherited, animatable custom property (--spread, 0 = collapsed, 1 =
+   fully spread - registered with @property so a scroll-timeline keyframe
+   can interpolate it smoothly instead of just jumping between values).
+   Default (outside @supports or under reduced motion): --spread sits at
+   its registered initial value of 1 - straight to the fully-spread
+   state, statically, with the container at its normal (non-sticky,
+   auto-height) layout - motion is additive, never required to see the
+   end state.
 
-   Driven by one inherited, animatable custom property (--spread, 0 =
-   collapsed, 1 = fully spread - registered with @property so the
-   view()-timeline keyframe can interpolate it smoothly instead of just
-   jumping between values). Default (outside @supports or under reduced
-   motion): --spread sits at its registered initial value of 1 - straight
-   to the fully-spread state, statically - motion is additive, never
-   required to see the end state. */
+   DESKTOP ONLY (>=769px, see the @media below): the sticky-pinned, 130vh
+   runway was briefly removed (it was leaving a large empty band under
+   the stats before the next section could appear) and replaced with a
+   normal-flow, content-height container - restored here exactly as it
+   was before that change, by explicit request, scoped so it can never
+   affect the mobile carousel (which never used this mechanism at all).
+   Mobile keeps the no-pin behaviour unconditionally - see the .arc-mobile
+   block further down. */
 @property --spread {
   syntax: '<number>';
   inherits: true;
@@ -287,25 +287,29 @@ body {
   height: auto;
 }
 .arc-sticky-box {
-  position: relative;
+  position: static;
 }
 @supports (animation-timeline: view()) {
   @media (prefers-reduced-motion: no-preference) {
-    .arc-spread-container {
-      /* The subject of its own view() timeline - tracks ITS OWN natural-
-         height box scrolling through the viewport, not an artificially
-         tall one. entry 10% -> entry 75%: finishes entirely within the
-         section's own entry phase (it never reaches "cover", which on a
-         section shorter than the viewport keeps going until the section
-         is nearly scrolled past entirely - measured that first and it
-         finished the fan right as the top/centre photo was passing
-         under the floating header). Ending at entry 75% instead means
-         --spread reaches 1 - and the stats fully reveal - while the
-         section's top is still comfortably below the header, verified
-         against the actual rendered photo position. */
-      animation: arc-spread-progress linear both;
-      animation-timeline: view();
-      animation-range: entry 10% entry 75%;
+    @media (min-width: 769px) {
+      .arc-spread-container {
+        height: 130vh;
+        animation: arc-spread-progress linear both;
+        animation-timeline: view();
+        animation-range: entry 15% cover 50%;
+      }
+      .arc-sticky-box {
+        /* max(8vh, 110px): the floating header is fixed, up to ~94px tall
+           including its own top offset (its unscrolled, inset/floating
+           variant - see site-header.tsx) - 8vh alone falls short of that
+           on shorter viewports, letting the header cover the top/centre
+           photo once the arc is fully spread. 110px clears it with a
+           margin, verified against the rendered photo position (peak -
+           half the photo's own height above --peak); 8vh still wins on
+           tall viewports. */
+        position: sticky;
+        top: max(8vh, 110px);
+      }
     }
     .arc-photo {
       will-change: transform;
@@ -324,29 +328,25 @@ body {
    and the tick ring share that same single anchor point (left: 50%, top:
    var(--peak)) and move purely via transform from there.
 
-   The box's height is NOT content-driven - the photos/ring/stats inside
-   it are all position: absolute, so none of them contribute to an auto
-   height on their own. An earlier pass sized this to the dashed ring's
-   OWN full visible span (peak + radius*1.32 + 9.6px) - that matched the
-   ring's circle, but the stats sit centered at that span's MIDPOINT
-   (see .arc-stats-slot below), not near its bottom, so roughly half of
-   that height was always empty space below the stats. A sticky-pinned
-   layout never showed that as a literal gap; a normal-flow one (no more
-   pinning - see the fix above) does, directly as "the big empty band
-   under the stats." Sized instead to clear the stats block's own real
-   bottom edge - peak + radius*0.66 (how far down the stats' own centre
-   sits, same dome-drop term the stats formula below uses) + 104px (the
-   stats card's own ~107px half-height once fully revealed - scale(1),
-   translateY(0), measured at that state specifically, since
-   arc-stats-slot's own reveal transform shifts/scales it slightly while
-   --spread is still animating - plus a small safety margin) - so the
-   section ends right where the stats visually end once fully revealed,
-   and the ~24-48px gap to the next section comes only from this
-   section's own padding-bottom, not from unused box height. */
+   The box's height is NOT content-driven here - restored (by explicit
+   request, alongside the sticky stage above) to the ring-span formula
+   this had before: peak + radius*M + 9.6px, where M was the ring's own
+   full visible-height multiplier (1.32 = diameter * 0.66). Measured with
+   that exact M: the gap between the stats' own bottom edge and this
+   box's bottom edge - i.e. the blank band visible while pinned, below
+   the stats, before the box ends - was 162px at 1280x720 and 194px at
+   1440x900, both over the 100px ceiling asked for. Trimmed ONLY that:
+   M reduced from 1.32 to 1.07 (measured down to 66px/86px) - the
+   pinning, the animation-range, and every other formula (ring size,
+   photo/stats position) are untouched; this number only ever affected
+   how much of the box's own height is blank space below the stats while
+   pinned, never the arc/ring's own drawn geometry. --radius/--peak also
+   directly size arc-stats-slot's centering math further down, so ring/
+   photos/stats stay geometrically consistent from these two values. */
 .arc-sticky-box {
   --radius: clamp(340px, 30vw, 440px);
   --peak: 100px;
-  height: calc(var(--peak) + var(--radius) * 0.66 + 104px);
+  height: calc(var(--peak) + var(--radius) * 1.07 + 9.6px);
 }
 
 .arc-photo {
@@ -366,8 +366,11 @@ body {
    --radius (plus a fixed margin, so it always sits one ring-width
    further out than the photos, never behind their centres), clipped to
    roughly the top two-thirds - the vertical extent the +/-70deg photo
-   sweep actually reaches (1 - cos(70deg) =~ 0.66). Drawn in via
-   opacity/scale only as --spread goes 0 -> 1. */
+   sweep actually reaches (1 - cos(70deg) =~ 0.66; the ring's own clip-
+   path/size below are independent of .arc-sticky-box's height formula,
+   which was trimmed from that same 0.66-derived value - see the comment
+   there). Drawn in via opacity/scale only as
+   --spread goes 0 -> 1. */
 .arc-tick-ring {
   position: absolute;
   left: 50%;
@@ -417,7 +420,7 @@ body {
    is what actually centers the first/last card via scroll-snap (half the
    viewport minus half a card), not a visual gutter. */
 .arc-carousel {
-  --card-w: clamp(240px, 72vw, 320px);
+  --card-w: clamp(200px, 60vw, 270px);
   display: flex;
   gap: 14px;
   width: 100vw;
@@ -478,10 +481,12 @@ body {
 .arc-mobile-stats {
   display: flex;
   justify-content: center;
-  /* The "no gap, small overlap" look: pulled up into the carousel's own
-     bottom edge. The stats card's own white background + shadow is what
-     reads as "on top", so no z-index juggling is needed. */
-  margin-top: -22px;
+  /* Positive gap now (was a -22px overlap pulling the pill up into the
+     carousel's own drop-shadow, where it read as partly covered/dim even
+     though its own opacity was always 1 - by request, plain spacing
+     instead: carousel -> 14px -> pill -> 12px (StatsSection's own mt-3
+     between the pill and the card, unchanged) -> stats card). */
+  margin-top: 14px;
   padding-inline: 16px;
 }
 
