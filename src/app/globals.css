@@ -380,7 +380,7 @@ body {
   --reveal: clamp(0, calc((var(--spread) - 0.7) / 0.3), 1);
   position: absolute;
   left: 50%;
-  top: calc(var(--peak) + var(--radius) * 0.85);
+  top: calc(var(--peak) + var(--radius) * 1.32);
   opacity: var(--reveal);
   transform:
     translate(-50%, -50%)
