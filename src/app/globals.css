@@ -259,15 +259,24 @@ body {
 /* ============================================================= */
 
 /* Photos start collapsed in an overlapping fan and spread out along a
-   half-circle arc as the section scrolls through view, driven by one
-   inherited, animatable custom property (--spread, 0 = collapsed, 1 =
-   fully spread - registered with @property so a scroll-timeline keyframe
-   can interpolate it smoothly instead of just jumping between values).
-   Default (outside @supports or under reduced motion): --spread sits at
-   its registered initial value of 1 - straight to the fully-spread
-   state, statically, with the container at its normal (non-sticky,
-   auto-height) layout - motion is additive, never required to see the
-   end state. */
+   half-circle arc WHILE the section scrolls through the viewport - no
+   pinning, no tall scroll runway (an earlier pass used position: sticky
+   inside a 130vh container specifically to hold the fully-spread state
+   on screen for a while; that meant the content after the stats had to
+   wait for that whole runway to scroll past first, leaving a large empty
+   band under the stats the entire time - removed for exactly that
+   reason). The container's own height is now just its one child's
+   natural height (.arc-sticky-box's explicit ring-span height, below) -
+   the next section starts right after it, normal document flow, normal
+   rhythm.
+
+   Driven by one inherited, animatable custom property (--spread, 0 =
+   collapsed, 1 = fully spread - registered with @property so the
+   view()-timeline keyframe can interpolate it smoothly instead of just
+   jumping between values). Default (outside @supports or under reduced
+   motion): --spread sits at its registered initial value of 1 - straight
+   to the fully-spread state, statically - motion is additive, never
+   required to see the end state. */
 @property --spread {
   syntax: '<number>';
   inherits: true;
@@ -278,27 +287,25 @@ body {
   height: auto;
 }
 .arc-sticky-box {
-  position: static;
+  position: relative;
 }
 @supports (animation-timeline: view()) {
   @media (prefers-reduced-motion: no-preference) {
     .arc-spread-container {
-      height: 130vh;
+      /* The subject of its own view() timeline - tracks ITS OWN natural-
+         height box scrolling through the viewport, not an artificially
+         tall one. entry 10% -> entry 75%: finishes entirely within the
+         section's own entry phase (it never reaches "cover", which on a
+         section shorter than the viewport keeps going until the section
+         is nearly scrolled past entirely - measured that first and it
+         finished the fan right as the top/centre photo was passing
+         under the floating header). Ending at entry 75% instead means
+         --spread reaches 1 - and the stats fully reveal - while the
+         section's top is still comfortably below the header, verified
+         against the actual rendered photo position. */
       animation: arc-spread-progress linear both;
       animation-timeline: view();
-      animation-range: entry 15% cover 50%;
-    }
-    .arc-sticky-box {
-      /* max(8vh, 110px): the floating header is fixed, up to ~94px tall
-         including its own top offset (its unscrolled, inset/floating
-         variant - see site-header.tsx) - 8vh alone falls short of that
-         on shorter viewports, letting the header cover the top/centre
-         photo once the arc is fully spread. 110px clears it with a
-         margin, verified against the rendered photo position (peak -
-         half the photo's own height above --peak); 8vh still wins on
-         tall viewports. */
-      position: sticky;
-      top: max(8vh, 110px);
+      animation-range: entry 10% entry 75%;
     }
     .arc-photo {
       will-change: transform;
@@ -317,16 +324,29 @@ body {
    and the tick ring share that same single anchor point (left: 50%, top:
    var(--peak)) and move purely via transform from there.
 
-   The box's height is NOT content-driven here (unlike an earlier pass) -
-   it's set to exactly match the dashed ring's own visible height
-   (peak + radius*1.32 + 9.6px - derived below), per spec ("section
-   height must equal the circle's height"). --radius/--peak also directly
-   size arc-stats-slot's centering math further down, so all three (ring,
-   photos, stats) stay geometrically consistent from these two values. */
+   The box's height is NOT content-driven - the photos/ring/stats inside
+   it are all position: absolute, so none of them contribute to an auto
+   height on their own. An earlier pass sized this to the dashed ring's
+   OWN full visible span (peak + radius*1.32 + 9.6px) - that matched the
+   ring's circle, but the stats sit centered at that span's MIDPOINT
+   (see .arc-stats-slot below), not near its bottom, so roughly half of
+   that height was always empty space below the stats. A sticky-pinned
+   layout never showed that as a literal gap; a normal-flow one (no more
+   pinning - see the fix above) does, directly as "the big empty band
+   under the stats." Sized instead to clear the stats block's own real
+   bottom edge - peak + radius*0.66 (how far down the stats' own centre
+   sits, same dome-drop term the stats formula below uses) + 104px (the
+   stats card's own ~107px half-height once fully revealed - scale(1),
+   translateY(0), measured at that state specifically, since
+   arc-stats-slot's own reveal transform shifts/scales it slightly while
+   --spread is still animating - plus a small safety margin) - so the
+   section ends right where the stats visually end once fully revealed,
+   and the ~24-48px gap to the next section comes only from this
+   section's own padding-bottom, not from unused box height. */
 .arc-sticky-box {
   --radius: clamp(340px, 30vw, 440px);
   --peak: 100px;
-  height: calc(var(--peak) + var(--radius) * 1.32 + 9.6px);
+  height: calc(var(--peak) + var(--radius) * 0.66 + 104px);
 }
 
 .arc-photo {
@@ -346,11 +366,8 @@ body {
    --radius (plus a fixed margin, so it always sits one ring-width
    further out than the photos, never behind their centres), clipped to
    roughly the top two-thirds - the vertical extent the +/-70deg photo
-   sweep actually reaches (1 - cos(70deg) =~ 0.66, hence the height
-   formula on .arc-sticky-box above: diameter * 0.66 = (radius*2+60)*0.66
-   = radius*1.32 + 39.6, plus the ring's own -30px top offset relative to
-   --peak = radius*1.32 + 9.6). Drawn in via opacity/scale only as
-   --spread goes 0 -> 1. */
+   sweep actually reaches (1 - cos(70deg) =~ 0.66). Drawn in via
+   opacity/scale only as --spread goes 0 -> 1. */
 .arc-tick-ring {
   position: absolute;
   left: 50%;
