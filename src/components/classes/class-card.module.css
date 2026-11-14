@@ -18,7 +18,7 @@
 .meta { display:flex; align-items:center; justify-content:space-between; gap:10px; padding-block:10px; border-block-start:1px solid rgb(97 122 85 / 14%); font-size:13px; line-height:1.5; color:#4f5d49; }
 .metaInfo { min-inline-size:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
 .price { flex:none; margin:0; font-size:17px; font-weight:600; color:#25311f; }
-.footer { margin-block-start:auto; min-block-size:128px; padding-block-start:4px; }
+.footer { margin-block-start:auto; padding-block-start:4px; }
 .bookingAction > div { inline-size:100%; }
 .bookingAction :global(p.text-xs) { color:#4f5d49; }
 .button { display:inline-flex; align-items:center; justify-content:center; min-block-size:46px; inline-size:100%; padding:12px 16px; border:0; border-radius:10px; background:#55684A; color:white; font-size:14px; font-weight:600; line-height:1.5; cursor:pointer; transition:background-color .2s ease; }
