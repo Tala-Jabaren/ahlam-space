@@ -120,13 +120,18 @@ export const en: typeof ar = {
     remainingSeatsSuffix: 'spots left',
     statsEyebrow: 'Some of what we’ve accomplished together',
     reviews: {
-      heading: 'Participant Reviews',
+      eyebrow: 'Participant Reviews',
+      heading: 'What do participants say?',
+      headingAccent: 'participants say?',
+      subtitle: 'Real experiences from our community',
       fallbackName: 'Participant',
       readMore: 'Read more',
-      readLess: 'Show less',
-      pauseReviews: 'Pause reviews motion',
-      resumeReviews: 'Resume reviews motion',
       carouselAriaLabel: 'Participant reviews',
+      previousReview: 'Previous review',
+      nextReview: 'Next review',
+      goToReview: 'Go to review number',
+      dialogTitle: 'Full review',
+      dialogClose: 'Close',
     },
     trips: {
       // Only the trip photos themselves still feed the arc gallery's

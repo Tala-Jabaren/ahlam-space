@@ -116,13 +116,18 @@ export const ar = {
     remainingSeatsSuffix: 'أماكن متبقية',
     statsEyebrow: 'بعض ما أنجزناه معًا',
     reviews: {
-      heading: 'آراء المشاركات',
+      eyebrow: 'آراء المشاركات',
+      heading: 'ماذا تقول المشاركات؟',
+      headingAccent: 'تقول المشاركات؟',
+      subtitle: 'تجارب حقيقية من مجتمعنا',
       fallbackName: 'مشاركة',
       readMore: 'اقرئي المزيد',
-      readLess: 'عرض أقل',
-      pauseReviews: 'إيقاف حركة الآراء',
-      resumeReviews: 'تشغيل حركة الآراء',
       carouselAriaLabel: 'آراء المشاركات',
+      previousReview: 'المراجعة السابقة',
+      nextReview: 'المراجعة التالية',
+      goToReview: 'الانتقال إلى المراجعة رقم',
+      dialogTitle: 'نص المراجعة الكاملة',
+      dialogClose: 'إغلاق',
     },
     trips: {
       // Only the trip photos themselves still feed the arc gallery's
