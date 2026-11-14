@@ -208,7 +208,7 @@ export const en: typeof ar = {
       ],
       spaceTitle: 'A space that feels like you',
       spaceText: 'A warm, supportive atmosphere for anyone seeking balance in everyday life.',
-      spaceImageAlt: 'A candle, plants and notebooks in a quiet sunlit space',
+      spaceImageAlt: 'Ahlam seated with a singing bowl',
       storyEyebrow: 'MY STORY',
       classHeading: 'What does a class feel like?',
       steps: [

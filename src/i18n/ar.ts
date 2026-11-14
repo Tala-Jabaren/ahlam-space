@@ -204,7 +204,7 @@ export const ar = {
       ],
       spaceTitle: 'مساحة تشبهك',
       spaceText: 'أجواء دافئة وداعمة لكل من تبحث عن توازن في حياتها اليومية.',
-      spaceImageAlt: 'شمعة ونباتات ودفاتر في ضوء الشمس داخل مساحة هادئة',
+      spaceImageAlt: 'أحلام جالسة وتحمل وعاءً صوتيًا',
       storyEyebrow: 'MY STORY',
       classHeading: 'كيف تكون الحصة؟',
       steps: [

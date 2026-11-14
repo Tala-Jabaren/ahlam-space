@@ -1,13 +1,12 @@
 import type { Metadata } from 'next'
 import Image from 'next/image'
 import Link from 'next/link'
-import { ArrowUpRight, Heart, Leaf, Quote, Wind } from 'lucide-react'
+import { ArrowUpRight, Heart, Leaf, Wind } from 'lucide-react'
 import WordRevealText from '@/components/home/word-reveal-text'
 import { getT } from '@/i18n/get-t'
 import { getLocale } from '@/i18n/get-locale'
 import { getDictionary } from '@/i18n/dictionaries'
 import { pageMetadata } from '@/lib/seo'
-import AboutServiceIcon from './about-service-icon'
 import styles from './about.module.css'
 
 export async function generateMetadata(): Promise<Metadata> {
@@ -16,7 +15,6 @@ export async function generateMetadata(): Promise<Metadata> {
   return pageMetadata({ ...t.seo.about, path: '/about', locale })
 }
 
-const offerRoutes = ['/private-sessions', '/courses', '/classes']
 const valueIcons = [Wind, Heart, Leaf]
 
 export default async function AboutPage() {
@@ -32,7 +30,8 @@ export default async function AboutPage() {
         </h1>
         <div className={styles.portraitDrift}>
           <div className={styles.portrait}>
-            <Image src="/images/aboutpic2.png" alt={t.about.imageAlt} fill priority sizes="(min-width: 1200px) 340px, (min-width: 768px) 280px, 320px" />
+            {/* Allow for the square source covering the taller portrait frame. */}
+            <Image src="/images/mainaboutpic.png" alt={t.about.imageAlt} fill priority sizes="(min-width: 1200px) 510px, (min-width: 768px) 420px, 480px" />
           </div>
         </div>
       </div>
@@ -46,7 +45,7 @@ export default async function AboutPage() {
     <div className={styles.marquee} tabIndex={0} role="region" aria-label={copy.marqueeLabel}>
       <div className={styles.marqueeTrack}>
         {[false, true].map((duplicate) => <p key={String(duplicate)} className={styles.marqueeCopy} aria-hidden={duplicate || undefined}>
-          {copy.words.map(word => <span key={word}>{word}<i aria-hidden="true">•</i></span>)}
+          {Array.from({ length: 4 }, (_, repetition) => copy.words.map(word => <span key={`${repetition}-${word}`} className={repetition > 0 ? styles.marqueeRepeat : undefined} aria-hidden={repetition > 0 || undefined}>{word}<i aria-hidden="true">•</i></span>))}
         </p>)}
       </div>
     </div>
@@ -67,7 +66,7 @@ export default async function AboutPage() {
       </div>
       <div className={styles.approachPhoto}>
         <div className={`${styles.spacePhoto} ${styles.reveal}`}>
-          <Image src="/images/SunlitSageMedittionDesk.png" alt={copy.spaceImageAlt} fill sizes="(min-width: 1200px) 520px, (min-width: 768px) 45vw, calc(100vw - 40px)" />
+          <Image src="/images/secondabourpage.png" alt={copy.spaceImageAlt} fill sizes="(min-width: 1200px) 520px, (min-width: 768px) 45vw, calc(100vw - 40px)" />
         </div>
         <div className={styles.floatingNote}><h3>{copy.spaceTitle}</h3><p>{copy.spaceText}</p></div>
       </div>
@@ -102,30 +101,6 @@ export default async function AboutPage() {
           return <article key={value.title} className={`${styles.value} ${styles.reveal}`}><Icon aria-hidden="true" size={26} strokeWidth={1.5} /><h3>{value.title}</h3><p>{value.text}</p></article>
         })}
       </div>
-    </section>
-
-    <section id="movement-quote" aria-label={`${t.about.quoteLine1} ${t.about.quoteLine2}`} className={styles.quoteBand}>
-      <div className={styles.breath} aria-hidden="true" />
-      <figure className={`${styles.container} ${styles.quote}`}>
-        <Quote aria-hidden="true" size={36} strokeWidth={1.2} />
-        <blockquote>
-          <WordRevealText text={t.about.quoteLine1} className={styles.quoteLine} fullColor="#25311f" dimBackground="#617A55" />
-          <WordRevealText text={t.about.quoteLine2} className={styles.quoteLine} fullColor="#25311f" dimBackground="#617A55" />
-        </blockquote>
-        <figcaption>{t.about.quoteAuthor}</figcaption>
-      </figure>
-    </section>
-
-    <section id="what-i-offer" aria-labelledby="offers-title" className={`${styles.container} ${styles.section}`}>
-      <h2 id="offers-title" className={`${styles.heading} ${styles.reveal}`}>{t.about.offerHeading}</h2>
-      <ul className={`${styles.offers} ${styles.stagger}`} tabIndex={0} aria-label={copy.offersLabel}>
-        {t.about.services.map((service, index) => <li key={service.title} className={`${styles.offerShell} ${styles.reveal}`}>
-          <Link href={offerRoutes[index]} className={styles.offerCard}>
-            <span className={styles.offerIcon}><AboutServiceIcon index={index} /></span><h3>{service.title}</h3><p>{service.description}</p>
-            <ArrowUpRight className={styles.offerArrow} aria-hidden="true" size={24} strokeWidth={1.5} />
-          </Link>
-        </li>)}
-      </ul>
     </section>
 
     <section id="start-your-journey" aria-labelledby="closing-title" className={`${styles.container} ${styles.section} ${styles.closing}`}>
