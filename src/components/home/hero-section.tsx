@@ -1,5 +1,6 @@
 import Image from 'next/image'
 import Link from 'next/link'
+import localFont from 'next/font/local'
 import WordRevealText from './word-reveal-text'
 
 export type HeroCopy = {
@@ -11,6 +12,13 @@ export type HeroCopy = {
   heroImageAlt: string
   heroChips: string[]
 }
+
+const milanTitles = localFont({
+  src: '../../../public/fonts/Milan_Titles_Black.otf',
+  weight: '900',
+  style: 'normal',
+  display: 'swap',
+})
 
 const focusRing = 'focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white'
 
@@ -80,7 +88,7 @@ export default function HeroSection({
       <div dir={dir} className="relative z-10 w-full px-5 pb-16 pt-32 sm:px-8 sm:pb-20 lg:px-10">
         <div className="mx-auto max-w-7xl">
           <div className="max-w-2xl">
-            <h1 className="font-serif leading-[1.05] text-white" style={{ fontSize: 'clamp(2.5rem, 6vw, 5.5rem)' }}>
+            <h1 className={`${milanTitles.className} text-balance leading-[1.05] text-white`} style={{ fontSize: 'clamp(2.5rem, 6vw, 5.5rem)' }}>
               <WordRevealText text={copy.heroHeadingLine1} reveal="load" className="block" />
               <WordRevealText text={copy.heroHeadingLine2} reveal="load" className="block" />
             </h1>
