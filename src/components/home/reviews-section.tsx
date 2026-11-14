@@ -95,22 +95,21 @@ function ReviewCard({
         </button>
       )}
 
-      {/* DOM order is name -> dash -> avatar, not the reverse: in this RTL
-          card, the first child renders at the reading-start (right) edge,
-          so this order is what actually puts the name on the right and
-          the avatar on the left, matching the reference design. */}
+      {/* DOM order is avatar -> dash -> name: in this RTL card, the first
+          child renders at the reading-start (right) edge, so this order
+          is what puts the photo on the right with the name beside it. */}
       <figcaption className={styles.footer}>
-        <span className="min-w-0 truncate text-sm font-semibold text-[#34472B]">{name}</span>
+        <span className={styles.avatar} aria-hidden="true">
+          {review.photo_url ? (
+            <Image src={review.photo_url} alt="" width={56} height={56} className={styles.avatarImg} />
+          ) : (
+            <FallbackIcon size={24} strokeWidth={1.75} />
+          )}
+        </span>
         <span aria-hidden="true" className="shrink-0 text-[#34472B]/40">
           —
         </span>
-        <span className={styles.avatar} aria-hidden="true">
-          {review.photo_url ? (
-            <Image src={review.photo_url} alt="" width={40} height={40} className={styles.avatarImg} />
-          ) : (
-            <FallbackIcon size={18} strokeWidth={1.75} />
-          )}
-        </span>
+        <span className="min-w-0 truncate text-sm font-semibold text-[#34472B]">{name}</span>
       </figcaption>
     </figure>
   )
