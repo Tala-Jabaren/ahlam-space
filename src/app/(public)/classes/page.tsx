@@ -6,6 +6,7 @@ import { getLocale } from '@/i18n/get-locale'
 import { getDictionary } from '@/i18n/dictionaries'
 import { pageMetadata } from '@/lib/seo'
 import ClassCard from '@/components/classes/class-card'
+import ClassesBanner from '@/components/classes/classes-banner'
 import type { ClassSession } from '@/components/classes/types'
 import { classCardData, loadClassBookings } from '@/lib/class-cards'
 import styles from '@/components/classes/class-card.module.css'
@@ -56,31 +57,34 @@ export default async function ClassesPage({ searchParams }: {
   const now = new Date()
   const current = await loadClassBookings(supabase, user?.id ?? null, upcoming.map(session => session.id), now)
 
-  return <div className="px-5 py-16 sm:px-8 lg:px-10" dir={dir}>
-    <section className="mx-auto max-w-7xl">
-      <div className="max-w-3xl space-y-5">
-        <p className="text-sm font-medium uppercase tracking-[0.28em] text-[#617A55]">{t.classes.eyebrow}</p>
-        <h1 className="font-serif text-5xl leading-tight text-[#25311f] sm:text-6xl">{t.classes.heading}</h1>
-        <p className="text-lg leading-8 text-[#4f5d49]">{t.classes.subtitle}</p>
-      </div>
-    </section>
-    <section className="mx-auto mt-12 max-w-7xl">
-      {!classes || classes.length === 0 ? <div className="rounded-[1.75rem] bg-[#C7D6E8]/55 p-8 text-[#4f5d49]">{t.classes.noClasses}</div>
-        : <div className="grid gap-10">
-          {classes.map(classItem => {
-            const classSessions = sessionsByClass.get(classItem.id) ?? []
-            return <section key={classItem.id} aria-labelledby={`class-${classItem.id}`}>
-              <h2 id={`class-${classItem.id}`} className="mb-5 font-serif text-3xl text-[#25311f]">{classItem.name}</h2>
-              {classSessions.length === 0 ? <p className="rounded-lg bg-[#C7D6E8]/35 p-4 text-sm text-[#4f5d49]">{t.classes.noUpcoming}</p>
-                : <div className={styles.grid}>
-                  {classSessions.map(session => <ClassCard key={session.id} headingLevel={3} session={classCardData(session, locale, {
-                    now, classInfo: classItem, booking: current.bookings.get(session.id), known: current.known,
-                    authenticated: Boolean(user), requested: requestedSessionId === session.id,
-                  })} />)}
-                </div>}
-            </section>
-          })}
-        </div>}
-    </section>
+  return <div dir={dir}>
+    <ClassesBanner />
+    <div className="px-5 py-16 sm:px-8 lg:px-10">
+      <section className="mx-auto max-w-7xl">
+        <div className="max-w-3xl space-y-5">
+          <p className="text-sm font-medium uppercase tracking-[0.28em] text-[#617A55]">{t.classes.eyebrow}</p>
+          <h1 className="font-serif text-5xl leading-tight text-[#25311f] sm:text-6xl">{t.classes.heading}</h1>
+          <p className="text-lg leading-8 text-[#4f5d49]">{t.classes.subtitle}</p>
+        </div>
+      </section>
+      <section className="mx-auto mt-12 max-w-7xl">
+        {!classes || classes.length === 0 ? <div className="rounded-[1.75rem] bg-[#C7D6E8]/55 p-8 text-[#4f5d49]">{t.classes.noClasses}</div>
+          : <div className="grid gap-10">
+            {classes.map(classItem => {
+              const classSessions = sessionsByClass.get(classItem.id) ?? []
+              return <section key={classItem.id} aria-labelledby={`class-${classItem.id}`}>
+                <h2 id={`class-${classItem.id}`} className="mb-5 font-serif text-3xl text-[#25311f]">{classItem.name}</h2>
+                {classSessions.length === 0 ? <p className="rounded-lg bg-[#C7D6E8]/35 p-4 text-sm text-[#4f5d49]">{t.classes.noUpcoming}</p>
+                  : <div className={styles.grid}>
+                    {classSessions.map(session => <ClassCard key={session.id} headingLevel={3} session={classCardData(session, locale, {
+                      now, classInfo: classItem, booking: current.bookings.get(session.id), known: current.known,
+                      authenticated: Boolean(user), requested: requestedSessionId === session.id,
+                    })} />)}
+                  </div>}
+              </section>
+            })}
+          </div>}
+      </section>
+    </div>
   </div>
 }
