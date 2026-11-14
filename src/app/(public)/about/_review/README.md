@@ -15,7 +15,7 @@ Captured with reduced motion to show final readable states. Shared site chrome i
 
 ## Risk list
 
-Audited refs: main `8d29b705500a99b3f47a0dca7ce0317779add853`, home `0bd5dfd7103bf0ebf9775212c3bad19bec4e2083`, About code `e413a19eabe9f06e5a74f0b90f236b1a5b77be17`.
+Audited refs: main `8f91a0af4ae8cf0461c3f061a7d3348f40a5ba4c`, home `6f68afe404f81f6b137494ee1b92b47fe232e3c4`, About code `fed27d008a2ea1c08bbc0ce6bd9c5e2270a976f6`.
 
 | Area | Home → main pending diff | About → home pending diff |
 |---|---|---|
@@ -40,14 +40,14 @@ Exact command: `git diff --stat origin/main...origin/feature/home-redesign`.
 (empty: 0 changed files, 0 additions, 0 deletions)
 ```
 
-Home UI/assets: none pending. Shared styling/layout: none pending. Dictionaries/content: none pending. Backend/config/dependencies: none pending. The latest Home head was merged by [PR #41](https://github.com/Tala-Jabaren/ahlam-space/pull/41); [PR #39](https://github.com/Tala-Jabaren/ahlam-space/pull/39) contains the earlier changes. These merges happened independently while this release review was being prepared; this agent performed no merge.
+Home UI/assets: none pending. Shared styling/layout: none pending. Dictionaries/content: none pending. Backend/config/dependencies: none pending. The latest Home head was independently merged by [PR #42](https://github.com/Tala-Jabaren/ahlam-space/pull/42), following #41 and #39. This agent performed no merge and did not modify Home/main.
 
 ## Release blockers
 
-1. **Owner verification of statistics is required.** The expected TODO/placeholder state does not match current code: `src/content/site-stats.ts` has 120 individual sessions, 600 group classes, 40 events/trips and 250 participants, all `confirmed: true`, with no TODO. These are rendered, not hidden draft values. Treat the owner's confirmation of all four figures as a blocker; no shared statistics file was edited.
+1. **Owner verification of statistics is required.** The expected TODO/placeholder state does not match current code: `src/content/site-stats.ts` has 120 individual sessions, 600 group classes and 250 participants with `confirmed: true`; those three are rendered. The events/trips figure 40 is still present with `confirmed: false` and is hidden. There is no TODO in that file. Treat approval of the three published figures as a release blocker, and approve the hidden figure before enabling it. No shared statistics file was edited by this agent.
 2. **Every approval-marked About string below needs Ahlam's approval.** The dictionaries mark the entire `about.editorial` block with `TODO owner to confirm`. All 42 leaf keys / 84 language values are listed, including three currently unused keys.
 3. **About integration is pending PR #37.** The home branch does not yet contain the About redesign. This release PR is intended to depend on the owner-controlled integration of #37; no merge was performed.
-4. **An empty Home comparison cannot open a new GitHub PR.** A fresh Home commit from the parallel agent or the later integration of #37 is needed before the requested draft main ← home PR can exist.
+4. **An empty Home comparison cannot open a new GitHub PR.** GitHub rejected the requested draft creation with `No commits between main and feature/home-redesign`. A fresh unmerged Home commit or later owner-controlled integration of #37 is required. The requested draft title is `feat(home): home + about redesign`; its complete body is prepared alongside this report in the local release artifacts.
 
 ## Changed-file text scan
 
