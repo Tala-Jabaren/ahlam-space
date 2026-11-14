@@ -115,17 +115,17 @@ export default function ReviewDialog({
       </blockquote>
 
       <figcaption className={styles.dialogFooter}>
-        <span className="min-w-0 truncate text-sm font-semibold text-[#34472B]">{name}</span>
-        <span aria-hidden="true" className="shrink-0 text-[#34472B]/40">
-          —
-        </span>
         <span className={styles.avatar} aria-hidden="true">
           {review.photo_url ? (
-            <Image src={review.photo_url} alt="" width={40} height={40} className={styles.avatarImg} />
+            <Image src={review.photo_url} alt="" width={56} height={56} className={styles.avatarImg} />
           ) : (
             name.trim().charAt(0)
           )}
         </span>
+        <span aria-hidden="true" className="shrink-0 text-[#34472B]/40">
+          —
+        </span>
+        <span className="min-w-0 truncate text-sm font-semibold text-[#34472B]">{name}</span>
       </figcaption>
     </dialog>
   )
