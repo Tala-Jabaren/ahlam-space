@@ -1,6 +1,7 @@
 import Image from 'next/image'
 import StatsSection from './stats-section'
 import MobileArcCarousel from './mobile-arc-carousel'
+import SectionHeader, { type SectionHeaderCopy } from './section-header'
 import type { SiteStat } from '@/content/site-stats'
 
 export type ArcGalleryPhoto = {
@@ -22,16 +23,19 @@ function computeAngles(count: number, spreadDeg: number) {
 export default function ArcGallerySection({
   photos,
   stats,
-  eyebrow,
+  header,
 }: {
   photos: ArcGalleryPhoto[]
   stats: SiteStat[]
-  eyebrow: string
+  header: SectionHeaderCopy
 }) {
   if (photos.length < 3) {
     return (
       <section className="scroll-reveal px-5 py-12 sm:px-8 lg:px-10" style={{ background: 'linear-gradient(to bottom, var(--blue-mist), #F6F5EE)' }}>
-        <StatsSection stats={stats} eyebrow={eyebrow} />
+        <SectionHeader {...header} />
+        <div className="mt-10">
+          <StatsSection stats={stats} />
+        </div>
       </section>
     )
   }
@@ -45,6 +49,15 @@ export default function ArcGallerySection({
       className="scroll-reveal overflow-x-clip px-5 pb-6 pt-8 sm:px-8 sm:pb-8 sm:pt-12 lg:px-10"
       style={{ background: 'linear-gradient(to bottom, var(--blue-mist), #F6F5EE)' }}
     >
+      {/* Header sits above both layouts below (same spot StatsSection's own
+          small pill used to occupy, now one level up and shared with the
+          rest of the page's section-header style) - this is in normal
+          flow, before the arc's own sticky/pinned runway, so it has no
+          effect on the arc's scroll-timeline math (that's computed from
+          .arc-spread-container's own position, not from how much content
+          precedes it in this section). */}
+      <SectionHeader pill={header.pill} heading={header.heading} headingAccent={header.headingAccent} subtitle={header.subtitle} className="mb-10 sm:mb-12" />
+
       {/* Two entirely separate layouts, CSS-switched at 769px (.arc-desktop/
           .arc-mobile in globals.css) - never a window-width check in render,
           so there's no hydration mismatch; both trees exist in the DOM on
@@ -71,7 +84,7 @@ export default function ArcGallerySection({
               )
             })}
             <div className="arc-stats-slot">
-              <StatsSection stats={stats} eyebrow={eyebrow} />
+              <StatsSection stats={stats} />
             </div>
           </div>
         </div>
@@ -80,9 +93,9 @@ export default function ArcGallerySection({
       {/* ===== Mobile (<=768px): swipeable scroll-snap carousel, stats
           directly below with a small overlap ===== */}
       <div className="arc-mobile">
-        <MobileArcCarousel photos={photos} eyebrow={eyebrow} />
+        <MobileArcCarousel photos={photos} eyebrow={header.pill ?? header.heading} />
         <div className="arc-mobile-stats">
-          <StatsSection stats={stats} eyebrow={eyebrow} />
+          <StatsSection stats={stats} />
         </div>
       </div>
     </section>

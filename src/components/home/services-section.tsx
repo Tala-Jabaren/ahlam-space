@@ -1,5 +1,6 @@
 import Link from 'next/link'
 import { User, Mic, Users, Leaf } from 'lucide-react'
+import SectionHeader, { type SectionHeaderCopy } from './section-header'
 
 export type ServiceItem = {
   title: string
@@ -27,33 +28,36 @@ const cardVariants = [
 // scroll-reveal animation, both of which also move the card but via
 // different CSS properties - margin, transform and native `translate`
 // all compose independently instead of overwriting each other).
-export default function ServicesSection({ services }: { services: ServiceItem[] }) {
+export default function ServicesSection({ services, header }: { services: ServiceItem[]; header: SectionHeaderCopy }) {
   return (
     <section id="services" className="scroll-mt-24 px-5 py-16 sm:px-8 lg:px-10">
-      <div className="mx-auto grid max-w-7xl gap-6 sm:grid-cols-2 md:grid-cols-4">
-        {services.map((service, index) => {
-          const variant = cardVariants[index]
-          const Icon = icons[index]
-          return (
-            <Link
-              key={service.title}
-              href={service.href}
-              className={`scroll-reveal group rounded-[2rem] p-8 shadow-[0_12px_32px_rgba(52,71,43,0.10)] transition hover:-translate-y-1 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#55684A] ${variant.bg} ${variant.text} ${
-                index % 2 === 0 ? 'md:-mt-9' : ''
-              }`}
-              style={{ animationDelay: `${index * 90}ms` }}
-            >
-              <div className="flex items-start justify-between">
-                <span className="text-xs font-semibold tracking-[0.15em] opacity-60">{String(index + 1).padStart(2, '0')}</span>
-                <span className={`grid size-11 shrink-0 place-items-center rounded-full ${variant.iconBg} ${variant.iconText}`}>
-                  <Icon aria-hidden="true" className="size-5" strokeWidth={1.5} />
-                </span>
-              </div>
-              <h2 className="mt-6 font-serif text-xl">{service.title}</h2>
-              <p className="mt-2 text-sm leading-6 opacity-80">{service.description}</p>
-            </Link>
-          )
-        })}
+      <div className="mx-auto max-w-7xl">
+        <SectionHeader {...header} />
+        <div className="mt-10 grid gap-6 sm:grid-cols-2 md:grid-cols-4">
+          {services.map((service, index) => {
+            const variant = cardVariants[index]
+            const Icon = icons[index]
+            return (
+              <Link
+                key={service.title}
+                href={service.href}
+                className={`scroll-reveal group rounded-[2rem] p-8 shadow-[0_12px_32px_rgba(52,71,43,0.10)] transition hover:-translate-y-1 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#55684A] ${variant.bg} ${variant.text} ${
+                  index % 2 === 0 ? 'md:-mt-9' : ''
+                }`}
+                style={{ animationDelay: `${index * 90}ms` }}
+              >
+                <div className="flex items-start justify-between">
+                  <span className="text-xs font-semibold tracking-[0.15em] opacity-60">{String(index + 1).padStart(2, '0')}</span>
+                  <span className={`grid size-11 shrink-0 place-items-center rounded-full ${variant.iconBg} ${variant.iconText}`}>
+                    <Icon aria-hidden="true" className="size-5" strokeWidth={1.5} />
+                  </span>
+                </div>
+                <h2 className="mt-6 font-serif text-xl">{service.title}</h2>
+                <p className="mt-2 text-sm leading-6 opacity-80">{service.description}</p>
+              </Link>
+            )
+          })}
+        </div>
       </div>
     </section>
   )

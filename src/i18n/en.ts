@@ -118,7 +118,16 @@ export const en: typeof ar = {
     priceLabel: 'Price',
     remainingLabel: 'Spots remaining',
     remainingSeatsSuffix: 'spots left',
-    statsEyebrow: 'Some of what we’ve accomplished together',
+    statsHeader: {
+      pill: 'Our milestones',
+      heading: 'Our journey in numbers',
+      subtitle: 'A few things we have achieved together',
+    },
+    servicesHeader: {
+      pill: 'Our services',
+      heading: 'What does Ahlam offer?',
+      subtitle: 'Different spaces for movement and awareness, choose what suits you.',
+    },
     reviews: {
       heading: 'What do participants say?',
       headingAccent: 'participants say?',

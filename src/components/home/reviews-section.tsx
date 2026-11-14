@@ -6,6 +6,7 @@ import { ChevronLeft, ChevronRight, Flower2, Leaf, UserRound } from 'lucide-reac
 import { useT } from '@/i18n/i18n-context'
 import type { ReviewRow } from '@/lib/reviews'
 import ReviewDialog from './review-dialog'
+import SectionHeader from './section-header'
 import styles from './reviews-section.module.css'
 
 const focusRing = 'focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#55684A]'
@@ -237,32 +238,10 @@ export default function ReviewsSection({ reviews }: { reviews: ReviewRow[] }) {
 
   if (reviews.length === 0) return null
 
-  const leadText = labels.heading.endsWith(labels.headingAccent)
-    ? labels.heading.slice(0, labels.heading.length - labels.headingAccent.length)
-    : labels.heading
-
   return (
     <section className="scroll-reveal border-t border-[#55684A]/10 bg-[#F6F5EE] px-5 py-16 sm:px-8 lg:px-10 lg:py-20">
       <div className="mx-auto max-w-7xl">
-        <div className="flex flex-col items-center text-center">
-          <h2 id={headingId} aria-label={labels.heading} className="font-serif text-4xl text-[#34472B] sm:text-5xl">
-            <span aria-hidden="true">
-              {leadText}
-              <span className="relative inline-block">
-                {labels.headingAccent}
-                <svg
-                  aria-hidden="true"
-                  viewBox="0 0 100 14"
-                  preserveAspectRatio="none"
-                  className="accent-underline pointer-events-none absolute inset-x-0 -bottom-1 h-3 w-full"
-                >
-                  <path d="M2 8 Q 50 1 98 7" fill="none" stroke="#55684A" strokeWidth="4" strokeLinecap="round" pathLength={1} />
-                </svg>
-              </span>
-            </span>
-          </h2>
-          <p className="mt-3 text-[#34472B]/70">{labels.subtitle}</p>
-        </div>
+        <SectionHeader heading={labels.heading} headingAccent={labels.headingAccent} subtitle={labels.subtitle} headingId={headingId} />
 
         <div
           role="group"
