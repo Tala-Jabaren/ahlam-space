@@ -114,11 +114,7 @@ export const ar = {
     priceLabel: 'السعر',
     remainingLabel: 'الأماكن المتبقية',
     remainingSeatsSuffix: 'أماكن متبقية',
-    statsHeader: {
-      pill: 'إنجازاتنا',
-      heading: 'رحلتنا بالأرقام',
-      subtitle: 'بعض ما أنجزناه معاً',
-    },
+    statsTitle: 'بعض ما أنجزناه معاً',
     servicesHeader: {
       pill: 'خدماتنا',
       heading: 'ماذا تقدّم أحلام؟',
