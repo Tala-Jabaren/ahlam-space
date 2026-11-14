@@ -54,10 +54,13 @@ export default function ClassCard({ session, headingLevel = 2 }: { session: Clas
           <span><span className="sr-only">{t.memberSchedule.instructorLabel}: </span>{t.memberSchedule.instructorName}</span>
         </div>
         <div className={styles.meta}>
-          <time dateTime={session.startsAt ?? undefined}>{session.dateLabel}</time>
-          <span className={styles.time}><bdi dir="ltr">{session.timeLabel}</bdi></span>
+          <span className={styles.metaInfo}>
+            <time dateTime={session.startsAt ?? undefined}>{session.dateLabel}</time>
+            <span aria-hidden="true"> · </span>
+            <bdi dir="ltr">{session.timeLabel}</bdi>
+          </span>
+          {session.priceLabel !== null && <bdi className={styles.price}>{session.priceLabel}</bdi>}
         </div>
-        {session.priceLabel !== null && <p className={styles.price}><bdi>{session.priceLabel}</bdi></p>}
         <div className={styles.footer}>
           {booking ? <>
             <span ref={badge} tabIndex={-1} className={`${styles.badge} ${confirmed ? styles.confirmed : ''}`} role="status">{confirmed ? copy.confirmed : copy.pending}</span>
