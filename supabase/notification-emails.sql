@@ -3,6 +3,30 @@
 -- REMINDER_HOURS window to trips too), and the admin "message
 -- participants" rate-limited log table.
 --
+-- Revised after SQL review:
+--   - trip_participant_messages.sent_by is now nullable with ON DELETE
+--     SET NULL (was: not null, no delete action - which would have
+--     blocked deleting a test admin account from the Dashboard once it
+--     had sent any message). admin_log_trip_message still only ever
+--     inserts auth.uid() - never null at insert time, since it already
+--     raises FORBIDDEN first if auth.uid() is null - so this only ever
+--     matters later, after a sent_by account is deleted. Nothing reads
+--     this column expecting it to be non-null: the rate-limit check in
+--     that same function filters `where sent_by = auth.uid()`, and a
+--     real caller's auth.uid() is never null, so an orphaned (sent_by is
+--     null) row simply can't match anyone's rate-limit count - a deleted
+--     admin's past sends correctly stop counting against anyone.
+--   - claim_due_trip_reminders/count_due_trip_reminders now also require
+--     t.status in ('open', 'closed') - trips.status has no literal
+--     'cancelled' value (see its check constraint in supabase/trips.sql:
+--     only 'draft', 'open', 'closed', 'past'), so "not published" is
+--     draft and the closest match to "cancelled" for a trip that's no
+--     longer relevant is past. 'closed' is deliberately KEPT, not
+--     excluded - it only means applications are no longer open, not that
+--     the trip itself was cancelled; an already-approved applicant whose
+--     trip's registration window closed still needs their reminder for a
+--     trip that's genuinely still happening.
+--
 -- REVIEW AND RUN MANUALLY in the Supabase SQL editor. NOT run by Claude.
 -- Written to be safely re-runnable (CREATE OR REPLACE, ADD COLUMN IF NOT
 -- EXISTS, idempotent grants) - same convention as every other file in this
@@ -14,6 +38,9 @@
 --   drop function if exists public.count_due_trip_reminders(integer);
 --   drop function if exists public.admin_log_trip_message(uuid, text, integer);
 --   drop table if exists public.trip_participant_messages;
+--   (the sent_by nullable/ON DELETE SET NULL change and the t.status
+--   filter on claim/count_due_trip_reminders have no separate rollback -
+--   they only matter while those functions/that table still exist)
 --   alter table public.trip_applications drop column if exists reminder_sent_at;
 --   alter table public.trips drop column if exists meeting_time;
 --   alter table public.trips drop column if exists meeting_point;
@@ -165,8 +192,10 @@ alter table public.trip_applications
 -- won't let the UPDATE target be referenced inside a FROM-list join). Only
 -- approved applications, only trips that actually have a meeting_time set
 -- (a trip with none simply never appears here - no reminder is ever sent
--- for it), multi-day trips use starts_on (their first day) + meeting_time,
--- same Asia/Hebron wall-clock math as the class reminder window.
+-- for it), only trips with status in ('open', 'closed') - see the header
+-- comment for why 'draft'/'past' are excluded and 'closed' is kept -
+-- multi-day trips use starts_on (their first day) + meeting_time, same
+-- Asia/Hebron wall-clock math as the class reminder window.
 create or replace function public.claim_due_trip_reminders(p_hours integer default 12, p_limit integer default 50)
 returns table (
   application_id uuid,
@@ -190,6 +219,7 @@ begin
     where ta.status = 'approved'
       and ta.reminder_sent_at is null
       and t.meeting_time is not null
+      and t.status in ('open', 'closed')
       and (t.starts_on + t.meeting_time) at time zone 'Asia/Hebron' > now()
       and (t.starts_on + t.meeting_time) at time zone 'Asia/Hebron'
           <= now() + make_interval(hours => p_hours)
@@ -228,6 +258,10 @@ grant execute on function public.claim_due_trip_reminders(integer, integer) to s
 --   regardless of reminder_sent_at or how close starts_on is.
 -- Test (same, but status = 'pending'/'waitlisted'/'declined'/'withdrawn'):
 --   never returned.
+-- Test (same, but the trip's own status is 'draft' or 'past'): never
+--   returned, regardless of the application's own status or meeting_time.
+-- Test (same, but the trip's own status is 'closed'): still returned -
+--   'closed' only means applications are no longer open, not cancelled.
 -- Test (p_limit): with 3 due applications and p_limit => 2, exactly the 2
 --   with the soonest starts_on + meeting_time are claimed; the 3rd stays
 --   due for the next call.
@@ -263,6 +297,7 @@ as $$
   where ta.status = 'approved'
     and ta.reminder_sent_at is null
     and t.meeting_time is not null
+    and t.status in ('open', 'closed')
     and (t.starts_on + t.meeting_time) at time zone 'Asia/Hebron' > now()
     and (t.starts_on + t.meeting_time) at time zone 'Asia/Hebron'
         <= now() + make_interval(hours => p_hours);
@@ -287,11 +322,26 @@ grant execute on function public.count_due_trip_reminders(integer) to service_ro
 create table if not exists public.trip_participant_messages (
   id uuid primary key default gen_random_uuid(),
   trip_id uuid not null references public.trips(id) on delete cascade,
-  sent_by uuid not null references auth.users(id),
+  sent_by uuid references auth.users(id) on delete set null,
   subject text not null,
   recipient_count integer not null,
   created_at timestamptz not null default now()
 );
+
+-- Idempotent fix for a table that may already exist from an earlier run
+-- of this file (CREATE TABLE IF NOT EXISTS above only applies to a fresh
+-- table): sent_by was originally NOT NULL with no delete action, which
+-- would block deleting a test admin account from the Dashboard once it
+-- had sent any message. Made nullable, ON DELETE SET NULL instead -
+-- Postgres' default constraint name for an inline, unnamed column
+-- reference on this table is trip_participant_messages_sent_by_fkey.
+alter table public.trip_participant_messages
+  alter column sent_by drop not null;
+alter table public.trip_participant_messages
+  drop constraint if exists trip_participant_messages_sent_by_fkey;
+alter table public.trip_participant_messages
+  add constraint trip_participant_messages_sent_by_fkey
+  foreign key (sent_by) references auth.users(id) on delete set null;
 
 alter table public.trip_participant_messages enable row level security;
 revoke all on public.trip_participant_messages from anon, authenticated;
@@ -348,6 +398,12 @@ grant execute on function public.admin_log_trip_message(uuid, text, integer) to 
 -- Test: the inserted row's subject/recipient_count/trip_id/sent_by match
 --   what was passed/the caller; the message body itself is never stored
 --   here (it's not a column on this table at all).
+-- Test (sent_by nullable): delete that admin's auth.users row from the
+--   Dashboard afterward - succeeds (no longer blocked), and the message
+--   row still exists with sent_by now null. A later call by a different
+--   admin still rate-limits correctly (`where sent_by = auth.uid()` never
+--   matches a null sent_by against any real caller's uid, so that
+--   orphaned row correctly stops counting toward anyone's limit).
 
 -- Make everything above visible to PostgREST immediately.
 notify pgrst, 'reload schema';
