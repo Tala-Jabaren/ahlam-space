@@ -1,6 +1,6 @@
 import Link from 'next/link'
 import { User, Mic, Users, Leaf } from 'lucide-react'
-import SectionHeader, { type SectionHeaderCopy } from './section-header'
+import SectionHeader from './section-header'
 
 export type ServiceItem = {
   title: string
@@ -28,11 +28,11 @@ const cardVariants = [
 // scroll-reveal animation, both of which also move the card but via
 // different CSS properties - margin, transform and native `translate`
 // all compose independently instead of overwriting each other).
-export default function ServicesSection({ services, header }: { services: ServiceItem[]; header: SectionHeaderCopy }) {
+export default function ServicesSection({ services, heading }: { services: ServiceItem[]; heading: string }) {
   return (
     <section id="services" className="scroll-mt-24 px-5 py-16 sm:px-8 lg:px-10">
       <div className="mx-auto max-w-7xl">
-        <SectionHeader {...header} />
+        <SectionHeader heading={heading} />
         <div className="mt-10 grid gap-6 sm:grid-cols-2 md:grid-cols-4">
           {services.map((service, index) => {
             const variant = cardVariants[index]

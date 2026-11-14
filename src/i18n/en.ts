@@ -119,15 +119,9 @@ export const en: typeof ar = {
     remainingLabel: 'Spots remaining',
     remainingSeatsSuffix: 'spots left',
     statsTitle: 'A few things we have achieved together',
-    servicesHeader: {
-      pill: 'Our services',
-      heading: 'What does Ahlam offer?',
-      subtitle: 'Different spaces for movement and awareness, choose what suits you.',
-    },
+    servicesHeading: 'What does Ahlam offer?',
     reviews: {
       heading: 'What do participants say?',
-      headingAccent: 'participants say?',
-      subtitle: 'Real experiences from our community',
       fallbackName: 'Participant',
       readMore: 'Read more',
       carouselAriaLabel: 'Participant reviews',

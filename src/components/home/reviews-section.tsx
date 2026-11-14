@@ -241,7 +241,7 @@ export default function ReviewsSection({ reviews }: { reviews: ReviewRow[] }) {
   return (
     <section className="scroll-reveal border-t border-[#55684A]/10 bg-[#F6F5EE] px-5 py-16 sm:px-8 lg:px-10 lg:py-20">
       <div className="mx-auto max-w-7xl">
-        <SectionHeader heading={labels.heading} headingAccent={labels.headingAccent} subtitle={labels.subtitle} headingId={headingId} />
+        <SectionHeader heading={labels.heading} headingId={headingId} />
 
         <div
           role="group"
