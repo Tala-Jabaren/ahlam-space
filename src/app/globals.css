@@ -510,6 +510,29 @@ body {
   padding-inline: 16px;
 }
 
+/* Mobile-only card sizing (scoped by the .arc-mobile ancestor, which is
+   itself display: none at/above 769px, so none of this reaches the
+   desktop override above). The card read as too small against the
+   carousel's own photo cards above it - widened (300px -> min(88vw,
+   380px), capped so it never exceeds the 16px-padded .arc-mobile-stats
+   content width at any phone size) with roomier padding and numbers
+   bumped to match the bigger card. Labels/pill/dividers unchanged. */
+.arc-mobile .arc-stats-strip {
+  max-width: min(88vw, 380px);
+}
+.arc-mobile .arc-stats-card {
+  padding: 18px 20px;
+  column-gap: 16px;
+  row-gap: 18px;
+}
+.arc-mobile .stat-value {
+  /* clamp, not a flat 2.5rem: at the narrowest phones (~360px) a flat
+     2.5rem crowded the 3-digit values against the column dividers -
+     this scales down smoothly below ~445px viewport width instead of a
+     second breakpoint. */
+  font-size: clamp(2rem, 9vw, 2.5rem);
+}
+
 /* Stats numbers (StatsSection): the digits move from muted grey to full
    colour over the same window the count-up JS runs, toggled by a single
    class once the IntersectionObserver fires - not scroll-linked, since
