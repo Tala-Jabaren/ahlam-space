@@ -58,16 +58,9 @@ export default async function ClassesPage({ searchParams }: {
   const current = await loadClassBookings(supabase, user?.id ?? null, upcoming.map(session => session.id), now)
 
   return <div dir={dir}>
-    <ClassesBanner />
+    <ClassesBanner title={t.classes.heading} tagline={t.classes.tagline} />
     <div className="px-5 py-16 sm:px-8 lg:px-10">
       <section className="mx-auto max-w-7xl">
-        <div className="max-w-3xl space-y-5">
-          <p className="text-sm font-medium uppercase tracking-[0.28em] text-[#617A55]">{t.classes.eyebrow}</p>
-          <h1 className="font-serif text-5xl leading-tight text-[#25311f] sm:text-6xl">{t.classes.heading}</h1>
-          <p className="text-lg leading-8 text-[#4f5d49]">{t.classes.subtitle}</p>
-        </div>
-      </section>
-      <section className="mx-auto mt-12 max-w-7xl">
         {!classes || classes.length === 0 ? <div className="rounded-[1.75rem] bg-[#C7D6E8]/55 p-8 text-[#4f5d49]">{t.classes.noClasses}</div>
           : <div className="grid gap-10">
             {classes.map(classItem => {
