@@ -3,7 +3,7 @@ import { redirect, notFound } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
 import ApplicationForm from '@/components/trips/application-form'
 import { formatTripDate } from '@/components/trips/trip-card'
-import { isTripAcceptingApplications, type TripRow } from '@/lib/trips'
+import { TRIP_COLUMNS, isTripAcceptingApplications, type TripRow } from '@/lib/trips'
 
 export default async function TripApplyPage({
   params,
@@ -24,7 +24,7 @@ export default async function TripApplyPage({
 
   const { data: trip } = await supabase
     .from('trips')
-    .select('id, title, description, location, starts_on, ends_on, application_deadline, capacity, cover_image_url, status, created_at')
+    .select(TRIP_COLUMNS)
     .eq('id', tripId)
     .maybeSingle()
     .returns<TripRow>()

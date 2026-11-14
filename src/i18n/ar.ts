@@ -62,6 +62,8 @@ export const ar = {
   footer: {
     address: 'مساحة أحلام، رام الله',
     tagline: 'يوغا، تمارين رياضية، رقص، وطقوس يومية واعية.',
+    phoneLabel: 'الهاتف',
+    whatsappLink: 'واتساب',
     policiesAriaLabel: 'السياسات والشروط',
     termsLink: 'شروط الاستخدام',
     privacyLink: 'سياسة الخصوصية',
@@ -139,6 +141,7 @@ export const ar = {
     deadlineLabel: 'آخر موعد للتقديم',
     dateLabel: 'التاريخ',
     locationLabel: 'الموقع',
+    meetingLabel: 'ساعة التجمع',
     applyNote: 'إرسال الاستمارة هو طلب مشاركة وليس تأكيدًا للحجز، وستراجع أحلام طلبك وتتواصل معك.',
     loginToApply: 'سجّلي دخولك للتسجيل',
     createAccount: 'إنشاء حساب جديد',
@@ -343,6 +346,9 @@ export const ar = {
     heading: 'أخبرينا عن ما تبحثين عنه.',
     paragraph:
       'اسألينا عن الحصص، الجلسات الفردية، المنتجات، أو كيف تبدأين بالشكل الصحيح.',
+    directContactLabel: 'أو تواصلي معنا مباشرة',
+    phoneLabel: 'الهاتف',
+    whatsappLink: 'واتساب',
     nameLabel: 'الاسم',
     emailLabel: 'البريد الإلكتروني',
     messageLabel: 'رسالة',

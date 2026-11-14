@@ -1,4 +1,4 @@
-import { escapeHtml, wrapEmailHtml } from './html'
+import { escapeHtml, emailFooterHtml, emailFooterText, wrapEmailHtml } from './html'
 import { CANCELLATION_POLICY_AR } from './cancellation-policy'
 
 export type ClassReminderData = {
@@ -36,7 +36,9 @@ export function buildClassReminderEmail(data: ClassReminderData, siteUrl: string
   // a session's location is displayed, for consistency.
   const locationLabel = data.location ?? 'مركز أحلام'
   const scheduleUrl = `${siteUrl}/member-schedule`
-  const subject = 'تذكير بحصتك غداً مع أحلام سبيس'
+  // Deliberately not "غداً/tomorrow" - REMINDER_HOURS (see
+  // src/lib/reminder-constants.ts) is 12, so this can fire same-day too.
+  const subject = 'تذكير بحصتك القادمة مع أحلام سبيس'
 
   const rows: Array<[string, string]> = [
     ['الحصة', data.className],
@@ -64,7 +66,7 @@ ${rows
 <a href="${scheduleUrl}" style="display:inline-block;background-color:#617A55;color:#ffffff;padding:12px 24px;border-radius:999px;text-decoration:none;font-weight:700;">عرض جدول حصصي</a>
 </p>
 <p style="font-size:13px;line-height:1.8;color:#617A55;margin:0 0 16px;">${escapeHtml(CANCELLATION_POLICY_AR)}</p>
-<p style="font-size:13px;color:#617A55;margin:0;">للاستفسار: <a href="mailto:nmi.ahlam@gmail.com" style="color:#617A55;">nmi.ahlam@gmail.com</a></p>
+${emailFooterHtml()}
 `)
 
   const text = [
@@ -76,7 +78,7 @@ ${rows
     '',
     CANCELLATION_POLICY_AR,
     '',
-    'للاستفسار: nmi.ahlam@gmail.com',
+    emailFooterText(),
   ].join('\n')
 
   return { subject, html, text }

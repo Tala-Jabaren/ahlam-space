@@ -3,7 +3,8 @@ import { notFound } from 'next/navigation'
 import { getAdminSession } from '@/components/admin/admin-session'
 import TripPhotoManager from '@/components/admin/trip-photo-manager'
 import TripApplicationsList from '@/components/admin/trip-applications-list'
-import { getTripApplications, tripStatusLabels, type TripPhotoRow, type TripRow } from '@/lib/trips'
+import { TRIP_COLUMNS, getTripApplications, tripStatusLabels, type TripPhotoRow, type TripRow } from '@/lib/trips'
+import TripMessageForm from '@/components/admin/trip-message-form'
 
 export default async function AdminTripDetailPage({
   params,
@@ -15,7 +16,7 @@ export default async function AdminTripDetailPage({
 
   const { data: trip } = await supabase
     .from('trips')
-    .select('id, title, description, location, starts_on, ends_on, application_deadline, capacity, cover_image_url, status, created_at')
+    .select(TRIP_COLUMNS)
     .eq('id', tripId)
     .maybeSingle()
     .returns<TripRow>()
@@ -59,7 +60,13 @@ export default async function AdminTripDetailPage({
       {applicationsError ? (
         <p role="alert" className="mt-10 rounded-lg bg-[#C7D6E8]/50 p-5">تعذر تحميل طلبات المشاركة. تحققي من صلاحيات العرض والاتصال.</p>
       ) : (
-        <TripApplicationsList applications={applications} />
+        <>
+          <TripMessageForm
+            tripId={trip.id}
+            approvedCount={applications.filter((application) => application.status === 'approved').length}
+          />
+          <TripApplicationsList applications={applications} />
+        </>
       )}
     </main>
   )

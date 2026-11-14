@@ -14,12 +14,14 @@ to click through after each deploy).
    `NEXT_PUBLIC_SITE_URL` silently falls back to `http://localhost:3000` in SEO tags,
    `robots.txt`, and `sitemap.xml`, which you don't want live).
 3. `vercel.json` at the repo root already declares both cron jobs
-   (`/api/cron/class-reminders` hourly, `/api/cron/admin-notifications` every 10 minutes -
-   hourly is enough resolution for a 24h-ahead reminder window, since it sends within at
-   most ~1h of a booking first becoming due; the admin digest runs more often since it's
-   effectively "how fast does the owner hear about a new booking/order") -
-   Vercel picks these up automatically from the repo, nothing to configure in the
-   dashboard for the crons themselves beyond the `CRON_SECRET` env var (step 3 below).
+   (`/api/cron/class-reminders` hourly, `/api/cron/admin-notifications` every 5 minutes -
+   hourly is enough resolution for the 12h-ahead reminder window (`REMINDER_HOURS`, see
+   `docs/EMAIL-NOTIFICATIONS.md`), since it sends within at most ~1h of something first
+   becoming due; `admin-notifications` runs every 5 minutes since it's effectively "how
+   fast does the owner hear about a new booking/order" - it sends one separate email per
+   event now, not a batched digest) - Vercel picks these up automatically from the repo,
+   nothing to configure in the dashboard for the crons themselves beyond the
+   `CRON_SECRET` env var (step 3 below).
    **Confirm your Vercel plan tier supports this schedule first** - the Hobby plan
    limits Cron Jobs to once per day as of Vercel's current pricing; both schedules here
    need at least a Pro plan to actually fire as written.

@@ -1,9 +1,9 @@
 import { escapeHtml, wrapEmailHtml } from './html'
 
-export type OwnerDigestEventKind = 'booking' | 'session_request' | 'order' | 'course_purchase' | 'trip_application'
+export type OwnerNotificationEventKind = 'booking' | 'session_request' | 'order' | 'course_purchase' | 'trip_application'
 
-export type OwnerDigestEvent = {
-  kind: OwnerDigestEventKind
+export type OwnerNotificationEvent = {
+  kind: OwnerNotificationEventKind
   customerName: string | null
   customerPhone: string | null
   details: string
@@ -12,7 +12,18 @@ export type OwnerDigestEvent = {
   status: string
 }
 
-const KIND_LABELS: Record<OwnerDigestEventKind, string> = {
+// One email per event (no digest) - each kind gets its own subject line so
+// the owner can tell what happened from the inbox list alone, without
+// opening it.
+const SUBJECT_LABELS: Record<OwnerNotificationEventKind, string> = {
+  booking: 'حجز جديد',
+  session_request: 'طلب جلسة فردية',
+  order: 'طلب جديد من المتجر',
+  course_purchase: 'شراء كورس',
+  trip_application: 'طلب مشوار جديد',
+}
+
+const KIND_LABELS: Record<OwnerNotificationEventKind, string> = {
   booking: 'حجز حصة',
   session_request: 'طلب جلسة فردية',
   order: 'طلب من المتجر',
@@ -57,7 +68,7 @@ const TRIP_APPLICATION_STATUS_LABELS: Record<string, string> = {
   withdrawn: 'منسحب',
 }
 
-function statusLabel(kind: OwnerDigestEventKind, status: string) {
+function statusLabel(kind: OwnerNotificationEventKind, status: string) {
   const map =
     kind === 'session_request' ? SESSION_REQUEST_STATUS_LABELS
     : kind === 'trip_application' ? TRIP_APPLICATION_STATUS_LABELS
@@ -65,7 +76,7 @@ function statusLabel(kind: OwnerDigestEventKind, status: string) {
   return map[status] ?? status
 }
 
-function eventLink(kind: OwnerDigestEventKind, siteUrl: string) {
+function eventLink(kind: OwnerNotificationEventKind, siteUrl: string) {
   if (kind === 'session_request') return `${siteUrl}/admin/requests`
   if (kind === 'trip_application') return `${siteUrl}/admin/trips`
   return `${siteUrl}/admin/payments`
@@ -76,24 +87,25 @@ function formatAmount(amount: number | null) {
   return `${new Intl.NumberFormat('ar').format(amount)} ₪`
 }
 
-export function buildOwnerDigestEmail(events: OwnerDigestEvent[], siteUrl: string) {
-  const subject = 'إشعار جديد من أحلام سبيس'
+export function buildOwnerNotificationEmail(event: OwnerNotificationEvent, siteUrl: string) {
+  const subject = SUBJECT_LABELS[event.kind]
+  const amountLabel = formatAmount(event.amount)
 
-  const htmlCards = events
-    .map((event) => {
-      const amountLabel = formatAmount(event.amount)
-      const rows: Array<[string, string]> = [
-        ['النوع', KIND_LABELS[event.kind]],
-        ['العميلة/العميل', event.customerName ?? 'غير متوفر'],
-        ['الهاتف', event.customerPhone ?? 'غير متوفر'],
-        ['التفاصيل', event.details],
-      ]
-      if (amountLabel) rows.push(['المبلغ', amountLabel])
-      if (event.reference) rows.push(['المرجع', event.reference])
-      rows.push(['الحالة', statusLabel(event.kind, event.status)])
+  const rows: Array<[string, string]> = [
+    ['النوع', KIND_LABELS[event.kind]],
+    ['العميلة/العميل', event.customerName ?? 'غير متوفر'],
+    ['الهاتف', event.customerPhone ?? 'غير متوفر'],
+    ['التفاصيل', event.details],
+  ]
+  if (amountLabel) rows.push(['المبلغ', amountLabel])
+  if (event.reference) rows.push(['المرجع', event.reference])
+  rows.push(['الحالة', statusLabel(event.kind, event.status)])
 
-      return `<div style="border:1px solid rgba(97,122,85,0.2);border-radius:8px;padding:16px;margin-bottom:16px;">
-<table role="presentation" style="width:100%;border-collapse:collapse;font-size:14px;">
+  const link = eventLink(event.kind, siteUrl)
+
+  const html = wrapEmailHtml(`
+<p style="font-size:16px;line-height:1.8;margin:0 0 20px;">${escapeHtml(subject)}:</p>
+<table role="presentation" style="width:100%;border-collapse:collapse;font-size:14px;margin:0 0 20px;">
 ${rows
   .map(
     ([label, value]) => `<tr>
@@ -103,36 +115,18 @@ ${rows
   )
   .join('\n')}
 </table>
-<p style="margin:12px 0 0;">
-<a href="${eventLink(event.kind, siteUrl)}" style="color:#617A55;font-size:13px;">فتح في لوحة الإدارة</a>
+<p style="margin:0;">
+<a href="${link}" style="color:#617A55;font-size:13px;">فتح في لوحة الإدارة</a>
 </p>
-</div>`
-    })
-    .join('\n')
-
-  const html = wrapEmailHtml(`
-<p style="font-size:16px;line-height:1.8;margin:0 0 20px;">
-لديكِ ${events.length === 1 ? 'إشعار جديد' : `${new Intl.NumberFormat('ar').format(events.length)} إشعارات جديدة`}:
-</p>
-${htmlCards}
 `)
 
-  const text = events
-    .map((event) => {
-      const amountLabel = formatAmount(event.amount)
-      const lines = [
-        `النوع: ${KIND_LABELS[event.kind]}`,
-        `العميلة/العميل: ${event.customerName ?? 'غير متوفر'}`,
-        `الهاتف: ${event.customerPhone ?? 'غير متوفر'}`,
-        `التفاصيل: ${event.details}`,
-      ]
-      if (amountLabel) lines.push(`المبلغ: ${amountLabel}`)
-      if (event.reference) lines.push(`المرجع: ${event.reference}`)
-      lines.push(`الحالة: ${statusLabel(event.kind, event.status)}`)
-      lines.push(`الرابط: ${eventLink(event.kind, siteUrl)}`)
-      return lines.join('\n')
-    })
-    .join('\n\n---\n\n')
+  const text = [
+    `${subject}:`,
+    '',
+    ...rows.map(([label, value]) => `${label}: ${value}`),
+    '',
+    `الرابط: ${link}`,
+  ].join('\n')
 
   return { subject, html, text }
 }

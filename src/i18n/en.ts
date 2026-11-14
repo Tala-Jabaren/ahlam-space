@@ -64,6 +64,8 @@ export const en: typeof ar = {
   footer: {
     address: 'Ahlam Space, Ramallah',
     tagline: 'Yoga, fitness, dance, and mindful daily rituals.',
+    phoneLabel: 'Phone',
+    whatsappLink: 'WhatsApp',
     policiesAriaLabel: 'Policies and terms',
     termsLink: 'Terms of Use',
     privacyLink: 'Privacy Policy',
@@ -143,6 +145,7 @@ export const en: typeof ar = {
     deadlineLabel: 'Application deadline',
     dateLabel: 'Date',
     locationLabel: 'Location',
+    meetingLabel: 'Meeting time',
     applyNote: 'Submitting the form is a request to join, not a confirmed booking - Ahlam will review your request and reach out.',
     loginToApply: 'Log in to register',
     createAccount: 'Create a new account',
@@ -347,6 +350,9 @@ export const en: typeof ar = {
     heading: 'Tell us what you’re looking for.',
     paragraph:
       'Ask about classes, private sessions, products, or finding the right place to begin.',
+    directContactLabel: 'Or reach us directly',
+    phoneLabel: 'Phone',
+    whatsappLink: 'WhatsApp',
     nameLabel: 'Name',
     emailLabel: 'Email',
     messageLabel: 'Message',

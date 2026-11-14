@@ -1,7 +1,9 @@
 'use client'
 
 import { useState } from 'react'
+import { MessageCircle, Phone } from 'lucide-react'
 import { useT } from '@/i18n/i18n-context'
+import { PHONE_DISPLAY, PHONE_E164, WHATSAPP_URL } from '@/content/site-contact'
 
 type ContactResponse = {
   success?: boolean
@@ -59,7 +61,28 @@ export default function ContactPage() {
           </h1>
           <p className="text-lg leading-8 text-[#4f5d49]">{t.contact.paragraph}</p>
           <div className="min-h-64 rounded-[2rem] bg-[#C7D6E8] p-5">
-            <div className="h-full min-h-56 rounded-[1.5rem] bg-[#F7F6F0]/55" />
+            <div className="flex h-full min-h-56 flex-col justify-center gap-4 rounded-[1.5rem] bg-[#F7F6F0]/55 p-6">
+              <p className="text-sm font-semibold uppercase tracking-[0.2em] text-[#4f5d49]">
+                {t.contact.directContactLabel}
+              </p>
+              <a
+                href={`tel:${PHONE_E164}`}
+                className="flex items-center gap-2 text-lg font-semibold text-[#25311f] underline-offset-4 hover:underline"
+              >
+                <Phone aria-hidden="true" className="size-5 shrink-0" />
+                <span>{t.contact.phoneLabel}:</span>
+                <bdi dir="ltr">{PHONE_DISPLAY}</bdi>
+              </a>
+              <a
+                href={WHATSAPP_URL}
+                target="_blank"
+                rel="noreferrer"
+                className="flex items-center gap-2 text-lg font-semibold text-[#25311f] underline-offset-4 hover:underline"
+              >
+                <MessageCircle aria-hidden="true" className="size-5 shrink-0" />
+                {t.contact.whatsappLink}
+              </a>
+            </div>
           </div>
         </div>
 

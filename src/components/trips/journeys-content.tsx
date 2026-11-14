@@ -1,7 +1,7 @@
 import Image from 'next/image'
 import Link from 'next/link'
 import TripPhotoStrip, { type TripPhoto } from '@/components/trips/trip-photo-strip'
-import { formatTripDate } from '@/components/trips/trip-card'
+import { formatMeetingTime, formatTripDate } from '@/components/trips/trip-card'
 import type { TripRow } from '@/lib/trips'
 
 export type JourneysCopy = {
@@ -14,6 +14,7 @@ export type JourneysCopy = {
   deadlineLabel: string
   dateLabel: string
   locationLabel: string
+  meetingLabel: string
   applyNote: string
   loginToApply: string
   createAccount: string
@@ -107,6 +108,18 @@ export default function JourneysContent({
                       <div className="flex gap-1">
                         <dt>{copy.deadlineLabel}:</dt>
                         <dd>{formatTripDate(openTrip.application_deadline, locale)}</dd>
+                      </div>
+                    </>
+                  )}
+                  {openTrip.meeting_time && (
+                    <>
+                      <span aria-hidden="true">·</span>
+                      <div className="flex gap-1">
+                        <dt>{copy.meetingLabel}:</dt>
+                        <dd>
+                          <bdi dir="ltr">{formatMeetingTime(openTrip.meeting_time)}</bdi>
+                          {openTrip.meeting_point ? ` - ${openTrip.meeting_point}` : ''}
+                        </dd>
                       </div>
                     </>
                   )}

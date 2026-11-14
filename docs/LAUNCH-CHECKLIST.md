@@ -44,8 +44,9 @@ See also `docs/DEPLOY-STEPS.md` (the exact Vercel/Supabase/Resend setup order) a
       (`/api/cron/class-reminders` hourly, `/api/cron/admin-notifications` every 5
       minutes) - without it set, both routes reject every request with 401,
       including Vercel's own cron calls.
-- [ ] **Set `ADMIN_NOTIFY_EMAIL`** if the owner digest (new bookings, orders,
-      session requests, course purchases) should go somewhere other than the
+- [ ] **Set `ADMIN_NOTIFY_EMAIL`** if the owner's event notifications (new bookings,
+      orders, session requests, course purchases, trip applications - one separate
+      email per event, not a digest) should go somewhere other than the
       `nmi.ahlam@gmail.com` default.
 - [ ] **Run `supabase/class-reminders.sql`** in the SQL editor (adds
       `bookings.reminder_sent_at`, the claim/release/count functions, and the

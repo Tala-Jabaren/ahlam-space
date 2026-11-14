@@ -3,6 +3,7 @@ import { createClient } from '@/lib/supabase/server'
 import { getT } from '@/i18n/get-t'
 import { I18nProvider } from '@/i18n/i18n-context'
 import { LanguageSwitcher } from '@/i18n/language-switcher'
+import { PHONE_DISPLAY, PHONE_E164, WHATSAPP_URL } from '@/content/site-contact'
 import CartBottomBar from './cart-bottom-bar'
 import SiteHeader from './site-header'
 import MainContent from './main-content'
@@ -30,6 +31,18 @@ export default async function PublicLayout({
             <p>{t.footer.address}</p>
             <p>{t.footer.tagline}</p>
           </div>
+          <p className="mx-auto mt-3 flex max-w-7xl flex-wrap items-center gap-x-2 gap-y-1 text-sm">
+            <span>{t.footer.phoneLabel}:</span>
+            <bdi dir="ltr">
+              <a href={`tel:${PHONE_E164}`} className="underline-offset-4 hover:underline">
+                {PHONE_DISPLAY}
+              </a>
+            </bdi>
+            <span aria-hidden="true">·</span>
+            <a href={WHATSAPP_URL} target="_blank" rel="noreferrer" className="underline-offset-4 hover:underline">
+              {t.footer.whatsappLink}
+            </a>
+          </p>
           <div className="mx-auto mt-6 flex max-w-7xl flex-wrap items-center justify-between gap-4 border-t border-[#E4ECD6]/15 pt-4">
             <nav
               aria-label={t.footer.policiesAriaLabel}

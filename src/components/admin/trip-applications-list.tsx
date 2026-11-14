@@ -3,7 +3,6 @@
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { Mail, MessageCircle } from 'lucide-react'
-import { createClient } from '@/lib/supabase/client'
 import { normalizePhoneForWhatsApp } from '@/lib/admin-session-attendees'
 import { tripApplicationStatusLabels, type AdminTripApplicationRow, type TripApplicationStatus } from '@/lib/trips'
 
@@ -43,12 +42,13 @@ function ApplicationCard({ application }: { application: AdminTripApplicationRow
     setMessage('')
     setFailed(false)
     try {
-      const { error } = await createClient().rpc('admin_review_trip_application', {
-        p_id: application.id,
-        p_status: status,
-        p_note: note || null,
+      const response = await fetch(`/admin/trip-applications/${application.id}/review`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ status, note: note || null }),
       })
-      if (error) throw error
+      const result = await response.json().catch(() => null)
+      if (!response.ok || !result?.ok) throw new Error(result?.error ?? 'FAILED')
       setMessage('تم تحديث حالة الطلب.')
       router.refresh()
     } catch {
