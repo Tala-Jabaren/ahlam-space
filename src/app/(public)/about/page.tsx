@@ -35,9 +35,11 @@ export default async function AboutPage() {
         </div>
       </div>
       <div className={styles.heroMeta}>
-        <p>{copy.role}</p>
-        <p className={styles.location}><span>{copy.place}</span><span>{copy.practices}</span></p>
-        <div><p>{t.about.subheading}</p><Link href="/contact" className={styles.textLink}>{copy.contact}<ArrowUpRight aria-hidden="true" size={17} /></Link></div>
+        <div className={styles.heroIntro}>
+          <span className={styles.heroEmblem} aria-hidden="true"><Leaf size={25} strokeWidth={1.4} /></span>
+          <p>{copy.role}</p>
+        </div>
+        <Link href="/contact" className={styles.heroContact}>{copy.contact}<ArrowUpRight aria-hidden="true" size={18} /></Link>
       </div>
     </section>
 
@@ -78,7 +80,7 @@ export default async function AboutPage() {
       </div>
       <div className={styles.storyCopy}>
         <h3>{t.about.heading}</h3>
-        {[t.about.paragraph, t.about.myStoryParagraph1, t.about.myStoryParagraph2].map(paragraph => <WordRevealText key={paragraph} text={paragraph} as="p" className={styles.storyParagraph} fullColor="#25311f" dimBackground="#617A55" />)}
+        {[t.about.paragraph, t.about.myStoryParagraph1].map(paragraph => <WordRevealText key={paragraph} text={paragraph} as="p" className={styles.storyParagraph} fullColor="#25311f" dimBackground="#617A55" />)}
       </div>
     </section>
 
