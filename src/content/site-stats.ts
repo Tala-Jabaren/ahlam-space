@@ -11,6 +11,6 @@ export type SiteStat = {
 export const siteStats: SiteStat[] = [
   { label: 'جلسة فردية أجرتها أحلام', value: 120, confirmed: true },
   { label: 'حصة جماعية قدّمناها', value: 600, confirmed: true },
-  { label: 'فعالية ومشوار نظّمناها', value: 40, confirmed: true },
+  { label: 'فعالية ومشوار نظّمناها', value: 40, confirmed: false },
   { label: 'مشاركة رافقتهن أحلام', value: 250, confirmed: true },
 ]
