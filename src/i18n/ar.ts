@@ -115,15 +115,9 @@ export const ar = {
     remainingLabel: 'الأماكن المتبقية',
     remainingSeatsSuffix: 'أماكن متبقية',
     statsTitle: 'بعض ما أنجزناه معاً',
-    servicesHeader: {
-      pill: 'خدماتنا',
-      heading: 'ماذا تقدّم أحلام؟',
-      subtitle: 'مساحات مختلفة للحركة والوعي، اختاري ما يناسبك.',
-    },
+    servicesHeading: 'ماذا تقدّم أحلام؟',
     reviews: {
       heading: 'ماذا تقول المشاركات؟',
-      headingAccent: 'تقول المشاركات؟',
-      subtitle: 'تجارب حقيقية من مجتمعنا',
       fallbackName: 'مشاركة',
       readMore: 'اقرئي المزيد',
       carouselAriaLabel: 'آراء المشاركات',
