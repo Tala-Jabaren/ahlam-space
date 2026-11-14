@@ -120,7 +120,6 @@ export const en: typeof ar = {
     remainingSeatsSuffix: 'spots left',
     statsEyebrow: 'Some of what we’ve accomplished together',
     reviews: {
-      eyebrow: 'Participant Reviews',
       heading: 'What do participants say?',
       headingAccent: 'participants say?',
       subtitle: 'Real experiences from our community',
