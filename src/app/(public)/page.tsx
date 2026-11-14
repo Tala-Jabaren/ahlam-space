@@ -107,7 +107,7 @@ export default async function HomePage({
     <div className="overflow-x-clip bg-[#F6F5EE] text-[#34472B]" dir={dir}>
       <HeroSection copy={t.home} dir={dir} isAuthenticated={Boolean(user)} />
 
-      <ArcGallerySection photos={galleryPhotos} stats={siteStats} header={t.home.statsHeader} />
+      <ArcGallerySection photos={galleryPhotos} stats={siteStats} statsTitle={t.home.statsTitle} />
 
       <ServicesSection services={services} header={t.home.servicesHeader} />
       <ReviewsSection reviews={visibleReviews} />
