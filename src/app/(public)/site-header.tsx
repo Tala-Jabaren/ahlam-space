@@ -118,7 +118,7 @@ export default function SiteHeader({
               />
               <CartNavLink iconClassName={transparent ? 'size-6 text-white' : 'size-6 text-[#617A55]'} />
               <Link
-                className="inline-flex min-h-11 items-center justify-center rounded-full bg-[#55684A] px-6 py-3 text-sm font-semibold text-white shadow-sm transition hover:bg-[#34472B]"
+                className={`${styles.headerAccount} min-h-11 px-6 py-3 text-sm shadow-sm`}
                 href={user ? '/member-schedule' : '/login'}
               >
                 {user ? t.nav.account : t.nav.login}
@@ -126,6 +126,9 @@ export default function SiteHeader({
             </div>
           </div>
           <div className={styles.mobileControls}>
+            <Link className={styles.headerAccount} href={user ? '/member-schedule' : '/login'}>
+              {user ? t.nav.account : t.nav.login}
+            </Link>
             <CartNavLink iconClassName={transparent ? 'size-6 text-white' : 'size-6 text-[#617A55]'} />
             <button
               ref={hamburger}
