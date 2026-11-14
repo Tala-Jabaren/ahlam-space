@@ -229,10 +229,8 @@ export const en: typeof ar = {
     },
   },
   classes: {
-    eyebrow: 'Weekly movement',
     heading: 'Classes',
-    subtitle:
-      'Explore yoga, fitness, and dance classes, then choose the upcoming session that suits you.',
+    tagline: 'Every movement is a step closer to yourself.',
     noClasses: 'No classes available right now.',
     upcomingHeading: 'Upcoming Sessions',
     noUpcoming: 'No upcoming sessions for this class right now.',
