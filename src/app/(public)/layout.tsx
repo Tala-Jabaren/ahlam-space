@@ -6,6 +6,7 @@ import { LanguageSwitcher } from '@/i18n/language-switcher'
 import { PHONE_DISPLAY, PHONE_E164, WHATSAPP_URL } from '@/content/site-contact'
 import CartBottomBar from './cart-bottom-bar'
 import SiteHeader from './site-header'
+import headerStyles from './site-header.module.css'
 import MainContent from './main-content'
 
 export default async function PublicLayout({
@@ -18,12 +19,19 @@ export default async function PublicLayout({
     data: { user },
   } = await supabase.auth.getUser()
   const { t, locale } = await getT()
+  let userName: string | null = null
+  if (user) {
+    // Display data only for the header's account row; auth behaviour stays unchanged.
+    const { data: profile } = await supabase.from('profiles').select('full_name').eq('id', user.id).maybeSingle()
+    const metadataName = typeof user.user_metadata?.full_name === 'string' ? user.user_metadata.full_name.trim() : null
+    userName = profile?.full_name?.trim() || metadataName || user.email || t.nav.account
+  }
 
   return (
     <I18nProvider locale={locale} dictionary={t}>
-      <div className="min-h-screen bg-[#F7F6F0] text-[#25311f]">
+      <div className={`${headerStyles.headerScope} min-h-screen bg-[#F7F6F0] text-[#25311f]`}>
         <div aria-hidden="true" className="scroll-progress-bar fixed inset-x-0 top-0 z-40 h-[2px]" />
-        <SiteHeader user={Boolean(user)} t={t} locale={locale} />
+        <SiteHeader user={Boolean(user)} userName={userName} t={t} locale={locale} />
         <MainContent>{children}</MainContent>
         <CartBottomBar />
         <footer className="relative overflow-hidden border-t border-[#617A55]/15 bg-[#34472B] px-5 py-10 text-[#E4ECD6] sm:px-8 lg:px-10">
