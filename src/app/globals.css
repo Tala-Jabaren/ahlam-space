@@ -288,23 +288,26 @@ body {
 }
 
 /* --radius is the arc's own radius; --peak is a fixed pixel offset from
-   the sticky box's own top edge for the a_i=0 "peak" photo - every
-   photo and the tick ring share that same single anchor point (left:
-   50%, top: var(--peak)) and move purely via transform from there, so
-   this one value is the only thing that has to leave room above (the
-   ring) and below (the dome's downward spread, up to ~0.66 * radius,
-   plus half a photo's height) within the box's own height. */
+   the sticky box's own top edge for the a_i=0 "peak" photo - every photo
+   and the tick ring share that same single anchor point (left: 50%, top:
+   var(--peak)) and move purely via transform from there. The box itself
+   has no explicit height (content-driven/auto) - the photos are all
+   absolutely positioned and contribute nothing to that on their own;
+   arc-stats-slot (the box's one in-flow child, below) is what actually
+   gives it a height, via that slot's own padding-top (clearing the photo
+   dome) plus its own natural content height. That's deliberate: a fixed/
+   estimated height here would either clip the stats or leave dead space
+   under them depending on how many stats are confirmed - auto-height
+   from real content can't do either. */
 .arc-sticky-box {
-  --radius: 58vw;
-  --peak: 80px;
-  height: calc(var(--peak) + var(--radius) * 0.66 + 150px);
+  --radius: min(44vw, 175px);
+  --peak: 70px;
   overflow-x: clip;
 }
 @media (min-width: 768px) {
   .arc-sticky-box {
     --radius: min(36vw, 450px);
     --peak: 100px;
-    height: calc(var(--peak) + var(--radius) * 0.66 + 180px);
     overflow-x: visible;
   }
 }
@@ -330,11 +333,13 @@ body {
 
 /* Tick ring: a dashed circle sharing the photos' own peak anchor and
    --radius (plus a fixed margin, so it always sits one ring-width
-   further out than the photos, never behind their centres), clipped to
-   roughly the top two-thirds - the same vertical extent the +/-70deg
-   photo sweep actually reaches (1 - cos(70deg) =~ 0.66). Drawn in via
-   opacity/scale only as --spread goes 0 -> 1 (both accept var(--spread)
-   - a plain 0..1 number - directly, no calc() needed for opacity). */
+   further out than the photos, never behind their centres). Clipped to
+   roughly the vertical extent the photo sweep actually reaches - on
+   mobile that's only +/-30deg (1 - cos(30deg) =~ 0.13, a much flatter
+   cap than desktop's +/-70deg (1 - cos(70deg) =~ 0.66, unchanged).
+   Drawn in via opacity/scale only as --spread goes 0 -> 1 (both accept
+   var(--spread) - a plain 0..1 number - directly, no calc() needed for
+   opacity). */
 .arc-tick-ring {
   position: absolute;
   left: 50%;
@@ -343,10 +348,35 @@ body {
   height: calc(var(--radius) * 2 + 60px);
   border-radius: 50%;
   border: 1.5px dashed var(--blue-soft);
-  clip-path: inset(0 0 34% 0);
+  clip-path: inset(0 0 87% 0);
   pointer-events: none;
   opacity: var(--spread);
   transform: translate(-50%, -30px) scale(calc(0.85 + var(--spread) * 0.15));
+}
+@media (min-width: 768px) {
+  .arc-tick-ring {
+    clip-path: inset(0 0 34% 0);
+  }
+}
+
+/* The sticky box's one in-flow child - everything else (photos, ring) is
+   absolutely positioned. padding-top clears the lowest point any visible
+   photo's rotated card can reach (its own anchor's dome-drop plus half
+   its own height, plus a small gap) so the stats block below never
+   overlaps a photo, and - since this is the only thing contributing to
+   the box's auto height - that same padding-top is what gives the arc
+   its correct total height with no estimated/fixed amount and no dead
+   space: the box is exactly as tall as "the dome, then the stats,"
+   nothing more. */
+.arc-stats-slot {
+  display: flex;
+  justify-content: center;
+  padding-top: calc(var(--peak) + var(--radius) * 0.134 + 57px + 16px);
+}
+@media (min-width: 768px) {
+  .arc-stats-slot {
+    padding-top: calc(var(--peak) + var(--radius) * 0.66 + 107.5px + 24px);
+  }
 }
 
 /* Stats numbers (StatsSection): the digits move from muted grey to full

@@ -7,7 +7,6 @@ import { pageMetadata } from '@/lib/seo'
 import HeroSection from '@/components/home/hero-section'
 import ArcGallerySection from '@/components/home/arc-gallery-section'
 import ServicesSection from '@/components/home/services-section'
-import StatsSection from '@/components/home/stats-section'
 import ReviewsSection from '@/components/home/reviews-section'
 import type { ReviewRow } from '@/lib/reviews'
 import WeeklySessionsSection, { type UpcomingSession } from '@/components/home/weekly-sessions-section'
@@ -108,9 +107,8 @@ export default async function HomePage({
     <div className="overflow-x-clip bg-[#F6F5EE] text-[#34472B]" dir={dir}>
       <HeroSection copy={t.home} nav={t.nav} dir={dir} isAuthenticated={Boolean(user)} />
 
-      <ArcGallerySection photos={galleryPhotos} />
+      <ArcGallerySection photos={galleryPhotos} stats={siteStats} eyebrow={t.home.statsEyebrow} />
 
-      <StatsSection stats={siteStats} eyebrow={t.home.statsEyebrow} />
       <ServicesSection services={services} />
       <ReviewsSection reviews={visibleReviews} />
 

@@ -30,7 +30,7 @@ function dividerClass(index: number, total: number) {
 // placeholder numbers.
 export default function StatsSection({ stats, eyebrow }: { stats: SiteStat[]; eyebrow: string }) {
   const confirmed = stats.filter((stat) => stat.confirmed)
-  const sectionRef = useRef<HTMLElement>(null)
+  const sectionRef = useRef<HTMLDivElement>(null)
   const [started, setStarted] = useState(false)
   const [counting, setCounting] = useState(false)
   const [values, setValues] = useState<number[]>(() => confirmed.map(() => 0))
@@ -88,7 +88,10 @@ export default function StatsSection({ stats, eyebrow }: { stats: SiteStat[]; ey
 
   // Tailwind needs these written out literally somewhere in the source to
   // generate them - a template string built from confirmed.length wouldn't
-  // produce a class Tailwind's build ever sees.
+  // produce a class Tailwind's build ever sees. 2x2 on mobile (this
+  // component is now embedded inside the arc's hollow, which is narrow -
+  // sm:grid-cols-4 only kicks in once the arc itself reaches its desktop
+  // width/layout) rather than a full row.
   const colsClass =
     confirmed.length >= 4
       ? 'grid-cols-2 sm:grid-cols-4'
@@ -98,30 +101,38 @@ export default function StatsSection({ stats, eyebrow }: { stats: SiteStat[]; ey
           ? 'grid-cols-2'
           : 'grid-cols-1'
 
+  // No own <section>/outer padding - the caller (ArcGallerySection)
+  // positions this inside the arc's hollow and owns the surrounding
+  // spacing, so this is just the pill + card, centered, sized to fit a
+  // narrow mobile width comfortably.
   return (
-    <section ref={sectionRef} className="scroll-reveal px-5 py-16 sm:px-8 lg:px-10">
-      <div className="mx-auto max-w-5xl text-center">
-        <span className="inline-flex rounded-full bg-[#E4ECD6] px-4 py-1.5 text-sm font-semibold text-[#34472B]">
-          {eyebrow}
-        </span>
-        <div
-          className={`mx-auto mt-8 grid max-w-[1100px] gap-y-8 rounded-[3rem] bg-white p-8 shadow-[0_12px_32px_rgba(52,71,43,0.10)] sm:p-12 ${colsClass}`}
-        >
-          {confirmed.map((stat, index) => (
-            <div key={stat.label} className={`px-4 text-center ${dividerClass(index, confirmed.length)}`}>
-              <p className="stat-value text-4xl font-light sm:text-5xl" data-counting={counting || undefined}>
-                {reducedMotion ? stat.value : values[index]}+
-              </p>
-              <p
-                className="mt-2 text-sm text-[#34472B]/80 transition-opacity duration-500 ease-out"
-                style={{ opacity: started || reducedMotion ? 1 : 0, transitionDelay: started ? '1.3s' : '0s' }}
-              >
-                {stat.label}
-              </p>
-            </div>
-          ))}
-        </div>
+    <div ref={sectionRef} className="mx-auto flex w-full max-w-[640px] flex-col items-center text-center">
+      <span className="inline-flex rounded-full bg-[#E4ECD6] px-4 py-1.5 text-xs font-semibold text-[#34472B] sm:text-sm">
+        {eyebrow}
+      </span>
+      <div
+        className={`mt-4 grid w-full max-w-[420px] gap-y-5 rounded-[2rem] bg-white p-5 shadow-[0_12px_32px_rgba(52,71,43,0.10)] sm:mt-6 sm:max-w-[1100px] sm:gap-y-8 sm:rounded-[3rem] sm:p-10 ${colsClass}`}
+      >
+        {confirmed.map((stat, index) => (
+          <div key={stat.label} className={`px-2 text-center sm:px-4 ${dividerClass(index, confirmed.length)}`}>
+            {/* dir="ltr" so the digits and the "+" sign never get
+                reordered/mirrored by RTL bidi rules. */}
+            <p
+              className="stat-value text-2xl font-light sm:text-4xl lg:text-5xl"
+              dir="ltr"
+              data-counting={counting || undefined}
+            >
+              {reducedMotion ? stat.value : values[index]}+
+            </p>
+            <p
+              className="mt-1 text-xs text-[#34472B]/80 transition-opacity duration-500 ease-out sm:mt-2 sm:text-sm"
+              style={{ opacity: started || reducedMotion ? 1 : 0, transitionDelay: started ? '1.3s' : '0s' }}
+            >
+              {stat.label}
+            </p>
+          </div>
+        ))}
       </div>
-    </section>
+    </div>
   )
 }
