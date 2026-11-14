@@ -23,7 +23,7 @@ function dividerClass(index: number, total: number) {
 // reach the page - see src/content/site-stats.ts. With nothing confirmed
 // yet, this renders nothing at all rather than a strip of zeros or
 // placeholder numbers.
-export default function StatsSection({ stats, eyebrow }: { stats: SiteStat[]; eyebrow: string }) {
+export default function StatsSection({ stats }: { stats: SiteStat[] }) {
   const confirmed = stats.filter((stat) => stat.confirmed)
   const sectionRef = useRef<HTMLDivElement>(null)
   const [started, setStarted] = useState(false)
@@ -62,7 +62,7 @@ export default function StatsSection({ stats, eyebrow }: { stats: SiteStat[]; ey
 
   useEffect(() => {
     if (!started || reducedMotion) return
-    const duration = 1500
+    const duration = 1600
     const startTime = performance.now()
     let raf: number
 
@@ -94,18 +94,24 @@ export default function StatsSection({ stats, eyebrow }: { stats: SiteStat[]; ey
   // never rendered at full section width anymore.
   return (
     <div ref={sectionRef} className="arc-stats-strip mx-auto flex w-full max-w-[300px] flex-col items-center text-center">
-      <span className="inline-flex rounded-full bg-[#E4ECD6] px-3.5 py-1.5 text-xs font-semibold text-[#34472B]">
-        {eyebrow}
-      </span>
       <div
-        className={`arc-stats-card mt-3 grid w-full gap-x-3 gap-y-4 rounded-[1.75rem] bg-white p-4 shadow-[0_12px_32px_rgba(52,71,43,0.10)] ${colsClass}`}
+        className={`arc-stats-card grid w-full gap-x-3 gap-y-4 rounded-[1.75rem] bg-white p-4 shadow-[0_12px_32px_rgba(52,71,43,0.10)] ${colsClass}`}
       >
         {confirmed.map((stat, index) => (
           <div key={stat.label} className={`px-1.5 text-center ${dividerClass(index, confirmed.length)}`}>
             {/* dir="ltr" so the digits and the "+" sign never get
-                reordered/mirrored by RTL bidi rules. */}
-            <p className="stat-value text-[2.25rem] font-light leading-none" dir="ltr" data-counting={counting || undefined}>
-              {reducedMotion ? stat.value : values[index]}+
+                reordered/mirrored by RTL bidi rules. tabular-nums keeps
+                the card from jittering in width as digit counts change
+                mid-animation. aria-label carries the stable final value;
+                the animating digits themselves are aria-hidden so a
+                screen reader never reads a mid-count intermediate. */}
+            <p
+              className="stat-value tabular-nums text-[2.25rem] font-light leading-none"
+              dir="ltr"
+              data-counting={counting || undefined}
+              aria-label={`${stat.value}+`}
+            >
+              <span aria-hidden="true">{reducedMotion ? stat.value : values[index]}+</span>
             </p>
             <p
               className="mt-1.5 text-xs leading-snug text-[#34472B]/80 transition-opacity duration-500 ease-out"

@@ -114,7 +114,16 @@ export const ar = {
     priceLabel: 'السعر',
     remainingLabel: 'الأماكن المتبقية',
     remainingSeatsSuffix: 'أماكن متبقية',
-    statsEyebrow: 'بعض ما أنجزناه معًا',
+    statsHeader: {
+      pill: 'إنجازاتنا',
+      heading: 'رحلتنا بالأرقام',
+      subtitle: 'بعض ما أنجزناه معاً',
+    },
+    servicesHeader: {
+      pill: 'خدماتنا',
+      heading: 'ماذا تقدّم أحلام؟',
+      subtitle: 'مساحات مختلفة للحركة والوعي، اختاري ما يناسبك.',
+    },
     reviews: {
       heading: 'ماذا تقول المشاركات؟',
       headingAccent: 'تقول المشاركات؟',
