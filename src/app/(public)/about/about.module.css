@@ -199,7 +199,7 @@
 @media (prefers-reduced-motion: reduce) {
   .page *, .page *::before, .page *::after { animation: none !important; transition: none !important; }
   .marqueeTrack { inline-size: 100%; justify-content: center; }
-  .marqueeCopy { flex-wrap: wrap; justify-content: center; gap: 8px; }
+  .marqueeCopy { flex: 0 1 100%; min-inline-size: 0; flex-wrap: wrap; justify-content: center; gap: 8px; }
   .marqueeCopy[aria-hidden='true'] { display: none; }
   .heroWord, .portraitDrift, .floatingNote, .reveal, .steps::after { transform: none; opacity: 1; }
 }
