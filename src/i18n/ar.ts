@@ -76,10 +76,10 @@ export const ar = {
     switchToArabic: 'العربية',
   },
   home: {
-    heroHeadingLine1: 'مساحة للحركة،',
-    heroHeadingLine2: 'الوعي والتوازن.',
+    heroHeadingLine1: 'مساحتك الهادئة',
+    heroHeadingLine2: 'للحركة والتوازن',
     heroParagraph:
-      'في Ahlam Space نؤمن بأن الحركة ليست فقط تمرينًا للجسم، بل رحلة أعمق نحو حياة أكثر توازنًا ووعيًا.',
+      'حصص ومحاضرات وجلسات تساعدك تتحركي بوعي وتتواصلي مع نفسك.',
     heroCtaBookNow: 'احجزي حصتك',
     heroJoinCta: 'انضمّي كعضوة',
     heroMySessions: 'حصصي',
@@ -116,13 +116,17 @@ export const ar = {
     remainingSeatsSuffix: 'أماكن متبقية',
     statsEyebrow: 'بعض ما أنجزناه معًا',
     reviews: {
-      heading: 'آراء المشاركات',
+      eyebrow: 'آراء المشاركات',
+      heading: 'ماذا تقول المشاركات؟',
+      subtitle: 'تجارب حقيقية من مجتمعنا',
       fallbackName: 'مشاركة',
       readMore: 'اقرئي المزيد',
-      readLess: 'عرض أقل',
-      pauseReviews: 'إيقاف حركة الآراء',
-      resumeReviews: 'تشغيل حركة الآراء',
       carouselAriaLabel: 'آراء المشاركات',
+      previousReview: 'المراجعة السابقة',
+      nextReview: 'المراجعة التالية',
+      goToReview: 'الانتقال إلى المراجعة رقم',
+      dialogTitle: 'نص المراجعة الكاملة',
+      dialogClose: 'إغلاق',
     },
     trips: {
       // Only the trip photos themselves still feed the arc gallery's
