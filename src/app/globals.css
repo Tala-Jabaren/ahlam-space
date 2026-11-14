@@ -239,20 +239,35 @@ body {
   -webkit-backdrop-filter: blur(8px);
 }
 
-/* Arc gallery spread (ArcGallerySection): photos start collapsed in an
-   overlapping fan and spread out along a half-circle arc as the section
-   scrolls through view, driven by one inherited, animatable custom
-   property (--spread, 0 = collapsed, 1 = fully spread - registered with
-   @property so a scroll-timeline keyframe can interpolate it smoothly
-   instead of just jumping between values). Each photo reads its own
-   --angle (set inline, per-photo, and overridden by the sm: media query
-   below for the shallower mobile spread) and derives its own position
-   from --spread/--angle/--radius with plain calc()+trig, no JS. Default
-   (outside @supports or under reduced motion): --spread sits at its
-   registered initial value of 1 - i.e. straight to the fully-spread,
-   non-overlapping state, statically, with the container at its normal
-   (non-sticky, auto-height) layout - motion is additive, never required
-   to see the end state. */
+/* ArcGallerySection now renders two completely separate layouts (see the
+   component) - .arc-desktop/.arc-mobile toggle between them with a plain
+   CSS media query (never a window-width check in script, so there's no
+   SSR/CSR hydration mismatch - both trees exist in the DOM on every
+   render, only one is ever display:block). The breakpoint is 769px, one
+   px above every other min-width:768px breakpoint elsewhere on this page
+   - deliberate: 768px itself is the mobile carousel, not the arc. */
+.arc-desktop { display: none; }
+.arc-mobile { display: block; }
+@media (min-width: 769px) {
+  .arc-desktop { display: block; }
+  .arc-mobile { display: none; }
+}
+
+/* ============================================================= */
+/* Desktop (>=769px): half-circle arc, dashed ring, scroll-driven  */
+/* spread, stats centered inside the ring's own visible hollow.    */
+/* ============================================================= */
+
+/* Photos start collapsed in an overlapping fan and spread out along a
+   half-circle arc as the section scrolls through view, driven by one
+   inherited, animatable custom property (--spread, 0 = collapsed, 1 =
+   fully spread - registered with @property so a scroll-timeline keyframe
+   can interpolate it smoothly instead of just jumping between values).
+   Default (outside @supports or under reduced motion): --spread sits at
+   its registered initial value of 1 - straight to the fully-spread
+   state, statically, with the container at its normal (non-sticky,
+   auto-height) layout - motion is additive, never required to see the
+   end state. */
 @property --spread {
   syntax: '<number>';
   inherits: true;
@@ -274,8 +289,16 @@ body {
       animation-range: entry 15% cover 50%;
     }
     .arc-sticky-box {
+      /* max(8vh, 110px): the floating header is fixed, up to ~94px tall
+         including its own top offset (its unscrolled, inset/floating
+         variant - see site-header.tsx) - 8vh alone falls short of that
+         on shorter viewports, letting the header cover the top/centre
+         photo once the arc is fully spread. 110px clears it with a
+         margin, verified against the rendered photo position (peak -
+         half the photo's own height above --peak); 8vh still wins on
+         tall viewports. */
       position: sticky;
-      top: 8vh;
+      top: max(8vh, 110px);
     }
     .arc-photo {
       will-change: transform;
@@ -287,33 +310,26 @@ body {
   to { --spread: 1; }
 }
 
-/* --radius is the arc's own radius; --peak is a fixed pixel offset from
+/* --radius is clamped (per spec) so the whole composition - arc, ring,
+   and the stats filling its hollow - stays balanced instead of growing
+   with the viewport indefinitely. --peak is a fixed pixel offset from
    the sticky box's own top edge for the a_i=0 "peak" photo - every photo
    and the tick ring share that same single anchor point (left: 50%, top:
-   var(--peak)) and move purely via transform from there. The box itself
-   has no explicit height (content-driven/auto) - the photos are all
-   absolutely positioned and contribute nothing to that on their own;
-   arc-stats-slot (the box's one in-flow child, below) is what actually
-   gives it a height, via that slot's own padding-top (clearing the photo
-   dome) plus its own natural content height. That's deliberate: a fixed/
-   estimated height here would either clip the stats or leave dead space
-   under them depending on how many stats are confirmed - auto-height
-   from real content can't do either. */
+   var(--peak)) and move purely via transform from there.
+
+   The box's height is NOT content-driven here (unlike an earlier pass) -
+   it's set to exactly match the dashed ring's own visible height
+   (peak + radius*1.32 + 9.6px - derived below), per spec ("section
+   height must equal the circle's height"). --radius/--peak also directly
+   size arc-stats-slot's centering math further down, so all three (ring,
+   photos, stats) stay geometrically consistent from these two values. */
 .arc-sticky-box {
-  --radius: min(44vw, 175px);
-  --peak: 70px;
-  overflow-x: clip;
-}
-@media (min-width: 768px) {
-  .arc-sticky-box {
-    --radius: min(36vw, 450px);
-    --peak: 100px;
-    overflow-x: visible;
-  }
+  --radius: clamp(340px, 30vw, 440px);
+  --peak: 100px;
+  height: calc(var(--peak) + var(--radius) * 1.32 + 9.6px);
 }
 
 .arc-photo {
-  --angle: var(--angle-sm);
   position: absolute;
   left: 50%;
   top: var(--peak);
@@ -325,21 +341,16 @@ body {
     )
     rotate(calc(var(--angle) * (0.35 + var(--spread) * 0.65)));
 }
-@media (min-width: 768px) {
-  .arc-photo {
-    --angle: var(--angle-lg);
-  }
-}
 
 /* Tick ring: a dashed circle sharing the photos' own peak anchor and
    --radius (plus a fixed margin, so it always sits one ring-width
-   further out than the photos, never behind their centres). Clipped to
-   roughly the vertical extent the photo sweep actually reaches - on
-   mobile that's only +/-30deg (1 - cos(30deg) =~ 0.13, a much flatter
-   cap than desktop's +/-70deg (1 - cos(70deg) =~ 0.66, unchanged).
-   Drawn in via opacity/scale only as --spread goes 0 -> 1 (both accept
-   var(--spread) - a plain 0..1 number - directly, no calc() needed for
-   opacity). */
+   further out than the photos, never behind their centres), clipped to
+   roughly the top two-thirds - the vertical extent the +/-70deg photo
+   sweep actually reaches (1 - cos(70deg) =~ 0.66, hence the height
+   formula on .arc-sticky-box above: diameter * 0.66 = (radius*2+60)*0.66
+   = radius*1.32 + 39.6, plus the ring's own -30px top offset relative to
+   --peak = radius*1.32 + 9.6). Drawn in via opacity/scale only as
+   --spread goes 0 -> 1. */
 .arc-tick-ring {
   position: absolute;
   left: 50%;
@@ -348,35 +359,113 @@ body {
   height: calc(var(--radius) * 2 + 60px);
   border-radius: 50%;
   border: 1.5px dashed var(--blue-soft);
-  clip-path: inset(0 0 87% 0);
+  clip-path: inset(0 0 34% 0);
   pointer-events: none;
   opacity: var(--spread);
   transform: translate(-50%, -30px) scale(calc(0.85 + var(--spread) * 0.15));
 }
-@media (min-width: 768px) {
-  .arc-tick-ring {
-    clip-path: inset(0 0 34% 0);
-  }
+
+/* Centered on the ring's own visible hollow - NOT the photos' own
+   bounding box - via translate(-50%,-50%) at the midpoint of the ring's
+   visible span ((peak-30) to (peak + radius*1.32 + 9.6), midpoint =
+   peak - 10.2 + radius*0.66), so it's correct regardless of the stats
+   block's own rendered height (no need to know that height in advance).
+   --reveal derives straight from --spread (already a plain <number>, no
+   new scroll-timeline needed): 0 for the first 70% of the opening
+   progress, ramping 0->1 over the last 30%, so the stats only appear
+   once the photos have mostly finished spreading. Outside @supports or
+   under reduced motion, --spread's initial value is 1, so --reveal
+   resolves to 1 too - "always visible, final state" for free, no
+   separate fallback rule needed. */
+.arc-stats-slot {
+  --reveal: clamp(0, calc((var(--spread) - 0.7) / 0.3), 1);
+  position: absolute;
+  left: 50%;
+  top: calc(var(--peak) - 10.2px + var(--radius) * 0.66);
+  opacity: var(--reveal);
+  transform:
+    translate(-50%, -50%)
+    translateY(calc((1 - var(--reveal)) * 16px))
+    scale(calc(0.96 + var(--reveal) * 0.04));
 }
 
-/* The sticky box's one in-flow child - everything else (photos, ring) is
-   absolutely positioned. padding-top clears the lowest point any visible
-   photo's rotated card can reach (its own anchor's dome-drop plus half
-   its own height, plus a small gap) so the stats block below never
-   overlaps a photo, and - since this is the only thing contributing to
-   the box's auto height - that same padding-top is what gives the arc
-   its correct total height with no estimated/fixed amount and no dead
-   space: the box is exactly as tall as "the dome, then the stats,"
-   nothing more. */
-.arc-stats-slot {
+/* ============================================================= */
+/* Mobile (<=768px): swipeable scroll-snap carousel, no JS, stats  */
+/* directly below with a small overlap for depth.                 */
+/* ============================================================= */
+
+/* Full-bleed to the viewport edge (cancels the section's own px-5/sm:px-8
+   padding) - the one place this page is explicitly allowed to bleed;
+   everything else in the section keeps the normal gutter. padding-inline
+   is what actually centers the first/last card via scroll-snap (half the
+   viewport minus half a card), not a visual gutter. */
+.arc-carousel {
+  --card-w: clamp(240px, 72vw, 320px);
+  display: flex;
+  gap: 14px;
+  width: 100vw;
+  margin-inline: calc(50% - 50vw);
+  /* Derived from the SAME --card-w the card itself uses (below), so the
+     first/last card centers correctly whether 72vw or the 320px cap ends
+     up winning - a padding computed from 72vw alone would under/over-
+     shoot once the cap kicks in (e.g. at 768px, a 320px-capped card
+     needs ~224px of lead-in padding, not the ~107px a flat 14vw gives). */
+  padding-inline: max(16px, calc((100vw - var(--card-w)) / 2));
+  overflow-x: auto;
+  overscroll-behavior-x: contain;
+  scroll-snap-type: x mandatory;
+  scrollbar-width: none;
+  -webkit-overflow-scrolling: touch;
+}
+.arc-carousel::-webkit-scrollbar {
+  display: none;
+}
+.arc-carousel-card {
+  flex: 0 0 var(--card-w);
+  width: var(--card-w);
+  aspect-ratio: 4 / 5;
+  scroll-snap-align: center;
+  scroll-snap-stop: always;
+  list-style: none;
+  overflow: hidden;
+  border-radius: 24px;
+  box-shadow: 0 12px 28px rgba(52, 71, 43, 0.2);
+  /* Neighbour (not centered) state by default; MobileArcCarousel's own
+     scroll listener toggles .is-active on whichever card is actually
+     closest to the scroller's centre - measured from real
+     getBoundingClientRect positions, not a scroll-timeline heuristic.
+     (An animation-timeline: view(inline) version was tried first and
+     measured wrong - in this RTL scroll container, the card it marked
+     "focused" was never the one actually centered - so this is plain JS
+     instead, not a CSS limitation worth re-litigating here.) transform
+     only, transition only on transform, so this stays within "animate
+     only transform/opacity." */
+  transform: scale(0.88) rotate(var(--tilt, 0deg));
+  transition: transform 250ms ease-out;
+}
+.arc-carousel-card.is-active {
+  transform: scale(1) rotate(0deg);
+}
+@media (prefers-reduced-motion: reduce) {
+  .arc-carousel-card {
+    transition: none;
+  }
+}
+.arc-carousel-card img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.arc-mobile-stats {
   display: flex;
   justify-content: center;
-  padding-top: calc(var(--peak) + var(--radius) * 0.134 + 57px + 16px);
-}
-@media (min-width: 768px) {
-  .arc-stats-slot {
-    padding-top: calc(var(--peak) + var(--radius) * 0.66 + 107.5px + 24px);
-  }
+  /* The "no gap, small overlap" look: pulled up into the carousel's own
+     bottom edge. The stats card's own white background + shadow is what
+     reads as "on top", so no z-index juggling is needed. */
+  margin-top: -22px;
+  padding-inline: 16px;
 }
 
 /* Stats numbers (StatsSection): the digits move from muted grey to full
