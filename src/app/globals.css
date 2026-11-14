@@ -356,11 +356,12 @@ body {
   transform: translate(-50%, -30px) scale(calc(0.85 + var(--spread) * 0.15));
 }
 
-/* Centered on the ring's own visible hollow - NOT the photos' own
-   bounding box - via translate(-50%,-50%) at the midpoint of the ring's
-   visible span ((peak-30) to (peak + radius*1.32 + 9.6), midpoint =
-   peak - 10.2 + radius*0.66), so it's correct regardless of the stats
-   block's own rendered height (no need to know that height in advance).
+/* Centered (via translate(-50%,-50%)) on a point inside the ring's own
+   visible hollow. `top` was briefly bumped (radius * 0.85 -> 1.32) to
+   clear the photos after the title became a full heading, but explicit
+   request: keep it at this position, not that one - left at radius *
+   0.85 regardless of whatever minor visual graze that reintroduces with
+   a tall heading above the card.
    --reveal derives straight from --spread (already a plain <number>, no
    new scroll-timeline needed): 0 for the first 70% of the opening
    progress, ramping 0->1 over the last 30%, so the stats only appear
@@ -372,7 +373,7 @@ body {
   --reveal: clamp(0, calc((var(--spread) - 0.7) / 0.3), 1);
   position: absolute;
   left: 50%;
-  top: calc(var(--peak) + var(--radius) * 1.32);
+  top: calc(var(--peak) + var(--radius) * 0.85);
   opacity: var(--reveal);
   transform:
     translate(-50%, -50%)
