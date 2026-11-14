@@ -4,9 +4,11 @@ import type { Tables } from '@/types/database'
 import { getT } from '@/i18n/get-t'
 import { getLocale } from '@/i18n/get-locale'
 import { getDictionary } from '@/i18n/dictionaries'
-import type { Locale } from '@/i18n/config'
 import { pageMetadata } from '@/lib/seo'
-import BookSessionButton from '../schedule/book-session-button'
+import ClassCard from '@/components/classes/class-card'
+import type { ClassSession } from '@/components/classes/types'
+import { classCardData, loadClassBookings } from '@/lib/class-cards'
+import styles from '@/components/classes/class-card.module.css'
 
 export async function generateMetadata(): Promise<Metadata> {
   const locale = await getLocale()
@@ -14,22 +16,7 @@ export async function generateMetadata(): Promise<Metadata> {
   return pageMetadata({ ...t.seo.classes, path: '/classes', locale })
 }
 
-type ScheduleRow = {
-  id: string
-  session_date: string
-  start_time: string
-  end_time: string
-  capacity: number
-  booked_count: number
-  status: string
-  location: string | null
-  classes: {
-    id: string
-    name: string
-    category: string | null
-    price: number
-  } | null
-}
+type ScheduleRow = ClassSession
 
 function isUpcoming(session: ScheduleRow) {
   return (
@@ -38,203 +25,62 @@ function isUpcoming(session: ScheduleRow) {
   )
 }
 
-function formatDate(date: string, locale: Locale) {
-  return new Intl.DateTimeFormat(locale === 'ar' ? 'ar' : 'en-US', {
-    weekday: 'long',
-    day: 'numeric',
-    month: 'long',
-  }).format(new Date(`${date}T00:00:00`))
-}
-
-function formatTime(time: string) {
-  return time.slice(0, 5)
-}
-
-export default async function ClassesPage({
-  searchParams,
-}: {
+export default async function ClassesPage({ searchParams }: {
   searchParams: Promise<{ book?: string }>
 }) {
   const { book: requestedSessionId } = await searchParams
   const supabase = await createClient()
   const { t, locale, dir } = await getT()
-  const {
-    data: { user },
-  } = await supabase.auth.getUser()
+  const { data: { user } } = await supabase.auth.getUser()
   const [
     { data: classes, error: classesError },
     { data: sessions, error: sessionsError },
   ] = await Promise.all([
-    supabase
-      .from('classes')
-      .select('*')
-      .eq('is_active', true)
-      .returns<Tables<'classes'>[]>(),
-    supabase
-      .from('class_sessions')
-      .select(
-        'id, session_date, start_time, end_time, capacity, booked_count, status, location, classes(id, name, category, price)'
-      )
-      .order('session_date', { ascending: true })
-      .returns<ScheduleRow[]>(),
+    supabase.from('classes').select('*').eq('is_active', true).returns<Tables<'classes'>[]>(),
+    supabase.from('class_sessions')
+      .select('id, session_date, start_time, end_time, capacity, booked_count, status, location, classes(id, name, category, price)')
+      .order('session_date', { ascending: true }).returns<ScheduleRow[]>(),
   ])
-
-  if (classesError) {
-    console.error('Failed to load classes:', classesError.message)
-  }
-  if (sessionsError) {
-    console.error('Failed to load class sessions:', sessionsError.message)
-  }
+  if (classesError) console.error('Failed to load classes:', classesError.message)
+  if (sessionsError) console.error('Failed to load class sessions:', sessionsError.message)
 
   const sessionsByClass = new Map<string, ScheduleRow[]>()
-
-  for (const session of (sessions ?? []).filter(isUpcoming)) {
+  const upcoming = (sessions ?? []).filter(isUpcoming)
+  for (const session of upcoming) {
     const classId = session.classes?.id
     if (!classId) continue
     const groupedSessions = sessionsByClass.get(classId) ?? []
     groupedSessions.push(session)
     sessionsByClass.set(classId, groupedSessions)
   }
+  const now = new Date()
+  const current = await loadClassBookings(supabase, user?.id ?? null, upcoming.map(session => session.id), now)
 
-  return (
-    <div className="px-5 py-16 sm:px-8 lg:px-10" dir={dir}>
-      <section className="mx-auto max-w-7xl">
-        <div className="max-w-3xl space-y-5">
-          <p className="text-sm font-medium uppercase tracking-[0.28em] text-[#617A55]">
-            {t.classes.eyebrow}
-          </p>
-          <h1 className="font-serif text-5xl leading-tight text-[#25311f] sm:text-6xl">
-            {t.classes.heading}
-          </h1>
-          <p className="text-lg leading-8 text-[#4f5d49]">{t.classes.subtitle}</p>
-        </div>
-      </section>
-
-      <section className="mx-auto mt-12 max-w-7xl">
-        {!classes || classes.length === 0 ? (
-          <div className="rounded-[1.75rem] bg-[#C7D6E8]/55 p-8 text-[#4f5d49]">
-            {t.classes.noClasses}
-          </div>
-        ) : (
-          <div className="grid gap-7">
-            {classes.map((classItem) => {
-              const classSessions = sessionsByClass.get(classItem.id) ?? []
-
-              return (
-                <article
-                  key={classItem.id}
-                  className="overflow-hidden rounded-[1.75rem] border border-[#617A55]/10 bg-white/65 shadow-sm"
-                >
-                  <div className="grid lg:grid-cols-[minmax(250px,0.7fr)_1.5fr]">
-                    <div className="bg-[#D6E2B6]/75 p-6 sm:p-8">
-                      {classItem.category && (
-                        <p className="text-xs font-semibold uppercase tracking-[0.2em] text-[#617A55]">
-                          {classItem.category}
-                        </p>
-                      )}
-                      <h2 className="mt-3 font-serif text-3xl leading-tight text-[#25311f] sm:text-4xl">
-                        {classItem.name}
-                      </h2>
-                      {classItem.description && (
-                        <p className="mt-4 leading-7 text-[#4f5d49]">
-                          {classItem.description}
-                        </p>
-                      )}
-                      <p className="mt-6 border-t border-[#617A55]/15 pt-4 text-sm font-semibold uppercase tracking-[0.14em] text-[#617A55]">
-                        {classItem.duration_minutes} {t.common.minutesSuffix}{' '}
-                        &middot; ₪{classItem.price}
-                      </p>
-                    </div>
-
-                    <div className="p-5 sm:p-7" dir={dir}>
-                      <h3 className="font-serif text-2xl text-[#25311f]">
-                        {t.classes.upcomingHeading}
-                      </h3>
-
-                      {classSessions.length === 0 ? (
-                        <p className="mt-4 rounded-lg bg-[#C7D6E8]/35 p-4 text-sm text-[#617A55]">
-                          {t.classes.noUpcoming}
-                        </p>
-                      ) : (
-                        <div className="mt-4 grid gap-3">
-                          {classSessions.map((session) => {
-                            const remaining = Math.max(
-                              0,
-                              session.capacity - session.booked_count
-                            )
-                            const isRequested = requestedSessionId === session.id
-
-                            return (
-                              <section
-                                key={session.id}
-                                id={`session-${session.id}`}
-                                className={`rounded-lg border p-4 transition sm:p-5 ${
-                                  isRequested
-                                    ? 'border-[#617A55] bg-[#D6E2B6]/35 ring-2 ring-[#617A55]/15'
-                                    : 'border-[#617A55]/10 bg-[#F7F6F0]/75'
-                                }`}
-                              >
-                                {isRequested && (
-                                  <p className="mb-3 text-sm font-semibold text-[#617A55]">
-                                    {t.classes.requestedNotice}
-                                  </p>
-                                )}
-                                <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-                                  <dl className="grid min-w-0 gap-2 text-sm text-[#4f5d49] sm:grid-cols-2 sm:gap-x-6">
-                                    <div>
-                                      <dt className="sr-only">{t.classes.dateLabel}</dt>
-                                      <dd className="font-semibold text-[#25311f]">
-                                        {formatDate(session.session_date, locale)}
-                                      </dd>
-                                    </div>
-                                    <div>
-                                      <dt className="sr-only">{t.classes.timeLabel}</dt>
-                                      <dd>
-                                        {formatTime(session.start_time)} -{' '}
-                                        {formatTime(session.end_time)}
-                                      </dd>
-                                    </div>
-                                    <div className="sm:col-span-2">
-                                      <dt className="sr-only">{t.classes.locationLabel}</dt>
-                                      <dd className="break-words">
-                                        {session.location ?? t.classes.locationFallback}
-                                      </dd>
-                                    </div>
-                                    <div className="sm:col-span-2">
-                                      <dt className="sr-only">
-                                        {t.classes.availableSeatsLabel}
-                                      </dt>
-                                      <dd>
-                                        {remaining} {t.classes.seatsAvailableOf}{' '}
-                                        {session.capacity}
-                                      </dd>
-                                    </div>
-                                  </dl>
-
-                                  <div className="shrink-0 [&>div>button]:min-h-11 [&>div>button]:rounded-lg [&>div>button]:px-6 [&>div>button]:py-3">
-                                    <BookSessionButton
-                                      sessionId={session.id}
-                                      initialRemaining={remaining}
-                                      price={session.classes?.price ?? 0}
-                                      showRemaining={false}
-                                      autoOpen={isRequested && Boolean(user)}
-                                      isAuthenticated={Boolean(user)}
-                                    />
-                                  </div>
-                                </div>
-                              </section>
-                            )
-                          })}
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                </article>
-              )
-            })}
-          </div>
-        )}
-      </section>
-    </div>
-  )
+  return <div className="px-5 py-16 sm:px-8 lg:px-10" dir={dir}>
+    <section className="mx-auto max-w-7xl">
+      <div className="max-w-3xl space-y-5">
+        <p className="text-sm font-medium uppercase tracking-[0.28em] text-[#617A55]">{t.classes.eyebrow}</p>
+        <h1 className="font-serif text-5xl leading-tight text-[#25311f] sm:text-6xl">{t.classes.heading}</h1>
+        <p className="text-lg leading-8 text-[#4f5d49]">{t.classes.subtitle}</p>
+      </div>
+    </section>
+    <section className="mx-auto mt-12 max-w-7xl">
+      {!classes || classes.length === 0 ? <div className="rounded-[1.75rem] bg-[#C7D6E8]/55 p-8 text-[#4f5d49]">{t.classes.noClasses}</div>
+        : <div className="grid gap-10">
+          {classes.map(classItem => {
+            const classSessions = sessionsByClass.get(classItem.id) ?? []
+            return <section key={classItem.id} aria-labelledby={`class-${classItem.id}`}>
+              <h2 id={`class-${classItem.id}`} className="mb-5 font-serif text-3xl text-[#25311f]">{classItem.name}</h2>
+              {classSessions.length === 0 ? <p className="rounded-lg bg-[#C7D6E8]/35 p-4 text-sm text-[#4f5d49]">{t.classes.noUpcoming}</p>
+                : <div className={styles.grid}>
+                  {classSessions.map(session => <ClassCard key={session.id} headingLevel={3} session={classCardData(session, locale, {
+                    now, classInfo: classItem, booking: current.bookings.get(session.id), known: current.known,
+                    authenticated: Boolean(user), requested: requestedSessionId === session.id,
+                  })} />)}
+                </div>}
+            </section>
+          })}
+        </div>}
+    </section>
+  </div>
 }
