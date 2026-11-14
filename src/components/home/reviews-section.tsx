@@ -246,13 +246,7 @@ export default function ReviewsSection({ reviews }: { reviews: ReviewRow[] }) {
     <section className="scroll-reveal border-t border-[#55684A]/10 bg-[#F6F5EE] px-5 py-16 sm:px-8 lg:px-10 lg:py-20">
       <div className="mx-auto max-w-7xl">
         <div className="flex flex-col items-center text-center">
-          <span className="inline-flex items-center gap-1.5 rounded-full bg-[#E4ECD6] px-3.5 py-1.5 text-xs font-semibold text-[#34472B]">
-            <svg aria-hidden="true" viewBox="0 0 20 20" className="size-3.5" fill="currentColor">
-              <path d="M2 4a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H8l-4 3.5V14H4a2 2 0 0 1-2-2V4Z" />
-            </svg>
-            {labels.eyebrow}
-          </span>
-          <h2 id={headingId} aria-label={labels.heading} className="mt-4 font-serif text-4xl text-[#34472B] sm:text-5xl">
+          <h2 id={headingId} aria-label={labels.heading} className="font-serif text-4xl text-[#34472B] sm:text-5xl">
             <span aria-hidden="true">
               {leadText}
               <span className="relative inline-block">

@@ -116,7 +116,6 @@ export const ar = {
     remainingSeatsSuffix: 'أماكن متبقية',
     statsEyebrow: 'بعض ما أنجزناه معًا',
     reviews: {
-      eyebrow: 'آراء المشاركات',
       heading: 'ماذا تقول المشاركات؟',
       headingAccent: 'تقول المشاركات؟',
       subtitle: 'تجارب حقيقية من مجتمعنا',
