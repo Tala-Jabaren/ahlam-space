@@ -43,6 +43,14 @@ body {
   font-family: var(--font-true-arabic), Arial, Helvetica, sans-serif;
 }
 
+/* Page titles and primary section headings use the shared display face.
+   Keep all existing font sizes, line heights, spacing and colors. The serif
+   utility stays TrueArabic so logos, prices and body copy are unaffected. */
+:root :is(h1, h2) {
+  font-family: var(--font-milan-titles), var(--font-true-arabic), Arial, Helvetica, sans-serif;
+  font-weight: 900;
+}
+
 /* Trip photo strip (TripPhotoStrip component): the track renders the photo
    list twice back to back, then scrolls exactly half its own width so the
    loop is seamless. Direction is mirrored for RTL vs LTR so the strip always

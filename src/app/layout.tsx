@@ -7,6 +7,14 @@ import { getDictionary } from '@/i18n/dictionaries'
 import { DEFAULT_OG_IMAGE, SITE_URL } from '@/lib/seo'
 import './globals.css'
 
+const milanTitles = localFont({
+  src: '../../public/fonts/Milan_Titles_Black.otf',
+  variable: '--font-milan-titles',
+  weight: '900',
+  style: 'normal',
+  display: 'swap',
+})
+
 const trueArabic = localFont({
   variable: '--font-true-arabic',
   display: 'swap',
@@ -89,7 +97,7 @@ export default async function RootLayout({ children }: LayoutProps<'/'>) {
     <html
       lang={locale}
       dir={dirFor(locale)}
-      className={`${trueArabic.variable} h-full antialiased`}
+      className={`${trueArabic.variable} ${milanTitles.variable} h-full antialiased`}
     >
       <body className="min-h-full flex flex-col">
         <CartProvider>{children}</CartProvider>
