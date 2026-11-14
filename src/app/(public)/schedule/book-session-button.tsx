@@ -6,6 +6,7 @@ import { useRouter } from 'next/navigation'
 import PaymentConfirmationBlock from '@/components/payment-confirmation-block'
 import { createClient } from '@/lib/supabase/client'
 import { useT } from '@/i18n/i18n-context'
+import type { BookingReceipt } from '@/components/classes/types'
 
 type Props = {
   sessionId: string
@@ -14,6 +15,9 @@ type Props = {
   showRemaining?: boolean
   autoOpen?: boolean
   isAuthenticated?: boolean
+  buttonLabel?: string
+  buttonClassName?: string
+  onBooked?: (receipt: BookingReceipt) => void
 }
 
 type BookingState = 'idle' | 'booking' | 'success' | 'full' | 'too_late' | 'error'
@@ -25,6 +29,9 @@ export default function BookSessionButton({
   showRemaining = true,
   autoOpen = false,
   isAuthenticated = true,
+  buttonLabel,
+  buttonClassName,
+  onBooked,
 }: Props) {
   const router = useRouter()
   const { t } = useT()
@@ -86,6 +93,9 @@ export default function BookSessionButton({
     setReference(bookingRow?.reference ?? null)
     setRemaining((r) => Math.max(0, r - 1))
     setState('success')
+    // Optional presentation event: the shared card displays the same receipt in
+    // a dialog. Authentication, RPC arguments, reference lookup and payment stay unchanged.
+    onBooked?.({ id: String(bookingId), reference: bookingRow?.reference ?? null })
   }
 
   useEffect(() => {
@@ -140,9 +150,9 @@ export default function BookSessionButton({
             type="button"
             onClick={handleBook}
             disabled={state === 'booking' || remaining <= 0}
-            className="rounded-full bg-[#617A55] px-4 py-1.5 text-sm font-medium text-white transition-colors hover:bg-[#4f6446] disabled:cursor-not-allowed disabled:opacity-50"
+            className={buttonClassName ?? 'rounded-full bg-[#617A55] px-4 py-1.5 text-sm font-medium text-white transition-colors hover:bg-[#4f6446] disabled:cursor-not-allowed disabled:opacity-50'}
           >
-            {state === 'booking' ? t.schedule.bookButtonLoading : t.schedule.bookButtonIdle}
+            {state === 'booking' ? t.schedule.bookButtonLoading : buttonLabel ?? t.schedule.bookButtonIdle}
           </button>
           <p className="text-xs leading-5 text-[#617A55]/70">
             {t.schedule.consentPrefix}{' '}
