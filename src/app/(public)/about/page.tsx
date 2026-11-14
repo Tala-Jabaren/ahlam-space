@@ -30,8 +30,7 @@ export default async function AboutPage() {
         </h1>
         <div className={styles.portraitDrift}>
           <div className={styles.portrait}>
-            {/* Allow for the square source covering the taller portrait frame. */}
-            <Image src="/images/mainaboutpic.png" alt={t.about.imageAlt} fill priority sizes="(min-width: 1200px) 510px, (min-width: 768px) 420px, 480px" />
+            <Image src="/images/mainaboutpic.png" alt={t.about.imageAlt} fill priority sizes="(min-width: 1200px) 520px, (min-width: 1024px) 44vw, (min-width: 768px) 480px, (min-width: 400px) 360px, calc(100vw - 40px)" />
           </div>
         </div>
       </div>
