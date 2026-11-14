@@ -158,7 +158,6 @@ export const en: typeof ar = {
     subheading: 'A journey of passion toward a more balanced, aware life.',
     paragraph:
       'Ahlam is a yoga and movement instructor who believes that caring for the body and mind isn’t a luxury — it’s a way of life. Through her experience and passion, she aims to create a space that helps everyone move mindfully, connect with themselves, and reach greater balance in their daily life.',
-    ctaDiscoverStory: 'Discover My Story',
     imageAlt: 'Ahlam smiling while exercising outdoors',
     myStoryHeading: 'My Story',
     myStoryParagraph1:
@@ -187,7 +186,44 @@ export const en: typeof ar = {
     finalHeading: 'Ready to start your journey?',
     finalParagraph: 'Discover the classes and choose the right space for you.',
     ctaExplore: 'Explore Classes',
-    ctaBookNow: 'Book Now',
+    // TODO owner to confirm: all editorial additions below are draft copy.
+    editorial: {
+      eyebrow: 'ABOUT AHLAM',
+      heroStart: 'About',
+      heroEnd: 'Ahlam',
+      heroTitle: 'About Ahlam',
+      role: 'A yoga and movement instructor who believes caring for the body and mind is a way of life.',
+      place: 'Ramallah · Palestine',
+      practices: 'Classes · Private sessions · Lectures',
+      contact: 'Get in touch',
+      marqueeLabel: 'Words from our space',
+      words: ['Yoga', 'Movement', 'Breath', 'Awareness', 'Balance', 'Calm'],
+      approachEyebrow: 'MY APPROACH',
+      approachLine1: 'Mindful movement,',
+      approachLine2: 'without pressure or judgment',
+      approachParagraph: 'I design every class as a safe space where you can move at your own pace, whether this is your first step onto the mat or you have been practising for years.',
+      approachItems: [
+        { title: 'The body comes first. Always.', text: 'We begin by listening to your body before moving. No forcing or comparing; we progress in a way that feels right for you today.' },
+        { title: 'Breath is the foundation', text: 'We connect movement with breath, turning exercise into moments of calm where you can ease the day’s pressure and return feeling lighter and clearer.' },
+      ],
+      spaceTitle: 'A space that feels like you',
+      spaceText: 'A warm, supportive atmosphere for anyone seeking balance in everyday life.',
+      spaceImageAlt: 'Ahlam seated with a singing bowl',
+      storyEyebrow: 'MY STORY',
+      classHeading: 'What does a class feel like?',
+      steps: [
+        { title: 'Prepare the body and breath', text: 'We begin with calm breathing and gentle movements to ease you into the class.' },
+        { title: 'Move mindfully, at your pace', text: 'Thoughtfully chosen exercises, with options for your level and comfort.' },
+        { title: 'Finish with calm and relaxation', text: 'A few still moments at the end, so you can leave feeling lighter and clearer.' },
+      ],
+      valuesHeading: 'My values',
+      values: [
+        { title: 'Every body has its own rhythm', text: 'Each step begins by listening to what feels right for you today.' },
+        { title: 'No judgment. No comparison.', text: 'A space to meet as we are, with nothing to prove.' },
+        { title: 'Consistency over perfection', text: 'We make room for trying, and for beginning again.' },
+      ],
+      offersLabel: 'Available services',
+    },
   },
   classes: {
     eyebrow: 'Weekly movement',
