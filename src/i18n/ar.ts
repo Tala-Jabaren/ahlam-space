@@ -76,10 +76,10 @@ export const ar = {
     switchToArabic: 'العربية',
   },
   home: {
-    heroHeadingLine1: 'مساحة للحركة،',
-    heroHeadingLine2: 'الوعي والتوازن.',
+    heroHeadingLine1: 'مساحتك الهادئة',
+    heroHeadingLine2: 'للحركة والتوازن',
     heroParagraph:
-      'في Ahlam Space نؤمن بأن الحركة ليست فقط تمرينًا للجسم، بل رحلة أعمق نحو حياة أكثر توازنًا ووعيًا.',
+      'حصص ومحاضرات وجلسات تساعدك تتحركي بوعي وتتواصلي مع نفسك.',
     heroCtaBookNow: 'احجزي حصتك',
     heroJoinCta: 'انضمّي كعضوة',
     heroMySessions: 'حصصي',
