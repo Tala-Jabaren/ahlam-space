@@ -93,12 +93,12 @@ export default function StatsSection({ stats, eyebrow }: { stats: SiteStat[]; ey
   // carousel) and owns the surrounding spacing. Always compact: this is
   // never rendered at full section width anymore.
   return (
-    <div ref={sectionRef} className="mx-auto flex w-full max-w-[300px] flex-col items-center text-center">
+    <div ref={sectionRef} className="arc-stats-strip mx-auto flex w-full max-w-[300px] flex-col items-center text-center">
       <span className="inline-flex rounded-full bg-[#E4ECD6] px-3.5 py-1.5 text-xs font-semibold text-[#34472B]">
         {eyebrow}
       </span>
       <div
-        className={`mt-3 grid w-full gap-x-3 gap-y-4 rounded-[1.75rem] bg-white p-4 shadow-[0_12px_32px_rgba(52,71,43,0.10)] ${colsClass}`}
+        className={`arc-stats-card mt-3 grid w-full gap-x-3 gap-y-4 rounded-[1.75rem] bg-white p-4 shadow-[0_12px_32px_rgba(52,71,43,0.10)] ${colsClass}`}
       >
         {confirmed.map((stat, index) => (
           <div key={stat.label} className={`px-1.5 text-center ${dividerClass(index, confirmed.length)}`}>

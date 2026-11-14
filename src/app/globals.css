@@ -409,6 +409,26 @@ body {
     scale(calc(0.96 + var(--reveal) * 0.04));
 }
 
+/* Desktop-only card sizing (scoped by the .arc-desktop ancestor, which
+   is itself display: none below 769px - see the toggle at the top of
+   this file - so none of this reaches the mobile carousel's own stats
+   block below). Wider card (+25%, 300px -> 375px) with more horizontal
+   padding (16px -> 24px) and a touch more column gap (12px -> 16px) so
+   the numbers/dividers get real breathing room instead of sitting near
+   the edges; numbers themselves -20% (2.25rem -> 1.8rem) to balance
+   against the photos. Labels, pill, centering, and everything else
+   (including the mobile placement) unchanged. */
+.arc-desktop .arc-stats-strip {
+  max-width: 375px;
+}
+.arc-desktop .arc-stats-card {
+  padding-inline: 24px;
+  column-gap: 16px;
+}
+.arc-desktop .stat-value {
+  font-size: 1.8rem;
+}
+
 /* ============================================================= */
 /* Mobile (<=768px): swipeable scroll-snap carousel, no JS, stats  */
 /* directly below with a small overlap for depth.                 */
