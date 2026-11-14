@@ -75,35 +75,6 @@ body {
   }
 }
 
-/* Reviews strip (ReviewsSection): same seamless-loop mechanism as the trip
-   photo strip above - the track renders the review list twice back to
-   back and scrolls exactly half its own width, direction mirrored for
-   RTL/LTR. Kept as its own class (rather than reusing
-   trip-strip-track-animate) since the two strips pause independently and
-   can run at different speeds. */
-@keyframes reviews-strip-scroll-rtl {
-  from { transform: translateX(0); }
-  to { transform: translateX(50%); }
-}
-@keyframes reviews-strip-scroll-ltr {
-  from { transform: translateX(0); }
-  to { transform: translateX(-50%); }
-}
-.reviews-strip-track-animate {
-  animation: reviews-strip-scroll-rtl 60s linear infinite;
-}
-[dir='ltr'] .reviews-strip-track-animate {
-  animation-name: reviews-strip-scroll-ltr;
-}
-.reviews-strip-track-animate[data-paused='true'] {
-  animation-play-state: paused;
-}
-@media (prefers-reduced-motion: reduce) {
-  .reviews-strip-track-animate {
-    animation: none;
-  }
-}
-
 /* Scroll-reveal, CSS-only: progresses each section's own opacity/transform
    as it crosses into the viewport. Behind @supports so browsers without
    animation-timeline just render sections fully visible with no
@@ -508,6 +479,29 @@ body {
      between the pill and the card, unchanged) -> stats card). */
   margin-top: 14px;
   padding-inline: 16px;
+}
+
+/* Mobile-only card sizing (scoped by the .arc-mobile ancestor, which is
+   itself display: none at/above 769px, so none of this reaches the
+   desktop override above). The card read as too small against the
+   carousel's own photo cards above it - widened (300px -> min(88vw,
+   380px), capped so it never exceeds the 16px-padded .arc-mobile-stats
+   content width at any phone size) with roomier padding and numbers
+   bumped to match the bigger card. Labels/pill/dividers unchanged. */
+.arc-mobile .arc-stats-strip {
+  max-width: min(88vw, 380px);
+}
+.arc-mobile .arc-stats-card {
+  padding: 18px 20px;
+  column-gap: 16px;
+  row-gap: 18px;
+}
+.arc-mobile .stat-value {
+  /* clamp, not a flat 2.5rem: at the narrowest phones (~360px) a flat
+     2.5rem crowded the 3-digit values against the column dividers -
+     this scales down smoothly below ~445px viewport width instead of a
+     second breakpoint. */
+  font-size: clamp(2rem, 9vw, 2.5rem);
 }
 
 /* Stats numbers (StatsSection): the digits move from muted grey to full

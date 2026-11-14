@@ -1,0 +1,205 @@
+/* Scroll-snap carousel track. Each .card is one scroll-snap stop; the
+   visible count (1 phone w/ peek, 2 tablet, 3 desktop) is purely a
+   flex-basis media query, no JS layout math needed - cardsPerView in the
+   component only needs to mirror these same two breakpoints (640/1024) to
+   keep "current page" math in sync with what's actually on screen. */
+.track {
+  display: flex;
+  gap: 20px;
+  overflow-x: auto;
+  scroll-snap-type: x mandatory;
+  scrollbar-width: none;
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior-x: contain;
+  padding-block: 6px;
+}
+.track::-webkit-scrollbar {
+  display: none;
+}
+
+.card {
+  flex: 0 0 85%;
+  min-width: 0;
+  scroll-snap-align: start;
+  scroll-snap-stop: always;
+}
+@media (min-width: 640px) {
+  .card {
+    flex-basis: calc((100% - 20px) / 2);
+  }
+}
+@media (min-width: 1024px) {
+  .card {
+    flex-basis: calc((100% - 40px) / 3);
+  }
+}
+
+/* Fixed (not min-) height, deliberately - combined with the flex column +
+   footer's margin-top:auto below, this is what makes every card the same
+   height regardless of review length or whether its own "read more"
+   button is present: the gap between the clamped quote and the footer
+   just grows/shrinks to fill whatever's left, the footer never moves. */
+.cardSurface {
+  position: relative;
+  display: flex;
+  height: 340px;
+  flex-direction: column;
+  border-radius: 24px;
+  border: 1px solid rgba(85, 104, 74, 0.1);
+  background: #fff;
+  padding: 36px 24px 22px;
+  box-shadow: 0 1px 2px rgba(52, 71, 43, 0.05), 0 16px 32px rgba(52, 71, 43, 0.06);
+}
+
+.quoteMark {
+  position: absolute;
+  top: 14px;
+  inset-inline-start: 20px;
+}
+
+.quote {
+  position: relative;
+  display: -webkit-box;
+  overflow: hidden;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 4;
+}
+
+.footer {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-top: auto;
+  padding-top: 14px;
+}
+
+.avatar {
+  display: grid;
+  flex-shrink: 0;
+  place-items: center;
+  width: 40px;
+  height: 40px;
+  overflow: hidden;
+  border-radius: 50%;
+  background: var(--blue-mist);
+  color: #55684a;
+}
+.avatarImg {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+/* Prev/next sit just outside the track on wide screens, and pull inward
+   on narrow ones so they never spill past the viewport edge (the track
+   itself already has no horizontal page overflow - these buttons must
+   not reintroduce it). inset-inline-* (not left/right) is what makes
+   "previous" and "next" swap sides automatically between ar (RTL) and en
+   (LTR) - see the component for why previous=inline-start/next=inline-end
+   is the correct mapping, not just a visual mirror. */
+.arrow {
+  position: absolute;
+  top: 50%;
+  z-index: 2;
+  display: grid;
+  width: 44px;
+  height: 44px;
+  flex-shrink: 0;
+  place-items: center;
+  border-radius: 50%;
+  border: 1px solid rgba(85, 104, 74, 0.15);
+  background: #fff;
+  color: #55684a;
+  translate: 0 -50%;
+  box-shadow: 0 4px 14px rgba(52, 71, 43, 0.12);
+  transition: background-color 0.2s ease;
+}
+.arrow:hover {
+  background: #e4ecd6;
+}
+.arrow:disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
+}
+.arrowPrev {
+  inset-inline-start: -4px;
+}
+.arrowNext {
+  inset-inline-end: -4px;
+}
+@media (min-width: 900px) {
+  .arrowPrev {
+    inset-inline-start: -22px;
+  }
+  .arrowNext {
+    inset-inline-end: -22px;
+  }
+}
+
+.dots {
+  display: flex;
+  justify-content: center;
+  gap: 8px;
+  margin-top: 28px;
+}
+.dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 9999px;
+  background: rgba(85, 104, 74, 0.25);
+  transition: background-color 0.2s ease, width 0.2s ease;
+}
+.dot[data-active='true'] {
+  width: 22px;
+  background: #55684a;
+}
+
+.dialog {
+  position: fixed;
+  inset: 0;
+  margin: auto;
+  width: min(560px, calc(100% - 32px));
+  max-height: 80vh;
+  overflow-y: auto;
+  border: none;
+  border-radius: 24px;
+  background: #f7f6f0;
+  color: #25311f;
+  padding: 36px 28px 28px;
+}
+.dialog::backdrop {
+  background: rgba(37, 49, 31, 0.45);
+}
+.dialogClose {
+  position: absolute;
+  top: 16px;
+  inset-inline-end: 16px;
+  display: grid;
+  width: 36px;
+  height: 36px;
+  place-items: center;
+  border-radius: 50%;
+  color: #55684a;
+}
+.dialogClose:hover {
+  background: rgba(85, 104, 74, 0.1);
+}
+.dialogBody {
+  white-space: pre-line;
+  line-height: 1.9;
+}
+.dialogFooter {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-top: 24px;
+  padding-top: 20px;
+  border-top: 1px solid rgba(85, 104, 74, 0.12);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .arrow,
+  .dot {
+    transition: none;
+  }
+}
