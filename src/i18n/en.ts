@@ -78,10 +78,10 @@ export const en: typeof ar = {
     switchToArabic: 'العربية',
   },
   home: {
-    heroHeadingLine1: 'A space for movement,',
-    heroHeadingLine2: 'awareness, and balance.',
+    heroHeadingLine1: 'Your calm space',
+    heroHeadingLine2: 'for movement and balance',
     heroParagraph:
-      'At Ahlam Space, we believe movement isn’t just exercise for the body — it’s a deeper journey toward a more balanced, aware life.',
+      'Classes, lectures and private sessions that help you move mindfully and reconnect with yourself.',
     heroCtaBookNow: 'Book Your Session',
     heroJoinCta: 'Join as a Member',
     heroMySessions: 'My Classes',
