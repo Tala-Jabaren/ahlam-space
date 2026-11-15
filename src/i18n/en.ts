@@ -290,7 +290,6 @@ export const en: typeof ar = {
       heroDescription: 'A mindful journey toward deeper awareness, balance, and inner peace.',
       heroSecondaryDescription:
         'Explore lectures and meditations designed to help you reconnect with yourself.',
-      heroImageAlt: 'A lit candle among green branches and linen at Ahlam Space',
       subtitle: 'Purchase requests remain pending until payment is confirmed.',
       accessHint: 'Available after purchase',
       accessDeniedNotice:
