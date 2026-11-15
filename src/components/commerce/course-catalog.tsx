@@ -96,16 +96,6 @@ export default async function CoursesPage({
         <p className="mt-2 text-sm leading-7 text-[#617A55]">{t.courses.list.subtitle}</p>
       </header> : <ClassesBanner title={t.courses.list.heading} tagline={t.courses.list.tagline} />}
 
-      {routes.scope !== 'member' && (
-        <div className="mx-auto max-w-5xl px-5 pt-8 sm:px-8" dir={dir}>
-          <p className="text-base leading-8 text-[#4f5d49] sm:text-lg">{t.courses.list.heroDescription}</p>
-          <p className="mt-2 max-w-md text-base leading-8 text-[#617A55]/85 sm:text-lg">{t.courses.list.heroSecondaryDescription}</p>
-          <p className="mt-4 inline-flex items-center gap-2 rounded-full bg-[#D6E2B6]/45 px-4 py-2 text-sm font-medium text-[#617A55]">
-            {t.courses.list.subtitle}
-          </p>
-        </div>
-      )}
-
       <div className="mx-auto max-w-5xl px-5 py-6 sm:px-8 sm:py-8" dir={dir}>
         {errorParam === 'access_denied' && (
           <div className="mb-8 rounded-lg bg-[#C7D6E8]/55 p-5 text-center text-sm leading-6">

@@ -288,9 +288,6 @@ export const en: typeof ar = {
     list: {
       heading: 'Courses',
       tagline: 'Lectures and meditations from Ahlam on movement and awareness, learn at your own pace from home.',
-      heroDescription: 'A mindful journey toward deeper awareness, balance, and inner peace.',
-      heroSecondaryDescription:
-        'Explore lectures and meditations designed to help you reconnect with yourself.',
       subtitle: 'Purchase requests remain pending until payment is confirmed.',
       accessHint: 'Available after purchase',
       accessDeniedNotice:
