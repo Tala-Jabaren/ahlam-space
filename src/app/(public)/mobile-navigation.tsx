@@ -31,6 +31,7 @@ export default function MobileNavigation({
   const groups = [
     [
       { href: '/', label: t.nav.home, icon: House },
+      { href: '/about', label: t.nav.about, icon: Info },
       { href: '/classes', label: t.nav.classes, icon: CalendarDays },
       { href: '/private-sessions', label: t.nav.privateSessions, icon: Flower2 },
       { href: '/courses', label: t.nav.courses, icon: BookOpen },
@@ -40,7 +41,6 @@ export default function MobileNavigation({
       { href: '/shop', label: t.nav.shop, icon: ShoppingBag },
     ],
     [
-      { href: '/about', label: t.nav.about, icon: Info },
       { href: '/contact', label: t.nav.contact, icon: Mail },
     ],
   ]
