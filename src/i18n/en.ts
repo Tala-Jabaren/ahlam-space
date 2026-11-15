@@ -363,6 +363,7 @@ export const en: typeof ar = {
   },
   privateSessions: {
     heading: 'Private Sessions',
+    tagline: 'Because every body has its own needs, and every soul its own journey',
     services: [
       {
         title: 'Personal Facilitation Journey',

@@ -359,6 +359,7 @@ export const ar = {
   },
   privateSessions: {
     heading: 'الجلسات الفردية',
+    tagline: 'لأن لكل جسد احتياجاته، ولكل روح رحلتها الخاصة',
     services: [
       {
         title: 'رحلة تيسير الشخصية',
