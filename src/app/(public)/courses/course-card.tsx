@@ -53,14 +53,13 @@ export default function CourseCard({
 
   return (
     <article className="w-full max-w-[620px] overflow-hidden rounded-[18px] border border-[#617A55]/12 bg-[#F7F6F0] shadow-[0_1px_2px_rgba(37,49,31,0.04)]">
-      <div className="flex items-start">
-        {/* Fixed small square at every breakpoint (not a full-width,
-            fixed-height band on mobile and a stretch-to-content-height
-            rectangle on desktop, which is what made the image dominate
-            the card and lose its own aspect ratio) - items-start on the
-            row keeps it pinned at size-[120px] instead of being
-            stretched to match the content column's height. */}
-        <div className="relative size-[120px] shrink-0 self-start overflow-hidden">
+      <div className="flex">
+        {/* Fixed width (120px), height stretches to match the content
+            column via the row's default align-items:stretch - a fixed
+            height here (self-start) left a gap under the image whenever
+            the content column was taller than 120px, since the image
+            stayed pinned at 120px while the card itself grew past it. */}
+        <div className="relative w-[120px] shrink-0 overflow-hidden">
           {course.cover_image_url ? (
             // eslint-disable-next-line @next/next/no-img-element
             <img src={course.cover_image_url} alt="" className="h-full w-full object-cover" />
