@@ -53,22 +53,28 @@ export default function CourseCard({
 
   return (
     <article className="w-full max-w-[620px] overflow-hidden rounded-[18px] border border-[#617A55]/12 bg-[#F7F6F0] shadow-[0_1px_2px_rgba(37,49,31,0.04)]">
-      <div className="flex flex-col sm:min-h-[190px] sm:flex-row">
-        <div className="relative h-[180px] w-full shrink-0 overflow-hidden sm:h-auto sm:w-[190px]">
+      <div className="flex items-start">
+        {/* Fixed small square at every breakpoint (not a full-width,
+            fixed-height band on mobile and a stretch-to-content-height
+            rectangle on desktop, which is what made the image dominate
+            the card and lose its own aspect ratio) - items-start on the
+            row keeps it pinned at size-[120px] instead of being
+            stretched to match the content column's height. */}
+        <div className="relative size-[120px] shrink-0 self-start overflow-hidden">
           {course.cover_image_url ? (
             // eslint-disable-next-line @next/next/no-img-element
             <img src={course.cover_image_url} alt="" className="h-full w-full object-cover" />
           ) : (
             <CourseCoverFallback contentType={course.content_type} />
           )}
-          <span className="absolute start-3 top-3 inline-flex items-center gap-1.5 rounded-full bg-[#F7F6F0]/95 px-3 py-1.5 text-xs font-semibold text-[#617A55] shadow-sm">
+        </div>
+
+        <div className="flex min-w-0 flex-1 flex-col gap-1.5 p-4">
+          <span className="inline-flex w-fit items-center gap-1.5 text-xs font-semibold text-[#617A55]">
             <BadgeIcon aria-hidden="true" strokeWidth={1.75} className="size-3.5" />
             {typeLabel}
           </span>
-        </div>
-
-        <div className="flex min-w-0 flex-1 flex-col gap-2 p-5">
-          <h3 className="font-serif text-xl leading-tight text-[#25311f]">{course.title}</h3>
+          <h3 className="font-serif text-lg leading-tight text-[#25311f]">{course.title}</h3>
 
           {course.description && (
             <p className="line-clamp-2 text-sm leading-6 text-[#617A55]/75">{course.description}</p>
