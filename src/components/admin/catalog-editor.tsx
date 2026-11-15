@@ -24,13 +24,28 @@ function videoPath(value: string) {
   return decodeURIComponent(match[1])
 }
 
+// Carries the upload route's own specific reason (always a concrete Arabic
+// string - missing bucket, wrong file format, expired session, no admin
+// role, size limit, ...) alongside the generic errorCode used to pick a
+// fallback message when the server didn't return one. Throwing a bare
+// Error(errorCode) here used to discard that reason entirely, so every
+// upload failure - regardless of actual cause - surfaced the exact same
+// generic "check your connection and file type" text.
+class UploadError extends Error {
+  serverMessage?: string
+  constructor(code: string, serverMessage?: string) {
+    super(code)
+    this.serverMessage = serverMessage
+  }
+}
+
 async function uploadFile(url: string, fields: Record<string, string>, fileField: string, file: File, errorCode: string) {
   const body = new FormData()
   for (const [key, value] of Object.entries(fields)) body.append(key, value)
   body.append(fileField, file)
   const response = await fetch(url, { method: 'POST', body })
   const json = await response.json().catch(() => null)
-  if (!response.ok || !json) throw new Error(errorCode)
+  if (!response.ok || !json) throw new UploadError(errorCode, typeof json?.error === 'string' ? json.error : undefined)
   return json as { url?: string; path?: string }
 }
 
@@ -103,15 +118,21 @@ export default function CatalogEditor(props: { kind: 'class'; record: ClassRecor
     } catch (error) {
       setFailed(true)
       const code = error instanceof Error ? error.message : ''
+      // The upload routes always return their own specific reason - prefer
+      // that over the generic per-code fallback below, which otherwise
+      // shows the same vague text for e.g. a missing storage bucket, an
+      // unrecognized file format, and an expired admin session alike.
+      const serverMessage = error instanceof UploadError ? error.serverMessage : undefined
       setMessage(
-        code === 'AUDIO_REQUIRED' ? 'أضيفي ملف الصوت.'
+        serverMessage ??
+        (code === 'AUDIO_REQUIRED' ? 'أضيفي ملف الصوت.'
         : code === 'AUDIO_UPLOAD' ? 'تعذر رفع ملف الصوت. تحققي من الاتصال ونوع الملف (MP3 أو WAV أو OGG أو M4A) ثم حاولي مجددًا.'
         : code === 'COVER_UPLOAD' ? 'تعذر رفع صورة الغلاف. تحققي من الاتصال ونوع الصورة (JPG أو PNG أو WebP) ثم حاولي مجددًا.'
         : code === 'DURATION' ? meditationsAr.adminDurationError
         : code === 'VIDEO_PATH' ? 'استخدمي مسار الفيديو داخل مخزن course-videos أو رابط الملف من نفس المخزن.'
         : code === 'PRICE' ? 'أدخلي سعرًا صحيحًا غير سالب.'
         : code === 'CONTENT' ? 'أضيفي محتوى الكورس.'
-        : 'تعذر الحفظ. تحققي من الاتصال وتطبيق سياسات الإدارة.'
+        : 'تعذر الحفظ. تحققي من الاتصال وتطبيق سياسات الإدارة.')
       )
     } finally { setBusy(false) }
   }
