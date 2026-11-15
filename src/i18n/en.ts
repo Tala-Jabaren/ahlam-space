@@ -287,6 +287,7 @@ export const en: typeof ar = {
   courses: {
     list: {
       heading: 'Courses',
+      tagline: 'Lectures and meditations from Ahlam on movement and awareness, learn at your own pace from home.',
       heroDescription: 'A mindful journey toward deeper awareness, balance, and inner peace.',
       heroSecondaryDescription:
         'Explore lectures and meditations designed to help you reconnect with yourself.',

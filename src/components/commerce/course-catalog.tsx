@@ -94,7 +94,7 @@ export default async function CoursesPage({
       {routes.scope === 'member' ? <header className="mx-auto max-w-5xl px-5 sm:px-8">
         <h1 className="font-serif text-3xl sm:text-4xl">{t.courses.list.heading}</h1>
         <p className="mt-2 text-sm leading-7 text-[#617A55]">{t.courses.list.subtitle}</p>
-      </header> : <ClassesBanner title={t.courses.list.heading} />}
+      </header> : <ClassesBanner title={t.courses.list.heading} tagline={t.courses.list.tagline} />}
 
       {routes.scope !== 'member' && (
         <div className="mx-auto max-w-5xl px-5 pt-8 sm:px-8" dir={dir}>
