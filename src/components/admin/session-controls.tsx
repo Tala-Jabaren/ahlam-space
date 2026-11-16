@@ -3,7 +3,6 @@
 import { useState, type FormEvent } from 'react'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
-import type { ClassRecord } from './catalog-editor'
 
 export type SessionRecord = { id: string; session_date: string; start_time: string; end_time: string; capacity: number; booked_count: number; status: string; classes: { name: string } | null }
 export type BookingContact = { id: string; session_id: string; profiles: { full_name: string | null; phone: string | null } | null }
@@ -16,48 +15,6 @@ export function endTime(start: string, duration: number) {
   const total = hour * 60 + minute + duration
   if (hour > 23 || minute > 59 || total >= 1440 || !Number.isInteger(total)) return null
   return `${String(Math.floor(total / 60)).padStart(2, '0')}:${String(total % 60).padStart(2, '0')}`
-}
-
-export function CreateSession({ classes, today }: { classes: ClassRecord[]; today: string }) {
-  const router = useRouter()
-  const [open, setOpen] = useState(false)
-  const [busy, setBusy] = useState(false)
-  const [message, setMessage] = useState('')
-  const [failed, setFailed] = useState(false)
-  const [classId, setClassId] = useState('')
-  const [start, setStart] = useState('')
-  const selected = classes.find(item => item.id === classId)
-  const end = selected ? endTime(start, selected.duration_minutes) : null
-
-  async function submit(event: FormEvent<HTMLFormElement>) {
-    event.preventDefault()
-    const form = new FormData(event.currentTarget)
-    const capacity = Number(form.get('capacity'))
-    const date = String(form.get('date'))
-    if (!selected || !end || !Number.isInteger(capacity) || capacity < 1 || date < today) {
-      setFailed(true); setMessage('تحققي من التاريخ والسعة ومدة الحصة. يجب أن تنتهي الحصة في اليوم نفسه.'); return
-    }
-    setBusy(true); setMessage('')
-    try {
-      const { error } = await createClient().from('class_sessions').insert({ class_id: classId, session_date: date, start_time: start, end_time: end, capacity, booked_count: 0, status: 'scheduled', location: String(form.get('location') || '').trim() || null }).select('id').single()
-      if (error) throw error
-      setFailed(false); setMessage('تم إنشاء الموعد.'); setOpen(false); setClassId(''); setStart(''); router.refresh()
-    } catch { setFailed(true); setMessage('تعذر إنشاء الموعد. تحققي من الاتصال وتطبيق سياسات الإدارة.') }
-    finally { setBusy(false) }
-  }
-
-  return <section aria-label="إنشاء موعد" className="py-6">
-    {!open ? <button onClick={() => { setOpen(true); setMessage('') }} disabled={!classes.length} className={buttonStyle}>إنشاء موعد</button> : <form onSubmit={submit} className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-      <label className="text-sm">الحصة<select required value={classId} onChange={e => setClassId(e.target.value)} className={fieldStyle}><option value="" disabled>اختاري الحصة</option>{classes.map(item => <option key={item.id} value={item.id}>{item.name}</option>)}</select></label>
-      <label className="text-sm">التاريخ<input required type="date" name="date" min={today} className={fieldStyle} /></label>
-      <label className="text-sm">وقت البداية<input required type="time" value={start} onChange={e => setStart(e.target.value)} className={fieldStyle} /></label>
-      <label className="text-sm">السعة<input required type="number" name="capacity" min="1" max="2147483647" step="1" className={fieldStyle} /></label>
-      <label className="text-sm">المكان (اختياري)<input name="location" maxLength={500} className={fieldStyle} /></label>
-      <p className="self-center text-sm text-[#617A55]">وقت النهاية: <bdi>{end || '—'}</bdi></p>
-      <div className="flex gap-2 sm:col-span-2 lg:col-span-3"><button disabled={busy} className={buttonStyle}>{busy ? 'جارٍ الحفظ…' : 'حفظ الموعد'}</button><button type="button" disabled={busy} onClick={() => setOpen(false)} className="rounded-lg border border-[#617A55]/25 px-4 py-2 text-sm">إلغاء</button></div>
-    </form>}
-    {message && <p role={failed ? 'alert' : 'status'} className={`mt-3 rounded-lg p-3 text-sm ${failed ? 'bg-[#C7D6E8]/50' : 'bg-[#D6E2B6]/50'}`}>{message}</p>}
-  </section>
 }
 
 export function SessionControls({ session, contacts, contactsError }: { session: SessionRecord; contacts: BookingContact[]; contactsError: boolean }) {

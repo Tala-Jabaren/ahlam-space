@@ -113,32 +113,44 @@ export type Database = {
         Row: {
           category: string | null
           created_at: string | null
+          default_start_time: string | null
           description: string | null
           duration_minutes: number
           id: string
+          image_url: string | null
           is_active: boolean | null
+          is_recurring: boolean
           name: string
           price: number
+          weekday: number | null
         }
         Insert: {
           category?: string | null
           created_at?: string | null
+          default_start_time?: string | null
           description?: string | null
           duration_minutes: number
           id?: string
+          image_url?: string | null
           is_active?: boolean | null
+          is_recurring?: boolean
           name: string
           price: number
+          weekday?: number | null
         }
         Update: {
           category?: string | null
           created_at?: string | null
+          default_start_time?: string | null
           description?: string | null
           duration_minutes?: number
           id?: string
+          image_url?: string | null
           is_active?: boolean | null
+          is_recurring?: boolean
           name?: string
           price?: number
+          weekday?: number | null
         }
         Relationships: []
       }

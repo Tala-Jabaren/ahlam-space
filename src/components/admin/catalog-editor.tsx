@@ -4,8 +4,22 @@ import { useState, type FormEvent } from 'react'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import { meditationsAr } from '@/i18n/meditations'
+import { UploadError, uploadFile } from '@/lib/admin-upload'
 
-export type ClassRecord = { id: string; name: string; description: string | null; category: string | null; is_active: boolean | null; duration_minutes: number }
+const weekdayNames = ['الأحد', 'الاثنين', 'الثلاثاء', 'الأربعاء', 'الخميس', 'الجمعة', 'السبت']
+
+export type ClassRecord = {
+  id: string
+  name: string
+  description: string | null
+  category: string | null
+  is_active: boolean | null
+  duration_minutes: number
+  image_url?: string | null
+  is_recurring?: boolean | null
+  weekday?: number | null
+  default_start_time?: string | null
+}
 export type CourseRecord = { id: string; title: string; description: string | null; price: number; content_type: string; video_url: string | null; article_body: string | null; is_active: boolean | null; audio_path: string | null; duration_minutes: number | null; cover_image_url: string | null }
 
 const inputStyle = 'mt-2 w-full min-w-0 rounded-lg border border-[#617A55]/25 bg-[#F7F6F0] px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#617A55]'
@@ -24,31 +38,6 @@ function videoPath(value: string) {
   return decodeURIComponent(match[1])
 }
 
-// Carries the upload route's own specific reason (always a concrete Arabic
-// string - missing bucket, wrong file format, expired session, no admin
-// role, size limit, ...) alongside the generic errorCode used to pick a
-// fallback message when the server didn't return one. Throwing a bare
-// Error(errorCode) here used to discard that reason entirely, so every
-// upload failure - regardless of actual cause - surfaced the exact same
-// generic "check your connection and file type" text.
-class UploadError extends Error {
-  serverMessage?: string
-  constructor(code: string, serverMessage?: string) {
-    super(code)
-    this.serverMessage = serverMessage
-  }
-}
-
-async function uploadFile(url: string, fields: Record<string, string>, fileField: string, file: File, errorCode: string) {
-  const body = new FormData()
-  for (const [key, value] of Object.entries(fields)) body.append(key, value)
-  body.append(fileField, file)
-  const response = await fetch(url, { method: 'POST', body })
-  const json = await response.json().catch(() => null)
-  if (!response.ok || !json) throw new UploadError(errorCode, typeof json?.error === 'string' ? json.error : undefined)
-  return json as { url?: string; path?: string }
-}
-
 export default function CatalogEditor(props: { kind: 'class'; record: ClassRecord } | { kind: 'course'; record?: CourseRecord }) {
   const router = useRouter()
   const [editing, setEditing] = useState(false)
@@ -58,6 +47,7 @@ export default function CatalogEditor(props: { kind: 'class'; record: ClassRecor
   const isCourse = props.kind === 'course'
   const record = props.record
   const [contentType, setContentType] = useState(isCourse ? props.record?.content_type || 'video' : 'video')
+  const [recurring, setRecurring] = useState(props.kind === 'class' && props.record.is_recurring === true)
 
   async function save(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()
@@ -108,7 +98,28 @@ export default function CatalogEditor(props: { kind: 'class'; record: ClassRecor
           ? await supabase.from('courses').update(values).eq('id', record.id).select('id').single()
           : await supabase.from('courses').insert({ id: courseId, ...values }).select('id').single()
       } else {
-        result = await supabase.from('classes').update({ ...common, name, category: String(form.get('category')) }).eq('id', props.record.id).select('id').single()
+        let imageUrl = props.record.image_url ?? null
+        const imageFile = form.get('image')
+        if (imageFile instanceof File && imageFile.size > 0) {
+          const uploaded = await uploadFile('/admin/classes/upload-cover', { class_id: props.record.id }, 'image', imageFile, 'CLASS_IMAGE_UPLOAD')
+          imageUrl = uploaded.url ?? imageUrl
+        }
+        const isRecurring = form.get('recurring') === 'on'
+        let weekday: number | null = null
+        let defaultStartTime: string | null = null
+        if (isRecurring) {
+          weekday = Number(form.get('weekday'))
+          defaultStartTime = String(form.get('default_start_time') || '')
+          if (!Number.isInteger(weekday) || weekday < 0 || weekday > 6 || !/^\d{2}:\d{2}$/.test(defaultStartTime)) {
+            throw new Error('RECURRENCE')
+          }
+        }
+        result = await supabase
+          .from('classes')
+          .update({ ...common, name, image_url: imageUrl, is_recurring: isRecurring, weekday, default_start_time: defaultStartTime })
+          .eq('id', props.record.id)
+          .select('id')
+          .single()
       }
       if (result.error) throw result.error
       setFailed(false)
@@ -132,16 +143,40 @@ export default function CatalogEditor(props: { kind: 'class'; record: ClassRecor
         : code === 'VIDEO_PATH' ? 'استخدمي مسار الفيديو داخل مخزن course-videos أو رابط الملف من نفس المخزن.'
         : code === 'PRICE' ? 'أدخلي سعرًا صحيحًا غير سالب.'
         : code === 'CONTENT' ? 'أضيفي محتوى الكورس.'
+        : code === 'CLASS_IMAGE_UPLOAD' ? 'تعذر رفع صورة الحصة. تحققي من الاتصال ونوع الصورة (JPG أو PNG أو WebP) ثم حاولي مجددًا.'
+        : code === 'RECURRENCE' ? 'اختاري يوم الأسبوع ووقت البداية للحصة الدائمة.'
         : 'تعذر الحفظ. تحققي من الاتصال وتطبيق سياسات الإدارة.')
       )
     } finally { setBusy(false) }
   }
 
   return <div>
-    {!editing ? <button type="button" className={buttonStyle} onClick={() => { setEditing(true); setMessage(''); setContentType(isCourse ? props.record?.content_type || 'video' : 'video') }}>{record ? 'تعديل' : 'إنشاء كورس'}</button> : <form onSubmit={save} className="mt-4 grid gap-4 sm:grid-cols-2">
+    {!editing ? <button type="button" className={buttonStyle} onClick={() => { setEditing(true); setMessage(''); setContentType(isCourse ? props.record?.content_type || 'video' : 'video'); setRecurring(props.kind === 'class' && props.record.is_recurring === true) }}>{record ? 'تعديل' : 'إنشاء كورس'}</button> : <form onSubmit={save} className="mt-4 grid gap-4 sm:grid-cols-2">
       <label className="text-sm">{isCourse ? 'عنوان الكورس' : 'اسم الحصة'}<input name="name" required maxLength={200} defaultValue={isCourse ? props.record?.title : props.record.name} className={inputStyle} /></label>
-      {isCourse ? <label className="text-sm">السعر (₪)<input name="price" type="number" min="0" step="0.01" required defaultValue={props.record?.price ?? 0} className={inputStyle} /></label> : <label className="text-sm">الفئة<select name="category" required defaultValue={props.record.category || ''} className={inputStyle}><option value="" disabled>اختاري الفئة</option><option value="yoga">يوغا</option><option value="fitness">لياقة</option><option value="dance">رقص</option></select></label>}
+      {isCourse && <label className="text-sm">السعر (₪)<input name="price" type="number" min="0" step="0.01" required defaultValue={props.record?.price ?? 0} className={inputStyle} /></label>}
       <label className="text-sm sm:col-span-2">الوصف<textarea name="description" rows={3} defaultValue={record?.description || ''} className={inputStyle} /></label>
+      {!isCourse && <>
+        <label className="text-sm sm:col-span-2">
+          صورة الحصة (تظهر في بطاقتها لليوزر)
+          {props.record.image_url && (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img src={props.record.image_url} alt="" className="mt-2 h-24 w-24 rounded-lg object-cover" />
+          )}
+          <input name="image" type="file" accept="image/png,image/jpeg,image/webp" className={inputStyle} />
+          <span className="mt-1 block text-xs text-[#617A55]/70">JPG أو PNG أو WebP، حتى 5 ميغابايت. اتركي الحقل فارغًا للإبقاء على الصورة الحالية.</span>
+        </label>
+        <label className="flex items-center gap-2 text-sm sm:col-span-2">
+          <input type="checkbox" name="recurring" checked={recurring} onChange={e => setRecurring(e.target.checked)} className="size-4 accent-[#617A55]" />
+          حصة دائمة (تتكرر كل أسبوع تلقائيًا)
+        </label>
+        {recurring && <>
+          <label className="text-sm">يوم الأسبوع<select name="weekday" required defaultValue={props.record.weekday ?? ''} className={inputStyle}>
+            <option value="" disabled>اختاري اليوم</option>
+            {weekdayNames.map((day, index) => <option key={day} value={index}>{day}</option>)}
+          </select></label>
+          <label className="text-sm">وقت البداية<input name="default_start_time" type="time" required defaultValue={props.record.default_start_time?.slice(0, 5) || ''} className={inputStyle} /></label>
+        </>}
+      </>}
       {isCourse && <>
         <label className="text-sm sm:col-span-2">
           صورة الغلاف (تظهر في بطاقة الكورس)

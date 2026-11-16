@@ -3,7 +3,8 @@
 import { useState } from 'react'
 import Link from 'next/link'
 import AdminDeleteButton from './admin-delete-button'
-import { CreateSession, SessionControls, type BookingContact } from './session-controls'
+import CreateClassForm from './create-class-form'
+import { SessionControls, type BookingContact } from './session-controls'
 import type { ClassRecord } from './catalog-editor'
 
 export type SessionRow = {
@@ -56,7 +57,6 @@ export default function SessionsTab({
   contactsError,
   today,
   loadError,
-  classesError,
   initialClassId,
 }: {
   sessions: SessionRow[]
@@ -66,13 +66,11 @@ export default function SessionsTab({
   contactsError: boolean
   today: string
   loadError: boolean
-  classesError: boolean
   initialClassId: string
 }) {
   const [classId, setClassId] = useState(initialClassId)
   const [status, setStatus] = useState<'scheduled' | 'cancelled'>('scheduled')
 
-  const activeClasses = classes.filter((item) => item.is_active)
   const filtered = sessions.filter(
     (session) =>
       (classId === 'all' || session.class_id === classId) &&
@@ -90,12 +88,7 @@ export default function SessionsTab({
 
   return (
     <div className="mt-6">
-      {classesError ? (
-        <p role="alert" className="rounded-lg bg-[#C7D6E8]/50 p-5">تعذر تحميل الحصص لإنشاء موعد.</p>
-      ) : (
-        <CreateSession classes={activeClasses} today={today} />
-      )}
-      {!classesError && !activeClasses.length && <p className="mb-5 text-sm">لا توجد حصص نشطة لإنشاء موعد.</p>}
+      <CreateClassForm today={today} />
 
       <div className="mt-2 flex flex-wrap items-center justify-between gap-4">
         <div className="flex flex-wrap gap-2" role="group" aria-label="تصفية حسب الحصة">

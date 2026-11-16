@@ -1,6 +1,5 @@
 'use client'
 
-import Image from 'next/image'
 import Link from 'next/link'
 import { useId, useRef, useState } from 'react'
 import { useRouter } from 'next/navigation'
@@ -42,8 +41,10 @@ export default function ClassCard({ session, headingLevel = 2 }: { session: Clas
   return <article id={`session-${session.id}`} className={`${styles.card} ${session.requested ? styles.requested : ''}`} data-session-id={session.id} dir={dir}>
     <div className={styles.surface}>
       <div className={styles.cover}>
-        {session.image && !imageFailed ? <Image src={session.image} alt={name} fill sizes="(min-width: 1024px) 33vw, (min-width: 640px) 50vw, 100vw" onError={() => setImageFailed(true)} />
-          : <div className={styles.fallback} aria-hidden="true"><Leaf size={38} strokeWidth={1.2} /></div>}
+        {session.image && !imageFailed ? (
+          // eslint-disable-next-line @next/next/no-img-element
+          <img src={session.image} alt={name} className="absolute inset-0 size-full object-cover" onError={() => setImageFailed(true)} />
+        ) : <div className={styles.fallback} aria-hidden="true"><Leaf size={38} strokeWidth={1.2} /></div>}
       </div>
       <div className={styles.body}>
         {session.requested && !booking && <p className={styles.notice}>{t.classes.requestedNotice}</p>}

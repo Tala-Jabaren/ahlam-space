@@ -17,7 +17,7 @@ export default async function MemberSchedulePage() {
   const { data: { user } } = await supabase.auth.getUser()
   const { data: sessions, error } = await supabase
     .from('class_sessions')
-    .select('id, session_date, start_time, end_time, capacity, booked_count, status, location, classes(name, category, price)')
+    .select('id, session_date, start_time, end_time, capacity, booked_count, status, location, classes(name, category, price, image_url)')
     .gte('session_date', window.start).lt('session_date', window.end)
     .order('session_date', { ascending: true }).order('start_time', { ascending: true })
     .returns<ScheduleRow[]>()
