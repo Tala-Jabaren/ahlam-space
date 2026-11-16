@@ -1,5 +1,6 @@
 import Link from 'next/link'
 import AdminDeleteButton from '@/components/admin/admin-delete-button'
+import AddSessionForm from '@/components/admin/add-session-form'
 import { getAdminSession } from '@/components/admin/admin-session'
 import CatalogEditor, { type ClassRecord } from '@/components/admin/catalog-editor'
 import SessionsTab, { type SessionRow } from '@/components/admin/sessions-tab'
@@ -25,29 +26,12 @@ function jerusalemDate(offsetDays: number) {
   }).format(date)
 }
 
-// The weekly day/time a class meets on only exists as a hardcoded rule inside
-// generate_weekly_class_sessions() in supabase/weekly-class-sessions.sql, not
-// as a column on classes - this reads it back out of the class's own
-// scheduled sessions instead of duplicating that SQL rule table in the UI.
-function deriveSchedule(sessions: SessionRow[]): string | null {
-  const counts = new Map<string, number>()
-  for (const session of sessions) {
-    if (session.status === 'cancelled') continue
-    const weekday = new Date(`${session.session_date}T00:00:00Z`).getUTCDay()
-    const key = `${weekday}|${session.start_time.slice(0, 5)}`
-    counts.set(key, (counts.get(key) ?? 0) + 1)
-  }
-  let best: string | null = null
-  let bestCount = 0
-  for (const [key, count] of counts) {
-    if (count > bestCount) {
-      best = key
-      bestCount = count
-    }
-  }
-  if (!best) return null
-  const [weekday, time] = best.split('|')
-  return `كل ${weekdayNames[Number(weekday)]} - ${time}`
+// The weekly day/time a recurring class meets on is a real column
+// (classes.weekday / default_start_time), read directly from the class
+// itself rather than inferred from its past sessions.
+function recurrenceLabel(item: ClassRow): string | null {
+  if (!item.is_recurring || item.weekday == null || !item.default_start_time) return null
+  return `كل ${weekdayNames[item.weekday]} - ${item.default_start_time.slice(0, 5)}`
 }
 
 export default async function AdminClassesPage({
@@ -61,7 +45,7 @@ export default async function AdminClassesPage({
 
   const { data: classes, error: classesError } = await supabase
     .from('classes')
-    .select('id, name, description, category, is_active, duration_minutes, price')
+    .select('id, name, description, category, is_active, duration_minutes, price, image_url, is_recurring, weekday, default_start_time')
     .order('name')
     .returns<ClassRow[]>()
 
@@ -113,13 +97,6 @@ export default async function AdminClassesPage({
     contactsBySession[contact.session_id] = list
   }
 
-  const sessionsByClass = new Map<string, SessionRow[]>()
-  for (const session of sessions ?? []) {
-    const list = sessionsByClass.get(session.class_id) ?? []
-    list.push(session)
-    sessionsByClass.set(session.class_id, list)
-  }
-
   return (
     <main className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
       <div className="border-b border-[#617A55]/15 pb-6">
@@ -151,7 +128,6 @@ export default async function AdminClassesPage({
           contactsError={Boolean(bookings.error)}
           today={today}
           loadError={Boolean(sessionsError)}
-          classesError={Boolean(classesError)}
           initialClassId={classIdParam || 'all'}
         />
       ) : (
@@ -163,15 +139,21 @@ export default async function AdminClassesPage({
           ) : (
             <div className="grid gap-5 lg:grid-cols-2">
               {classes.map((item) => {
-                const schedule = deriveSchedule(sessionsByClass.get(item.id) ?? [])
+                const schedule = recurrenceLabel(item)
                 return (
                   <article key={item.id} className="min-w-0 rounded-lg border border-[#617A55]/15 bg-white p-5">
                     <header className="flex items-start justify-between gap-3">
-                      <h2 className="min-w-0 break-words text-xl font-semibold text-[#617A55]">{item.name}</h2>
+                      <div className="flex min-w-0 items-center gap-3">
+                        {item.image_url && (
+                          // eslint-disable-next-line @next/next/no-img-element
+                          <img src={item.image_url} alt="" className="size-14 shrink-0 rounded-lg object-cover" />
+                        )}
+                        <h2 className="min-w-0 break-words text-xl font-semibold text-[#617A55]">{item.name}</h2>
+                      </div>
                       <AdminDeleteButton kind="class" id={item.id} label={item.name} />
                     </header>
                     <p className="my-2 flex flex-wrap items-center gap-2 text-sm">
-                      <span className="text-[#617A55]">{categories[item.category || ''] || 'بدون فئة'}</span>
+                      <span className="text-[#617A55]">{categories[item.category || ''] || (schedule ? 'حصة دائمة' : 'حصة لمرة واحدة')}</span>
                       <span className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-semibold ${item.is_active ? 'bg-[#D6E2B6]/70 text-[#3f5233]' : 'bg-[#617A55]/10 text-[#617A55]/70'}`}>
                         {item.is_active ? 'نشطة' : 'غير نشطة'}
                       </span>
@@ -187,6 +169,7 @@ export default async function AdminClassesPage({
                         عرض مواعيدها
                       </Link>
                     </div>
+                    <AddSessionForm classId={item.id} durationMinutes={item.duration_minutes} today={today} />
                     <div className="mt-4"><CatalogEditor kind="class" record={item} /></div>
                   </article>
                 )

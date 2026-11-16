@@ -59,7 +59,7 @@ export async function loadClassBookings(supabase: SupabaseClient, userId: string
 
 export function classCardData(session: ClassSession, locale: Locale, options: {
   now: Date; booking?: ClassBooking; known: boolean; authenticated: boolean; requested?: boolean
-  classInfo?: { name: string; category: string | null; price: number | null }
+  classInfo?: { name: string; category: string | null; price: number | null; image_url?: string | null }
 }): ClassCardData {
   const info = options.classInfo ?? session.classes
   const price = typeof info?.price === 'number' && Number.isFinite(info.price) ? info.price : null
@@ -70,7 +70,7 @@ export function classCardData(session: ClassSession, locale: Locale, options: {
   const day = new Intl.DateTimeFormat(intlLocale, { day: 'numeric', month: 'long', timeZone: ZONE }).format(date)
   return {
     id: session.id, name: info?.name ?? null, category: info?.category ?? null,
-    image: categoryImages[info?.category ?? ''] ?? null,
+    image: info?.image_url || categoryImages[info?.category ?? ''] || null,
     price, priceLabel: price === null ? null : new Intl.NumberFormat(intlLocale, { style: 'currency', currency: 'ILS', minimumFractionDigits: 0, maximumFractionDigits: 2 }).format(price),
     dateLabel: `${weekday} · ${day}`, timeLabel: `${session.start_time.slice(0, 5)} – ${session.end_time.slice(0, 5)}`,
     startsAt: start?.toISOString() ?? null, remaining: Math.max(0, session.capacity - session.booked_count),
