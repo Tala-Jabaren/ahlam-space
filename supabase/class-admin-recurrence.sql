@@ -6,6 +6,47 @@
 -- classes, so Ahlam can mark a class recurring from the admin UI herself
 -- instead of asking for this file to be hand-edited every time.
 -- Never updates/deletes existing sessions, bookings, prices, or booking RPCs.
+--
+-- DO NOT RE-RUN THIS FILE after admins have edited recurring classes in the
+-- UI: the four backfill UPDATE statements below would reset those classes'
+-- is_recurring/weekday/default_start_time back to their original values,
+-- overwriting whatever was changed through the admin form afterward. This
+-- file is meant to run exactly once.
+--
+-- Weekly generation still computes "today"/offsets in Asia/Jerusalem,
+-- inherited unchanged from supabase/weekly-class-sessions.sql. The rest of
+-- the app is moving to Asia/Hebron (see src/lib/class-cards.ts) but that
+-- unification is a separate change - do not touch the timezone here.
+--
+-- Read-only pre-flight checks - run these manually and review the output
+-- BEFORE running the migration below:
+--
+-- (a) Confirm classes still has is_active and duration_minutes:
+-- select column_name, data_type from information_schema.columns
+-- where table_schema = 'public' and table_name = 'classes'
+--   and column_name in ('is_active', 'duration_minutes');
+--
+-- (b) Confirm the 4 backfilled classes' durations match what the backfilled
+-- default_start_time values below assume (90, 90, 45 - Wednesday Mix - and
+-- 90 minutes respectively). If any of these differ, generate_weekly_class_
+-- sessions() will compute a different end_time than the class has been
+-- meeting at - fix the backfill UPDATEs (or the class's duration_minutes)
+-- to match before running, don't just proceed:
+-- select id, name, duration_minutes from public.classes
+-- where id in (
+--   '681580e9-5902-489c-b593-657dc14f3c7f',
+--   '08213564-f802-4484-a11a-04047b34fad4',
+--   '538c29c1-105e-4a86-905b-864fba7da936',
+--   '7cbcab94-4491-40eb-94bd-78ae4e418a87'
+-- );
+--
+-- (c) Confirm RLS is still enabled on classes and review its policy list
+-- (the new columns below rely on the existing table-level grants and
+-- admin-only insert/update policies - see note 4 near the end of this file):
+-- select relrowsecurity from pg_class
+-- where relname = 'classes' and relnamespace = 'public'::regnamespace;
+-- select policyname, cmd, roles, qual, with_check from pg_policies
+-- where schemaname = 'public' and tablename = 'classes';
 
 begin;
 
@@ -31,11 +72,33 @@ $$;
 -- evening - see supabase/weekly-class-sessions.sql for the original rule),
 -- so they keep recurring unchanged once the function below reads from this
 -- table instead. Double-check each class's duration_minutes still matches
--- the gap implied here (90, 90, 50, 90 minutes) before running.
+-- the gap implied here (90, 90, 45, 90 minutes - see pre-flight check (b)
+-- above) before running.
 update public.classes set is_recurring = true, weekday = 0, default_start_time = time '18:00' where id = '681580e9-5902-489c-b593-657dc14f3c7f';
 update public.classes set is_recurring = true, weekday = 2, default_start_time = time '18:00' where id = '08213564-f802-4484-a11a-04047b34fad4';
 update public.classes set is_recurring = true, weekday = 3, default_start_time = time '18:00' where id = '538c29c1-105e-4a86-905b-864fba7da936';
 update public.classes set is_recurring = true, weekday = 5, default_start_time = time '08:00' where id = '7cbcab94-4491-40eb-94bd-78ae4e418a87';
+
+-- Guard: all 4 of the above must have actually been marked recurring (e.g.
+-- a typo'd id, or a row that no longer exists, would otherwise silently
+-- update 0 rows and leave that class non-recurring). Roll back the whole
+-- file rather than leave a partial backfill in place.
+do $$
+begin
+  if (
+    select count(*) from public.classes
+    where is_recurring is true
+      and id in (
+        '681580e9-5902-489c-b593-657dc14f3c7f',
+        '08213564-f802-4484-a11a-04047b34fad4',
+        '538c29c1-105e-4a86-905b-864fba7da936',
+        '7cbcab94-4491-40eb-94bd-78ae4e418a87'
+      )
+  ) <> 4 then
+    raise exception 'BACKFILL_MISMATCH';
+  end if;
+end;
+$$;
 
 -- Same body/behavior as supabase/weekly-class-sessions.sql's function,
 -- except the rule table (class_id, weekday, start_time, end_time) is now a
@@ -86,11 +149,17 @@ begin
     order by session.session_date desc, session.start_time desc, session.id
     limit 1;
 
+    -- A bad/missing template on one recurring class (e.g. its only session
+    -- was cancelled, or its capacity was corrupted) no longer aborts the
+    -- whole run - warn and skip just that class so every other recurring
+    -- class still gets its upcoming weeks generated.
     if not found then
-      raise exception 'WEEKLY_SESSION_TEMPLATE_MISSING:%', v_rule.class_id;
+      raise warning 'WEEKLY_SESSION_TEMPLATE_MISSING:%', v_rule.class_id;
+      continue;
     end if;
     if v_template.capacity is null or v_template.capacity < 1 then
-      raise exception 'WEEKLY_SESSION_CAPACITY_INVALID:%', v_rule.class_id;
+      raise warning 'WEEKLY_SESSION_CAPACITY_INVALID:%', v_rule.class_id;
+      continue;
     end if;
 
     for v_offset in 0..13 loop
@@ -128,6 +197,11 @@ $$;
 -- function. Ordinary members and anonymous API callers cannot generate rows.
 revoke all on function public.generate_weekly_class_sessions()
   from public, anon, authenticated;
+
+-- 4. No grants: public.classes already has table-level privileges for
+-- anon/authenticated (no column-level grants) plus RLS with admin-only
+-- insert/update policies, so the 4 new columns inherit that automatically.
+-- Intentionally no GRANT statements here - do not add any.
 
 commit;
 
