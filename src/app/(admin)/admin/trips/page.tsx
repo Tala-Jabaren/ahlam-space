@@ -1,3 +1,4 @@
+import PendingTripRequests from '@/components/admin/home/pending-trip-requests'
 import { redirect } from 'next/navigation'
 import { resolveTripNotification } from '@/components/admin/notifications/notification-data'
 import Link from 'next/link'
@@ -6,12 +7,13 @@ import TripEditor from '@/components/admin/trip-editor'
 import { getAdminSession } from '@/components/admin/admin-session'
 import { TRIP_COLUMNS, tripStatusLabels, type TripRow } from '@/lib/trips'
 
-export default async function AdminTripsPage({ searchParams }: { searchParams: Promise<{ item?: string }> }) {
-  const { item } = await searchParams
+export default async function AdminTripsPage({ searchParams }: { searchParams: Promise<{ item?: string; review?: string }> }) {
+  const { item, review } = await searchParams
   if (item) {
     const tripId = await resolveTripNotification(item)
     if (tripId) redirect(`/admin/trips/${encodeURIComponent(tripId)}?item=${encodeURIComponent(item)}`)
   }
+  if (review === 'pending' && !item) return <PendingTripRequests />
   const supabase = await getAdminSession()
   const { data, error } = await supabase
     .from('trips')

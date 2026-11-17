@@ -38,9 +38,9 @@ function recurrenceLabel(item: ClassRow): string | null {
 export default async function ClassesContent({
   searchParams,
 }: {
-  searchParams: Promise<{ tab?: string; classId?: string }>
+  searchParams: Promise<{ tab?: string; classId?: string; new?: string }>
 }) {
-  const { tab: tabParam, classId: classIdParam } = await searchParams
+  const { tab: tabParam, classId: classIdParam, new: createParam } = await searchParams
   const tab = tabParam === 'types' ? 'types' : 'sessions'
   const supabase = await getAdminSession()
 
@@ -113,7 +113,7 @@ export default async function ClassesContent({
         />
       ) : (
         <div>
-          <CreateClassForm today={today} />
+          <CreateClassForm key={createParam === '1' ? 'new' : 'list'} today={today} initiallyOpen={createParam === '1'} />
           {classesError ? (
             <p role="alert" className="rounded-lg bg-[#C7D6E8]/50 p-5">تعذر تحميل الحصص. تحققي من صلاحيات العرض والاتصال.</p>
           ) : !classes?.length ? (
