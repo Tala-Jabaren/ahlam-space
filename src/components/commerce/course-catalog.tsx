@@ -126,10 +126,10 @@ export default async function CoursesPage({
             t={t}
             locale={locale}
             coursesHref={routes.courses}
-            allLabel={t.courses.list.allFilter}
             meditationsLabel={copy.heading}
             lecturesLabel={copy.lectures}
             filterLabel={t.courses.list.filterLabel}
+            comingSoonLabel={t.courses.list.comingSoon}
           />
         )}
       </div>
