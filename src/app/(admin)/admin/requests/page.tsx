@@ -1,3 +1,5 @@
+import NotificationItem from '@/components/admin/notifications/notification-item'
+import { getAdminNotificationCounts } from '@/components/admin/notifications/notification-data'
 import AdminDeleteButton from '@/components/admin/admin-delete-button'
 import { getAdminSession } from '@/components/admin/admin-session'
 import RequestStatusSelect from '@/components/admin/request-status-select'
@@ -26,7 +28,9 @@ function contactNumbers(phone: string) {
   return { dial: normalized.trim().startsWith('+') ? `+${digits}` : digits, international }
 }
 
-export default async function AdminRequestsPage() {
+export default async function AdminRequestsPage({ searchParams }: { searchParams: Promise<{ item?: string }> }) {
+  const { item: selectedId } = await searchParams
+  const { available } = await getAdminNotificationCounts()
   const supabase = await getAdminSession()
   const { data, error } = await supabase
     .from('session_requests')
@@ -47,7 +51,8 @@ export default async function AdminRequestsPage() {
           {data.map((request) => {
             const phone = contactNumbers(request.phone)
             return (
-              <article key={request.id} className="min-w-0 rounded-lg border border-[#617A55]/15 bg-white p-5 sm:p-6">
+              <NotificationItem key={`${request.id}-${selectedId === request.id}`} kind="session_request" id={request.id} title={request.full_name} preview={request.session_type} status={({ pending: 'جديد', contacted: 'تم التواصل', scheduled: 'تم تحديد موعد', closed: 'مغلق' } as Record<string, string>)[request.status] ?? request.status} initiallyOpen={selectedId === request.id} enabled={available}>
+              <article className="min-w-0 rounded-lg border border-[#617A55]/15 bg-white p-5 sm:p-6">
                 <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_240px]">
                   <div className="min-w-0">
                     <h2 className="break-words text-xl font-semibold text-[#617A55]">{request.full_name}</h2>
@@ -73,6 +78,7 @@ export default async function AdminRequestsPage() {
                   <div className="flex flex-col items-start gap-3"><RequestStatusSelect id={request.id} status={request.status} /><AdminDeleteButton kind="request" id={request.id} label={`طلب جلسة / ${request.full_name}`} /></div>
                 </div>
               </article>
+              </NotificationItem>
             )
           })}
         </div>

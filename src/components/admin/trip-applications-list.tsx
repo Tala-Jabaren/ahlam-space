@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import NotificationItem from '@/components/admin/notifications/notification-item'
 import { useRouter } from 'next/navigation'
 import { Mail, MessageCircle } from 'lucide-react'
 import { normalizePhoneForWhatsApp } from '@/lib/admin-session-attendees'
@@ -125,7 +126,7 @@ function ApplicationCard({ application }: { application: AdminTripApplicationRow
   )
 }
 
-export default function TripApplicationsList({ applications }: { applications: AdminTripApplicationRow[] }) {
+export default function TripApplicationsList({ applications, selectedId, notificationsAvailable }: { applications: AdminTripApplicationRow[]; selectedId?: string; notificationsAvailable: boolean }) {
   const [filter, setFilter] = useState<TripApplicationStatus | 'all'>('all')
   const visible = filter === 'all' ? applications : applications.filter((item) => item.status === filter)
 
@@ -149,7 +150,9 @@ export default function TripApplicationsList({ applications }: { applications: A
       <p className="mt-6 rounded-lg bg-[#D6E2B6]/40 p-5 text-sm">لا توجد طلبات ضمن هذا التصنيف.</p>
     ) : (
       <div className="mt-4 grid gap-4">
-        {visible.map((application) => <ApplicationCard key={application.id} application={application} />)}
+        {visible.map((application) => <NotificationItem key={`${application.id}-${selectedId === application.id}`} kind="trip_application" id={application.id} title={application.full_name} status={tripApplicationStatusLabels[application.status]} initiallyOpen={selectedId === application.id} enabled={notificationsAvailable}>
+          <ApplicationCard application={application} />
+        </NotificationItem>)}
       </div>
     )}
   </section>

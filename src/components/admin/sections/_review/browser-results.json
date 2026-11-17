@@ -1,0 +1,32 @@
+{
+  "checks": [
+    "Section view does not clear notifications; exactly one booking marked; sent rows remain; original confirm dialog and RPC args preserved",
+    "All five event kinds deep-link to a single open item; other items stay unseen; zero-count badge hidden",
+    "Legacy payments/orders redirect into domains; class create/image/recurrence form retained under Types",
+    "Replayed seen action denied to anonymous and non-admin sessions with zero queue updates",
+    "All four viewport sizes in Arabic/English: eight-item navigation, scrollable domain tabs, no horizontal page overflow",
+    "Before seen_at migration: badges absent, deep-linked order still usable, no mutation attempted"
+  ],
+  "screenshots": [
+    "ar-1440-classes-payments",
+    "en-1440-classes-payments",
+    "ar-1024-classes-payments",
+    "en-1024-classes-payments",
+    "ar-768-classes-payments",
+    "ar-768-navigation",
+    "en-768-classes-payments",
+    "en-768-navigation",
+    "ar-393-classes-payments",
+    "ar-393-navigation",
+    "ar-393-courses-payments",
+    "ar-393-shop-orders",
+    "ar-393-requests",
+    "en-393-classes-payments",
+    "en-393-navigation",
+    "en-393-courses-payments",
+    "en-393-shop-orders",
+    "en-393-requests",
+    "ar-393-before-seen-migration"
+  ],
+  "errors": []
+}

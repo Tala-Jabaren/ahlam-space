@@ -10,9 +10,9 @@ export default async function AdminPage() {
     supabase.from('session_requests').select('id', { count: 'exact', head: true }).eq('status', 'pending'),
   ])
   const summaries = [
-    { label: 'طلبات متجر غير مدفوعة', result: orders, href: '/admin/payments?tab=order&filter=unpaid' },
-    { label: 'حجوزات غير مدفوعة', result: bookings, href: '/admin/payments?tab=booking&filter=unpaid' },
-    { label: 'مشتريات كورسات غير مدفوعة', result: courses, href: '/admin/payments?tab=course&filter=unpaid' },
+    { label: 'طلبات متجر غير مدفوعة', result: orders, href: '/admin/products?tab=payments&filter=unpaid' },
+    { label: 'حجوزات غير مدفوعة', result: bookings, href: '/admin/classes?tab=payments&filter=unpaid' },
+    { label: 'مشتريات كورسات غير مدفوعة', result: courses, href: '/admin/courses?tab=payments&filter=unpaid' },
     { label: 'طلبات جلسات جديدة', result: requests, href: '/admin/requests' },
   ]
 

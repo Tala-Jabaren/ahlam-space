@@ -1,3 +1,4 @@
+import { getAdminNotificationCounts } from '@/components/admin/notifications/notification-data'
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
 import { getAdminSession } from '@/components/admin/admin-session'
@@ -8,10 +9,14 @@ import TripMessageForm from '@/components/admin/trip-message-form'
 
 export default async function AdminTripDetailPage({
   params,
+  searchParams,
 }: {
   params: Promise<{ tripId: string }>
+  searchParams: Promise<{ item?: string }>
 }) {
   const { tripId } = await params
+  const { item: selectedId } = await searchParams
+  const { available } = await getAdminNotificationCounts()
   const supabase = await getAdminSession()
 
   const { data: trip } = await supabase
@@ -65,7 +70,7 @@ export default async function AdminTripDetailPage({
             tripId={trip.id}
             approvedCount={applications.filter((application) => application.status === 'approved').length}
           />
-          <TripApplicationsList applications={applications} />
+          <TripApplicationsList applications={applications} selectedId={selectedId} notificationsAvailable={available} />
         </>
       )}
     </main>

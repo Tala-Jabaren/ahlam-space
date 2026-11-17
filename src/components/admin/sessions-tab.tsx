@@ -3,7 +3,6 @@
 import { useState } from 'react'
 import Link from 'next/link'
 import AdminDeleteButton from './admin-delete-button'
-import CreateClassForm from './create-class-form'
 import { SessionControls, type BookingContact } from './session-controls'
 import type { ClassRecord } from './catalog-editor'
 
@@ -88,7 +87,6 @@ export default function SessionsTab({
 
   return (
     <div className="mt-6">
-      <CreateClassForm today={today} />
 
       <div className="mt-2 flex flex-wrap items-center justify-between gap-4">
         <div className="flex flex-wrap gap-2" role="group" aria-label="تصفية حسب الحصة">
