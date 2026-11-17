@@ -18,6 +18,12 @@ export async function POST(request: Request) {
     maxBytes: MAX_AUDIO_BYTES,
     detect: detectAudioFormat,
     allowedTypes: AUDIO_TYPES,
+    // Browsers frequently report an empty or generic File.type for audio
+    // files like .m4a depending on OS codec registration (unlike images,
+    // where the browser-reported type is reliable) - the format actually
+    // enforced is the one sniffed from the file's own magic bytes via
+    // AUDIO_TYPES above, same as before this route moved to signed uploads.
+    checkDeclaredType: false,
     messages: {
       loginAgain: 'سجّلي الدخول مجددًا لإضافة الملف الصوتي.',
       noPermission: 'ليست لديك صلاحية إضافة الملفات الصوتية.',

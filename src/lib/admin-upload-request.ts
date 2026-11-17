@@ -36,9 +36,17 @@ export async function handleSignedUploadRequest(request: Request, config: {
   maxBytes: number
   detect: (bytes: Uint8Array) => Format | null
   allowedTypes?: string[]
+  // Cross-check the browser-declared File.type against the format sniffed
+  // from the header bytes. Reliable for images (browsers consistently
+  // report image/jpeg, image/png, image/webp), but browsers frequently
+  // report an empty/generic type for audio files like .m4a depending on
+  // OS codec registration - the original (pre-direct-upload) audio route
+  // never did this cross-check either, only AUDIO_TYPES.includes(...).
+  // Defaults to true for image routes; pass false for audio.
+  checkDeclaredType?: boolean
   messages: SignedUploadMessages
 }): Promise<Response> {
-  const { ownerField, bucket, pathPrefix, maxBytes, detect, allowedTypes, messages } = config
+  const { ownerField, bucket, pathPrefix, maxBytes, detect, allowedTypes, checkDeclaredType = true, messages } = config
 
   if (request.headers.get('origin') !== new URL(request.url).origin) {
     return Response.json({ error: 'طلب غير مسموح.' }, { status: 403 })
@@ -76,7 +84,11 @@ export async function handleSignedUploadRequest(request: Request, config: {
     const headerBytes = new Uint8Array(await header.arrayBuffer())
     const format = detect(headerBytes)
     const declaredType = String(form.get('content_type') || '')
-    if (!format || declaredType !== format.type || (allowedTypes && !allowedTypes.includes(format.type))) {
+    if (
+      !format ||
+      (checkDeclaredType && declaredType !== format.type) ||
+      (allowedTypes && !allowedTypes.includes(format.type))
+    ) {
       return Response.json({ error: messages.invalidFormat }, { status: 400 })
     }
 
@@ -84,7 +96,13 @@ export async function handleSignedUploadRequest(request: Request, config: {
     const signed = await createSignedUpload(bucket, path)
     if (!signed) return Response.json({ error: messages.signFailed }, { status: 502 })
 
-    return Response.json(signed)
+    // Echoes back the format sniffed from the real magic bytes, not the
+    // browser's own (sometimes empty, e.g. for .m4a) declared type - the
+    // client uploads with this contentType so the bucket's own
+    // allowed_mime_types check (the real backstop now - see
+    // supabase/upload-bucket-limits.sql) sees a value that's actually in
+    // its list, regardless of what the browser guessed.
+    return Response.json({ ...signed, contentType: format.type })
   } catch {
     return Response.json({ error: messages.generic }, { status: 500 })
   }

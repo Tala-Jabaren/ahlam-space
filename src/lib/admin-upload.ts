@@ -41,11 +41,25 @@ export async function uploadFileDirect(requestUrl: string, fields: Record<string
   body.append('content_type', file.type)
   const response = await fetch(requestUrl, { method: 'POST', body })
   const json = await response.json().catch(() => null)
-  if (!response.ok || typeof json?.bucket !== 'string' || typeof json?.path !== 'string' || typeof json?.token !== 'string') {
+  if (
+    !response.ok ||
+    typeof json?.bucket !== 'string' ||
+    typeof json?.path !== 'string' ||
+    typeof json?.token !== 'string' ||
+    typeof json?.contentType !== 'string'
+  ) {
     throw new UploadError(errorCode, typeof json?.error === 'string' ? json.error : undefined)
   }
-  const { bucket, path, token } = json as { bucket: string; path: string; token: string }
-  const { error } = await createClient().storage.from(bucket).uploadToSignedUrl(path, token, file, { contentType: file.type })
+  const { bucket, path, token, contentType } = json as { bucket: string; path: string; token: string; contentType: string }
+  // Uploads with the format the server sniffed from the real magic bytes,
+  // not file.type - browsers often report an empty/generic type for audio
+  // files (e.g. .m4a) depending on OS codec registration, which the
+  // bucket's own allowed_mime_types check (the real backstop now) would
+  // reject outright. Supabase Storage reads the uploaded Blob's own native
+  // type for the multipart file part, not fileOptions.contentType below,
+  // so the file is rewrapped rather than just passing contentType through.
+  const typedFile = file.type === contentType ? file : new File([file], file.name, { type: contentType })
+  const { error } = await createClient().storage.from(bucket).uploadToSignedUrl(path, token, typedFile, { contentType })
   if (error) throw new UploadError(errorCode, 'تعذر رفع الملف إلى التخزين مباشرة. تحققي من الاتصال ثم حاولي مجددًا.')
   return { bucket, path }
 }
