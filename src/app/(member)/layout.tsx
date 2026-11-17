@@ -30,10 +30,18 @@ export default async function MemberLayout({
   const supabase = await createClient()
   const {
     data: { user },
+    error: userError,
   } = await supabase.auth.getUser()
 
   if (!user) {
-    redirect('/login')
+    // Bare redirect('/login') left every member page bouncing back to a
+    // blank login form with no explanation whenever the session couldn't
+    // be verified (expired/revoked refresh token, clock skew, ...) - the
+    // message tells the login page to show a reason instead of nothing.
+    if (userError) {
+      console.error('supabase.auth.getUser() failed in member layout:', userError.message)
+    }
+    redirect('/login?message=session-expired')
   }
 
   const { data: profile } = await supabase

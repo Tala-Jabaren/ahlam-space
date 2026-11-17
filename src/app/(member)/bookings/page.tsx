@@ -101,7 +101,7 @@ export default async function MyBookingsPage({
     if (userError) {
       console.error('supabase.auth.getUser() failed:', userError.message)
     }
-    redirect('/login')
+    redirect('/login?message=session-expired')
   }
 
   const { data: bookings, error } = await supabase

@@ -24,6 +24,14 @@ export default function LoginPage() {
       ),
     () => false,
   )
+  // Set by the member layout (and the account/bookings pages' own fallback
+  // checks) when a session couldn't be verified server-side - it used to
+  // bounce straight to a blank login form with no explanation at all.
+  const sessionExpired = useSyncExternalStore(
+    () => () => {},
+    () => new URLSearchParams(window.location.search).get('message') === 'session-expired',
+    () => false,
+  )
   const router = useRouter()
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
@@ -97,6 +105,14 @@ export default function LoginPage() {
             className="mt-5 rounded-2xl bg-[#D6E2B6]/70 p-4 text-sm text-[#4f5d49]"
           >
             {c.auth.checkEmail}
+          </p>
+        )}
+        {sessionExpired && (
+          <p
+            role="alert"
+            className="mt-5 rounded-2xl bg-red-50 p-4 text-sm leading-6 text-red-700"
+          >
+            {c.auth.sessionExpired}
           </p>
         )}
         <form
