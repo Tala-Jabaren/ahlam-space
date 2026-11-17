@@ -5,7 +5,7 @@ import Link from 'next/link'
 import NotificationBadge from '@/components/admin/notifications/notification-badge'
 import type { AdminNotificationCounts } from '@/lib/admin-notification-links'
 import { usePathname } from 'next/navigation'
-import { ArrowUpRight, BookOpen, CalendarDays, Compass, Flower2, House, LogOut, Menu, MessageSquare, Package, ShoppingBag, Users, WalletCards, X, type LucideIcon } from 'lucide-react'
+import { ArrowUpRight, BookOpen, CalendarDays, Compass, Flower2, House, LogOut, MoreHorizontal, MessageSquare, Package, ShoppingBag, Users, WalletCards, X, type LucideIcon } from 'lucide-react'
 import { adminNavGroups, adminNavItems, type AdminNavIcon } from '@/app/(admin)/admin/admin-nav'
 import LogoutButton from '@/app/(member)/dashboard/logout-button'
 import { dirFor, type Locale } from '@/i18n/config'
@@ -32,15 +32,17 @@ function revealCurrentLink(container: HTMLElement) {
   else if (item.bottom > area.bottom - 4) container.scrollTop += item.bottom - area.bottom + 4
 }
 
-function SidebarPanel({ locale, pathname, name, notificationCounts, onNavigate, closeButton }: {
+function SidebarPanel({ locale, pathname, name, notificationCounts, onNavigate, closeButton, moreOnly = false }: {
   locale: Locale
   pathname: string
   name: string
   notificationCounts: AdminNotificationCounts
   onNavigate: () => void
   closeButton?: React.ReactNode
+  moreOnly?: boolean
 }) {
   const copy = adminSidebarCopy[locale]
+  const navigationItems = moreOnly ? adminNavItems.filter(item => !item.mobilePrimary) : adminNavItems
   const navigation = useRef<HTMLElement>(null)
   const initials = name.split(/\s+/u).slice(0, 2).map(part => Array.from(part)[0]).join('').toLocaleUpperCase(locale)
 
@@ -63,13 +65,13 @@ function SidebarPanel({ locale, pathname, name, notificationCounts, onNavigate, 
       {closeButton}
     </div>
     <nav ref={navigation} className={styles.navigation} aria-label={copy.navigation}>
-      {adminNavGroups.map(group => <section key={group.id} className={styles.group}>
+      {adminNavGroups.filter(group => navigationItems.some(item => item.group === group.id)).map(group => <section key={group.id} className={styles.group}>
         <p className={styles.groupLabel}>{group.label[locale]}</p>
         <ul>
-          {adminNavItems.filter(item => item.group === group.id).map(item => {
+          {navigationItems.filter(item => item.group === group.id).map(item => {
             const Icon = icons[item.icon]
             const active = pathname === item.href || (item.href !== '/admin' && pathname.startsWith(`${item.href}/`))
-            const index = adminNavItems.indexOf(item)
+            const index = navigationItems.indexOf(item)
             return <li key={item.href} className={styles.navItem} style={{ '--item-index': index } as CSSProperties}>
               <Link href={item.href} className={styles.navLink} aria-current={active ? 'page' : undefined} onClick={onNavigate}>
                 <Icon size={20} strokeWidth={1.6} aria-hidden="true" />
@@ -113,6 +115,10 @@ export default function AdminSidebar({ locale, notificationCounts, children }: {
   const dialog = useRef<HTMLDialogElement>(null)
   const closeControl = useRef<HTMLButtonElement>(null)
   const displayName = adminName || copy.administrator
+  const primaryItems = adminNavItems.filter(item => item.mobilePrimary)
+  const moreItems = adminNavItems.filter(item => !item.mobilePrimary)
+  const moreActive = moreItems.some(item => pathname === item.href || pathname.startsWith(`${item.href}/`))
+  const moreCount = moreItems.reduce((sum, item) => sum + (item.notificationKind ? notificationCounts[item.notificationKind] : 0), 0)
 
   useEffect(() => {
     let alive = true
@@ -171,11 +177,23 @@ export default function AdminSidebar({ locale, notificationCounts, children }: {
         <span className={styles.wordmark}>Ahlam Space</span>
         <span className={styles.adminLabel}>{copy.title}</span>
       </Link>
-      <button ref={trigger} type="button" className={styles.iconButton} aria-label={copy.open} aria-expanded={open} aria-controls={drawerId} onClick={() => setOpenedAt(pathname)}>
-        <Menu size={23} strokeWidth={1.75} aria-hidden="true" />
-      </button>
+      <span className={styles.headerAvatar} title={displayName} aria-hidden="true">{Array.from(displayName.trim())[0]}</span>
     </header>
     <div className={`${styles.content} ${rhythm.adminEntry}`}>{children}</div>
+    <nav className={styles.bottomNav} aria-label={copy.mobileNavigation}>
+      {primaryItems.map(item => {
+        const Icon = icons[item.icon]
+        const active = pathname === item.href || (item.href !== '/admin' && pathname.startsWith(`${item.href}/`))
+        return <Link key={item.href} href={item.href} onClick={close} className={styles.bottomItem} aria-current={active ? 'page' : undefined}>
+          <span className={styles.bottomIcon}><Icon size={21} strokeWidth={1.7} aria-hidden="true" />{item.notificationKind && <span className={styles.bottomBadge}><NotificationBadge count={notificationCounts[item.notificationKind]} locale={locale} /></span>}</span>
+          <span>{item.label[locale]}</span>
+        </Link>
+      })}
+      <button ref={trigger} type="button" className={styles.bottomItem} data-active={open || moreActive} aria-label={`${copy.openMore}${moreCount > 0 ? `، ${new Intl.NumberFormat(locale).format(moreCount)} ${copy.notifications}` : ''}`} aria-expanded={open} aria-controls={drawerId} aria-haspopup="dialog" onClick={() => setOpenedAt(pathname)}>
+        <span className={styles.bottomIcon}><MoreHorizontal size={22} aria-hidden="true" /><span className={styles.bottomBadge}><NotificationBadge count={moreCount} locale={locale} /></span></span>
+        <span>{copy.more}</span>
+      </button>
+    </nav>
     <dialog ref={dialog} id={drawerId} dir={dir} className={styles.drawer} aria-modal="true" aria-labelledby={titleId}
       onClose={close}
       onCancel={event => { event.preventDefault(); close() }}
@@ -192,8 +210,8 @@ export default function AdminSidebar({ locale, notificationCounts, children }: {
         else if (!event.shiftKey && document.activeElement === last) { event.preventDefault(); first?.focus() }
       }}>
       <h2 id={titleId} className="sr-only">{copy.navigation}</h2>
-      <SidebarPanel locale={locale} pathname={pathname} name={displayName} notificationCounts={notificationCounts} onNavigate={close} closeButton={
-        <button ref={closeControl} type="button" className={styles.iconButton} aria-label={copy.close} onClick={close}>
+      <SidebarPanel locale={locale} pathname={pathname} name={displayName} notificationCounts={notificationCounts} onNavigate={close} moreOnly closeButton={
+        <button ref={closeControl} type="button" className={styles.iconButton} aria-label={copy.closeMore} onClick={close}>
           <X size={22} aria-hidden="true" />
         </button>
       } />

@@ -16,6 +16,17 @@ function formatDate(value: string | null) {
   return Number.isNaN(date.getTime()) ? '-' : dates.format(date)
 }
 
+function customerView(row: CustomerRow | GuestBuyerRow, index: number, tab: CustomerTab, q: string, sort: CustomerSort, page: number) {
+  const registered = 'user_id' in row
+  const values = registered
+    ? [row.full_name, row.email, row.phone, row.city, formatDate(row.registered_at), numbers.format(row.orders_count), money.format(row.total_spent), formatDate(row.last_order_at)]
+    : [row.guest_name, row.guest_phone, row.guest_email, numbers.format(row.orders_count), money.format(row.total_spent), formatDate(row.last_order_at)]
+  const filters = new URLSearchParams({ tab, q, sort, page: String(page) })
+  if (!registered && row.guest_phone) filters.set('phone', row.guest_phone)
+  const detailHref = registered ? `/admin/customers/${encodeURIComponent(row.user_id)}?${filters}` : row.guest_phone ? `/admin/customers/guest?${filters}` : null
+  return { key: registered ? row.user_id : `${row.guest_phone}-${index}`, registered, values, detailHref }
+}
+
 export default async function CustomersPage({ searchParams }: {
   searchParams: Promise<Record<string, string | string[] | undefined>>
 }) {
@@ -99,7 +110,18 @@ export default async function CustomersPage({ searchParams }: {
           <p>{q ? 'لا توجد نتائج مطابقة للبحث.' : 'لا يوجد زبائن بعد.'}</p>
         </div>
       ) : (
-        <div tabIndex={0} role="region" aria-label="قائمة الزبائن" className="overflow-x-auto rounded-lg border border-[#617A55]/15 bg-white focus-visible:outline-2 focus-visible:outline-[#617A55]">
+        <>
+        <ul aria-label="بطاقات الزبائن" className="grid gap-4 lg:hidden">
+          {rows.map((row, index) => {
+            const view = customerView(row, index, tab, q, sort, page)
+            return <li key={view.key} className="min-w-0 rounded-xl border border-[#617A55]/15 bg-white p-4">
+              <div className="flex items-start justify-between gap-3"><h2 className="min-w-0 break-words text-lg font-semibold text-[#617A55]">{view.values[0] || 'بدون اسم'}</h2><span className={`shrink-0 rounded-full px-3 py-1 text-xs ${view.registered ? 'bg-[#D6E2B6]/60' : 'bg-[#C7D6E8]/50'}`}>{view.registered ? 'حساب مسجّل' : 'بدون حساب'}</span></div>
+              <dl className="mt-4 grid gap-3 sm:grid-cols-2">{view.values.slice(1).map((value, i) => <div key={i} className="min-w-0"><dt className="text-xs text-[#617A55]/80">{columns[i + 1]}</dt><dd className="mt-1 break-words text-sm"><bdi className="break-all">{value || '-'}</bdi></dd></div>)}</dl>
+              {view.detailHref ? <Link href={view.detailHref} className="mt-5 inline-flex min-h-11 w-full items-center justify-center rounded-full bg-[#617A55] px-4 py-2 text-base font-semibold text-white focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#617A55]">عرض التفاصيل</Link> : <p className="mt-4 text-sm text-[#617A55]">رقم الهاتف غير متاح لفتح التفاصيل.</p>}
+            </li>
+          })}
+        </ul>
+        <div tabIndex={0} role="region" aria-label="قائمة الزبائن" className="hidden overflow-x-auto lg:block rounded-lg border border-[#617A55]/15 bg-white focus-visible:outline-2 focus-visible:outline-[#617A55]">
           <table className={`w-full text-start text-sm ${tab === 'users' ? 'min-w-[1050px]' : 'min-w-[800px]'}`}>
             <caption className="sr-only">{tab === 'users' ? 'المسجّلون' : 'زبائن بدون حساب'}</caption>
             <thead className="border-b border-[#617A55]/15 bg-[#D6E2B6]/30 text-[#617A55]">
@@ -107,14 +129,7 @@ export default async function CustomersPage({ searchParams }: {
             </thead>
             <tbody className="divide-y divide-[#617A55]/10">
               {rows.map((row, index) => {
-                const values = 'user_id' in row
-                  ? [row.full_name, row.email, row.phone, row.city, formatDate(row.registered_at), numbers.format(row.orders_count), money.format(row.total_spent), formatDate(row.last_order_at)]
-                  : [row.guest_name, row.guest_phone, row.guest_email, numbers.format(row.orders_count), money.format(row.total_spent), formatDate(row.last_order_at)]
-                const filters = new URLSearchParams({ tab, q, sort, page: String(page) })
-                if (!('user_id' in row) && row.guest_phone) filters.set('phone', row.guest_phone)
-                const detailHref = 'user_id' in row
-                  ? `/admin/customers/${encodeURIComponent(row.user_id)}?${filters}`
-                  : row.guest_phone ? `/admin/customers/guest?${filters}` : null
+                const { values, detailHref } = customerView(row, index, tab, q, sort, page)
                 return <tr key={'user_id' in row ? row.user_id : `${row.guest_phone}-${index}`} className="hover:bg-[#F7F6F0]">
                   {values.map((value, cell) => <td key={cell} className="px-4 py-4">{cell === 0 && detailHref
                     ? <Link href={detailHref} className="inline-block min-h-11 content-center rounded text-[#617A55] underline underline-offset-4 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#617A55]"><bdi className="break-words">{value || 'بدون اسم'}</bdi></Link>
@@ -124,6 +139,7 @@ export default async function CustomersPage({ searchParams }: {
             </tbody>
           </table>
         </div>
+        </>
       )}
 
       {!failed && total > 0 && <nav aria-label="صفحات الزبائن" className="mt-5 flex flex-wrap items-center justify-between gap-3">

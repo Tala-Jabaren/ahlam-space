@@ -16,16 +16,17 @@ export type AdminNavItem = {
   href: string
   icon: AdminNavIcon
   group: AdminNavGroup
+  mobilePrimary?: boolean
   notificationKind?: AdminNotificationKind
 }
 
 export const adminNavItems: readonly AdminNavItem[] = [
-  { href: '/admin', label: { ar: 'الرئيسية', en: 'Home' }, icon: 'home', group: 'overview' },
-  { href: '/admin/classes', label: { ar: 'الحصص', en: 'Classes' }, icon: 'calendar', group: 'programs', notificationKind: 'booking' },
+  { href: '/admin', label: { ar: 'الرئيسية', en: 'Home' }, icon: 'home', group: 'overview', mobilePrimary: true },
+  { href: '/admin/classes', label: { ar: 'الحصص', en: 'Classes' }, icon: 'calendar', group: 'programs', mobilePrimary: true, notificationKind: 'booking' },
   { href: '/admin/requests', label: { ar: 'الجلسات الفردية', en: 'Private sessions' }, icon: 'flower', group: 'programs', notificationKind: 'session_request' },
   { href: '/admin/courses', label: { ar: 'المحاضرات والتأملات', en: 'Lectures & meditations' }, icon: 'book', group: 'programs', notificationKind: 'course_purchase' },
   { href: '/admin/trips', label: { ar: 'المشاوير', en: 'Trips' }, icon: 'compass', group: 'programs', notificationKind: 'trip_application' },
-  { href: '/admin/products', label: { ar: 'المتجر', en: 'Shop' }, icon: 'shop', group: 'sales', notificationKind: 'order' },
+  { href: '/admin/products', label: { ar: 'المتجر', en: 'Shop' }, icon: 'shop', group: 'sales', mobilePrimary: true, notificationKind: 'order' },
   { href: '/admin/customers', label: { ar: 'الزبائن', en: 'Customers' }, icon: 'users', group: 'community' },
   { href: '/admin/reviews', label: { ar: 'آراء المشاركات', en: 'Reviews' }, icon: 'reviews', group: 'community' },
 ]

@@ -15,9 +15,9 @@ const buttonStyle = 'inline-flex items-center justify-center gap-2 rounded-lg bg
 // repeats on the same weekday/time every week afterward via the
 // generate_weekly_class_sessions() cron job reading classes.is_recurring;
 // a non-recurring one is just this single date.
-export default function CreateClassForm({ today }: { today: string }) {
+export default function CreateClassForm({ today, initiallyOpen = false }: { today: string; initiallyOpen?: boolean }) {
   const router = useRouter()
-  const [open, setOpen] = useState(false)
+  const [open, setOpen] = useState(initiallyOpen)
   const [busy, setBusy] = useState(false)
   const [message, setMessage] = useState('')
   const [failed, setFailed] = useState(false)

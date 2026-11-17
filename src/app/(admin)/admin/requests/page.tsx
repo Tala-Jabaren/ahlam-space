@@ -29,15 +29,16 @@ function contactNumbers(phone: string) {
   return { dial: normalized.trim().startsWith('+') ? `+${digits}` : digits, international }
 }
 
-export default async function AdminRequestsPage({ searchParams }: { searchParams: Promise<{ item?: string }> }) {
-  const { item: selectedId } = await searchParams
+export default async function AdminRequestsPage({ searchParams }: { searchParams: Promise<{ item?: string; status?: string }> }) {
+  const { item: selectedId, status } = await searchParams
+  const onlyPending = status === 'pending'
   const { available } = await getAdminNotificationCounts()
   const supabase = await getAdminSession()
   const { data, error } = await supabase
     .from('session_requests')
     .select('id, full_name, phone, email, message, session_type, created_at, status')
     .order('created_at', { ascending: false })
-    .match(selectedId ? { id: selectedId } : {})
+    .match({ ...(selectedId ? { id: selectedId } : {}), ...(onlyPending ? { status: 'pending' } : {}) })
     .returns<SessionRequest[]>()
 
   return (
@@ -46,9 +47,9 @@ export default async function AdminRequestsPage({ searchParams }: { searchParams
         <h1 className="font-serif text-3xl text-[#617A55] sm:text-4xl">طلبات الجلسات الفردية</h1>
         <p className="mt-3 leading-7 text-[#617A55]">متابعة الطلبات والتواصل مع العميلات وتحديث الحالة.</p>
       </header>
-      {selectedId && <Link href="/admin/requests" className="mt-4 inline-flex min-h-11 items-center text-sm text-[#617A55] underline underline-offset-4">عرض القائمة كاملة</Link>}
+      {(selectedId || onlyPending) && <Link href="/admin/requests" className="mt-4 inline-flex min-h-11 items-center text-sm text-[#617A55] underline underline-offset-4">عرض القائمة كاملة</Link>}
       {error && <p role="alert" className="mt-6 rounded-lg bg-[#C7D6E8]/50 p-5 text-[#617A55]">تعذر تحميل طلبات الجلسات. تحققي من الاتصال وصلاحيات عرض الطلبات.</p>}
-      {!error && !data?.length && <p className="mt-6 bg-[#D6E2B6]/40 p-6 text-[#617A55]">لا توجد طلبات جلسات بعد.</p>}
+      {!error && !data?.length && <p className="mt-6 bg-[#D6E2B6]/40 p-6 text-[#617A55]">{onlyPending ? 'كل شي تمام، لا توجد طلبات جديدة.' : 'لا توجد طلبات جلسات بعد.'}</p>}
       {!error && data && (
         <div className="mt-6 grid gap-4">
           {data.map((request) => {
