@@ -1,6 +1,6 @@
 export const meditationsAr = {
   heading: 'تأملات', lectures: 'محاضرات', audio: 'تأمل صوتي', price: 'السعر',
-  empty: 'لا توجد تأملات متاحة حالياً.', details: 'المزيد من التفاصيل',
+  empty: 'لا توجد تأملات متاحة حالياً.', details: 'تفاصيل',
   listen: 'استمعي الآن', duration: 'المدة', minutes: 'دقيقة', durationUnknown: 'غير محددة',
   waiting: 'بانتظار تأكيد استلام الحوالة البنكية. سيتاح الاستماع بعد تأكيد الدفع.',
   referenceMissing: 'طلب الشراء بانتظار تأكيد الدفع. تعذر عرض المرجع؛ تواصلي معنا قبل التحويل.',
@@ -70,7 +70,7 @@ export const meditationsAr = {
 
 export const meditationsEn: typeof meditationsAr = {
   heading: 'Meditations', lectures: 'Lectures', audio: 'Guided audio meditation', price: 'Price',
-  empty: 'No meditations are available yet.', details: 'More details',
+  empty: 'No meditations are available yet.', details: 'Details',
   listen: 'Listen now', duration: 'Duration', minutes: 'minutes', durationUnknown: 'Not specified',
   waiting: 'Waiting for bank transfer confirmation. Listening becomes available once payment is confirmed.',
   referenceMissing: 'Your purchase is awaiting payment confirmation. The reference could not be displayed; contact us before transferring.',
