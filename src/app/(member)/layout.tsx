@@ -1,4 +1,6 @@
 import Link from 'next/link'
+import FloatingWhatsApp from '@/components/contact/floating-whatsapp'
+import { WHATSAPP_URL } from '@/content/site-contact'
 import { redirect } from 'next/navigation'
 import { ArrowUpRight, BookOpen, CalendarDays, CircleHelp, Compass, Package, ShoppingBag, Ticket, UserRound } from 'lucide-react'
 import { createClient } from '@/lib/supabase/server'
@@ -151,6 +153,7 @@ export default async function MemberLayout({
         ))}
       </nav>
       <CartBottomBar member />
+      <FloatingWhatsApp href={WHATSAPP_URL} member />
     </div>
     </ExperienceProvider>
     </I18nProvider>

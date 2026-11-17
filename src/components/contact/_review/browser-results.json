@@ -1,0 +1,181 @@
+{
+  "cases": [
+    {
+      "lang": "ar",
+      "width": 393,
+      "member": false,
+      "quantity": 0,
+      "status": "pass"
+    },
+    {
+      "lang": "ar",
+      "width": 393,
+      "member": false,
+      "quantity": 2,
+      "status": "pass"
+    },
+    {
+      "lang": "ar",
+      "width": 393,
+      "member": true,
+      "quantity": 0,
+      "status": "pass"
+    },
+    {
+      "lang": "ar",
+      "width": 393,
+      "member": true,
+      "quantity": 2,
+      "status": "pass"
+    },
+    {
+      "lang": "ar",
+      "width": 768,
+      "member": false,
+      "quantity": 0,
+      "status": "pass"
+    },
+    {
+      "lang": "ar",
+      "width": 768,
+      "member": false,
+      "quantity": 2,
+      "status": "pass"
+    },
+    {
+      "lang": "ar",
+      "width": 768,
+      "member": true,
+      "quantity": 0,
+      "status": "pass"
+    },
+    {
+      "lang": "ar",
+      "width": 768,
+      "member": true,
+      "quantity": 2,
+      "status": "pass"
+    },
+    {
+      "lang": "ar",
+      "width": 1440,
+      "member": false,
+      "quantity": 0,
+      "status": "pass"
+    },
+    {
+      "lang": "ar",
+      "width": 1440,
+      "member": false,
+      "quantity": 2,
+      "status": "pass"
+    },
+    {
+      "lang": "ar",
+      "width": 1440,
+      "member": true,
+      "quantity": 0,
+      "status": "pass"
+    },
+    {
+      "lang": "ar",
+      "width": 1440,
+      "member": true,
+      "quantity": 2,
+      "status": "pass"
+    },
+    {
+      "lang": "en",
+      "width": 393,
+      "member": false,
+      "quantity": 0,
+      "status": "pass"
+    },
+    {
+      "lang": "en",
+      "width": 393,
+      "member": false,
+      "quantity": 2,
+      "status": "pass"
+    },
+    {
+      "lang": "en",
+      "width": 393,
+      "member": true,
+      "quantity": 0,
+      "status": "pass"
+    },
+    {
+      "lang": "en",
+      "width": 393,
+      "member": true,
+      "quantity": 2,
+      "status": "pass"
+    },
+    {
+      "lang": "en",
+      "width": 768,
+      "member": false,
+      "quantity": 0,
+      "status": "pass"
+    },
+    {
+      "lang": "en",
+      "width": 768,
+      "member": false,
+      "quantity": 2,
+      "status": "pass"
+    },
+    {
+      "lang": "en",
+      "width": 768,
+      "member": true,
+      "quantity": 0,
+      "status": "pass"
+    },
+    {
+      "lang": "en",
+      "width": 768,
+      "member": true,
+      "quantity": 2,
+      "status": "pass"
+    },
+    {
+      "lang": "en",
+      "width": 1440,
+      "member": false,
+      "quantity": 0,
+      "status": "pass"
+    },
+    {
+      "lang": "en",
+      "width": 1440,
+      "member": false,
+      "quantity": 2,
+      "status": "pass"
+    },
+    {
+      "lang": "en",
+      "width": 1440,
+      "member": true,
+      "quantity": 0,
+      "status": "pass"
+    },
+    {
+      "lang": "en",
+      "width": 1440,
+      "member": true,
+      "quantity": 2,
+      "status": "pass"
+    }
+  ],
+  "screenshots": [
+    "ar-393-public-cart-0",
+    "ar-393-public-cart-2",
+    "ar-393-member-cart-0",
+    "ar-393-member-cart-2",
+    "en-393-public-cart-2",
+    "en-393-member-cart-2"
+  ],
+  "errors": []
+}
