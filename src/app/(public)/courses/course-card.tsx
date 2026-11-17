@@ -18,8 +18,8 @@ export type CourseCardData = {
 
 const badgeIcons = { audio: Headphones, video: Video, article: BookOpen }
 
-const overlayButtonStyle =
-  'inline-flex min-h-10 shrink-0 items-center justify-center rounded-full bg-black/45 px-4 text-sm font-semibold text-white backdrop-blur-sm transition hover:bg-black/60 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white'
+const actionButtonStyle =
+  'inline-flex min-h-11 w-full items-center justify-center rounded-lg bg-[#617A55] px-6 py-2.5 text-sm font-semibold text-white transition hover:bg-[#617A55]/85 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#617A55]'
 
 export default function CourseCard({
   course,
@@ -51,31 +51,26 @@ export default function CourseCard({
     maximumFractionDigits: 2,
   }).format(course.price)
 
-  // Overlaid on the cover photo when it's a plain link or a static badge -
-  // every case except the one below needs to be a stable, fixed-size
-  // label so it doesn't look out of place sitting on an image. The one
-  // case that isn't (buying an unpurchased lecture/video/article) renders
-  // PurchaseCourseButton in the body instead, since its "success" state
-  // expands into a full bank-transfer confirmation block that would
-  // overflow a photo overlay.
-  const overlayAction =
+  const action =
     course.content_type === 'audio' ? (
-      <Link href={`${coursesHref}/${course.id}`} className={overlayButtonStyle}>
+      <Link href={`${coursesHref}/${course.id}`} className={actionButtonStyle}>
         {hasAccess ? c?.listen : c?.details}
       </Link>
     ) : !isLoggedIn ? (
-      <Link href={`/login?returnTo=${encodeURIComponent(coursesHref)}`} className={overlayButtonStyle}>
+      <Link href={`/login?returnTo=${encodeURIComponent(coursesHref)}`} className={actionButtonStyle}>
         {t.courses.list.loginToBuy}
       </Link>
     ) : purchase?.status === 'paid' ? (
-      <Link href={`${coursesHref}/${course.id}`} className={overlayButtonStyle}>
+      <Link href={`${coursesHref}/${course.id}`} className={actionButtonStyle}>
         {t.courses.list.watchNow}
       </Link>
     ) : purchase?.status === 'pending' ? (
-      <span className="inline-flex min-h-10 shrink-0 items-center rounded-full bg-black/45 px-4 text-sm font-semibold text-white backdrop-blur-sm">
+      <span className="inline-flex min-h-11 w-full items-center justify-center rounded-lg bg-[#C7D6E8] px-6 text-sm font-semibold text-[#617A55]">
         {t.courses.list.pendingPayment}
       </span>
-    ) : null
+    ) : (
+      <PurchaseCourseButton courseId={course.id} price={course.price} returnTo={coursesHref} />
+    )
 
   return (
     <article className="w-full max-w-[420px] overflow-hidden rounded-[22px] border border-[#617A55]/12 bg-white shadow-[0_1px_3px_rgba(37,49,31,0.08)]">
@@ -87,15 +82,12 @@ export default function CourseCard({
           <CourseCoverFallback contentType={course.content_type} />
         )}
         <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/10 to-transparent" aria-hidden="true" />
-        <div className="absolute inset-x-4 bottom-4 flex items-end justify-between gap-3">
-          <div className="min-w-0 text-white">
-            <h3 className="truncate font-serif text-lg font-semibold leading-tight">{course.title}</h3>
-            <p className="mt-1 flex items-center gap-1.5 truncate text-xs text-white/80">
-              <BadgeIcon aria-hidden="true" strokeWidth={1.75} className="size-3.5 shrink-0" />
-              {typeLabel}
-            </p>
-          </div>
-          {overlayAction}
+        <div className="absolute inset-x-4 bottom-4 text-white">
+          <h3 className="truncate font-serif text-lg font-semibold leading-tight">{course.title}</h3>
+          <p className="mt-1 flex items-center gap-1.5 truncate text-xs text-white/80">
+            <BadgeIcon aria-hidden="true" strokeWidth={1.75} className="size-3.5 shrink-0" />
+            {typeLabel}
+          </p>
         </div>
       </div>
 
@@ -127,11 +119,7 @@ export default function CourseCard({
           )}
         </div>
 
-        {overlayAction === null && (
-          <div className="mt-3">
-            <PurchaseCourseButton courseId={course.id} price={course.price} returnTo={coursesHref} />
-          </div>
-        )}
+        <div className="mt-3">{action}</div>
 
         {course.content_type !== 'audio' && isLoggedIn && purchase?.status === 'pending' && purchase.reference && (
           <div className="mt-3">
