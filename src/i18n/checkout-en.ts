@@ -121,6 +121,7 @@ export const checkoutEn: CheckoutCopy = {
     updating: 'Updating...',
     updated: 'Password updated. Redirecting to login...',
     checkEmail: 'Check your email to confirm your account.',
+    sessionExpired: 'Your session expired or could not be verified. Please log in again to continue.',
   },
   authErrors: {
     credentials: 'The email or password is incorrect.',

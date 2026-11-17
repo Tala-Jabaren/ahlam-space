@@ -22,7 +22,7 @@ export default async function AccountPage() {
     if (userError) {
       console.error('supabase.auth.getUser() failed:', userError.message)
     }
-    redirect('/login')
+    redirect('/login?message=session-expired')
   }
 
   const { data: profile, error: profileError } = await supabase
