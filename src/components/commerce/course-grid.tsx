@@ -57,7 +57,7 @@ export default function CourseGrid({
       {filtered.length === 0 ? (
         <p className="rounded-lg bg-[#C7D6E8]/35 p-6 text-center text-sm leading-7 text-[#4f5d49]">{comingSoonLabel}</p>
       ) : (
-        <div className="grid gap-6">
+        <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
           {filtered.map(course => (
             <CourseCard
               key={course.id}
