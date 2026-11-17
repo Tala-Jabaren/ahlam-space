@@ -227,6 +227,8 @@ export const ar = {
   classes: {
     heading: 'الحصص',
     tagline: 'كل حركة هي خطوة أقرب إلى ذاتك.',
+    allFilter: 'الكل',
+    filterLabel: 'تصفية حسب الحصة',
     noClasses: 'لا توجد حصص متاحة حاليًا.',
     upcomingHeading: 'المواعيد القادمة',
     noUpcoming: 'لا توجد مواعيد قادمة لهذه الحصة حاليًا.',

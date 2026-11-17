@@ -231,6 +231,8 @@ export const en: typeof ar = {
   classes: {
     heading: 'Classes',
     tagline: 'Every movement is a step closer to yourself.',
+    allFilter: 'All',
+    filterLabel: 'Filter by class',
     noClasses: 'No classes available right now.',
     upcomingHeading: 'Upcoming Sessions',
     noUpcoming: 'No upcoming sessions for this class right now.',
