@@ -315,10 +315,8 @@ export const ar = {
   },
   shop: {
     list: {
-      heroHeading: 'أشياء صغيرة، صُنعت بعناية.',
       heroParagraph:
         'من زُلفة ومساحة أحلام، اختيارات تضيف ليومك دفئًا، توازنًا ولحظات أهدأ.',
-      heroImageAlt: 'منتجات العناية والعافية من مساحة أحلام',
       searchSrLabel: 'ابحثي عن منتج',
       searchPlaceholder: 'ابحثي عن منتج...',
       categoriesAriaLabel: 'فئات المنتجات',

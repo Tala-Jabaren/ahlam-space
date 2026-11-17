@@ -5,6 +5,7 @@ import Image from 'next/image'
 import Link from 'next/link'
 import { useExperienceRoutes } from '@/components/commerce/experience-provider'
 import { useT } from '@/i18n/i18n-context'
+import ClassesBanner from '@/components/classes/classes-banner'
 import AddToCartButton from './[id]/add-to-cart-button'
 import type { ShopProduct } from './page'
 
@@ -65,33 +66,7 @@ export default function ShopCatalog({
 
   return (
     <div className="bg-[#F7F6F0] pb-16" dir={dir}>
-      {routes.scope === 'member' ? <header className="mx-auto max-w-7xl px-4 sm:px-8 lg:px-10">
-        <h1 className="font-serif text-3xl text-[#25311f] sm:text-4xl">{t.nav.shop}</h1>
-        <p className="mt-2 text-sm leading-7 text-[#617A55]">{t.shop.list.heroParagraph}</p>
-      </header> : <section className="overflow-hidden border-b border-[#617A55]/10 bg-[#D6E2B6]/35">
-        <div className="mx-auto grid min-h-[300px] max-w-7xl lg:grid-cols-[1.05fr_0.95fr]">
-          <div className="relative min-h-56 overflow-hidden bg-[#C7D6E8]/45 lg:min-h-full">
-            <Image
-              src="/images/shop-hero-v2.png"
-              alt={t.shop.list.heroImageAlt}
-              fill
-              priority
-              sizes="(min-width: 1024px) 55vw, 100vw"
-              className="object-cover object-center"
-            />
-          </div>
-
-          <div className="flex flex-col justify-center px-5 py-10 sm:px-10 lg:px-14">
-            <p className="text-xs font-semibold uppercase tracking-[0.28em] text-[#617A55]">AHLAM SHOP</p>
-            <h1 className="mt-4 font-serif text-4xl leading-[1.35] text-[#25311f] sm:text-5xl">
-              {t.shop.list.heroHeading}
-            </h1>
-            <p className="mt-4 max-w-xl text-base leading-8 text-[#617A55] sm:text-lg">
-              {t.shop.list.heroParagraph}
-            </p>
-          </div>
-        </div>
-      </section>}
+      <ClassesBanner image="/images/shopbanner.png" title={t.nav.shop} tagline={t.shop.list.heroParagraph} />
 
       <main className="mx-auto max-w-7xl px-4 pt-7 sm:px-8 lg:px-10">
         <div className="grid gap-4 border-b border-[#617A55]/12 pb-7 lg:grid-cols-[minmax(220px,0.8fr)_minmax(0,1.4fr)_220px] lg:items-center">
