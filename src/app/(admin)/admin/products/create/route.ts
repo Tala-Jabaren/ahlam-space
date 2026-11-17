@@ -1,7 +1,6 @@
 import { createClient } from '@/lib/supabase/server'
 import { createAdminClient } from '@/lib/supabase/admin'
-import { MAX_PRODUCT_IMAGE_BYTES, PRODUCT_IMAGE_BUCKET, productInputSchema } from '@/components/admin/product-input'
-import { detectImageFormat } from '@/lib/file-format'
+import { PRODUCT_IMAGE_BUCKET, productInputSchema } from '@/components/admin/product-input'
 
 export async function POST(request: Request) {
   if (request.headers.get('origin') !== new URL(request.url).origin) return Response.json({ error: 'طلب غير مسموح.' }, { status: 403 })
@@ -13,7 +12,6 @@ export async function POST(request: Request) {
     if (profileError) return Response.json({ error: 'تعذر التحقق من صلاحيات الإدارة. حاولي مجددًا.' }, { status: 503 })
     if (profile?.role !== 'admin') return Response.json({ error: 'ليست لديك صلاحية إضافة المنتجات.' }, { status: 403 })
     if (!request.headers.get('content-type')?.startsWith('multipart/form-data')) return Response.json({ error: 'بيانات المنتج غير صالحة.' }, { status: 400 })
-    if (Number(request.headers.get('content-length') || 0) > MAX_PRODUCT_IMAGE_BYTES + 128 * 1024) return Response.json({ error: 'حجم الصورة يجب ألا يتجاوز 5 ميغابايت.' }, { status: 413 })
     let form: FormData
     let variants: unknown
     try {
@@ -29,17 +27,21 @@ export async function POST(request: Request) {
     })
     if (!parsed.success) return Response.json({ error: parsed.error.issues.find(issue => issue.code === 'custom')?.message || 'راجعي الاسم والسعر وخيارات المخزون. السعر لا يزيد عن منزلتين عشريتين والمخزون عدد صحيح غير سالب.' }, { status: 400 })
     const input = parsed.data
-    const image = form.get('image')
-    let imageBytes: Uint8Array | null = null
-    let format: ReturnType<typeof detectImageFormat> = null
-    if (image instanceof File && image.size > 0) {
-      if (image.size > MAX_PRODUCT_IMAGE_BYTES) return Response.json({ error: 'حجم الصورة يجب ألا يتجاوز 5 ميغابايت.' }, { status: 413 })
-      imageBytes = new Uint8Array(await image.arrayBuffer())
-      format = detectImageFormat(imageBytes)
-      if (!format || image.type !== format.type) return Response.json({ error: 'اختاري صورة JPG أو PNG أو WebP صحيحة.' }, { status: 400 })
-    } else if (image && !(image instanceof File)) {
-      return Response.json({ error: 'ملف الصورة غير صالح.' }, { status: 400 })
+
+    // The image, if any, was already uploaded directly to storage via
+    // /admin/products/upload-cover (see src/lib/admin-upload.ts for why -
+    // Vercel's 4.5MB request body cap) - this route only ever receives the
+    // resulting path, scoped to this exact product_id by that route, never
+    // the file itself.
+    const imagePathField = form.get('image_path')
+    let imagePath: string | null = null
+    if (typeof imagePathField === 'string' && imagePathField) {
+      if (!imagePathField.startsWith(`products/${input.product_id}/`)) {
+        return Response.json({ error: 'مسار الصورة غير صالح.' }, { status: 400 })
+      }
+      imagePath = imagePathField
     }
+
     const admin = createAdminClient()
     const existing = await admin.from('products').select('id, product_variants(id)').eq('id', input.product_id).maybeSingle()
     if (existing.error) return Response.json({ error: 'تعذر التحقق من المنتج. حاولي مجددًا.' }, { status: 503 })
@@ -47,19 +49,12 @@ export async function POST(request: Request) {
       if (!existing.data.product_variants?.length) return Response.json({ error: 'يوجد منتج محفوظ بدون خيارات مكتملة. راجعي قائمة المنتجات قبل إعادة الإرسال.' }, { status: 409 })
       return Response.json({ id: existing.data.id, message: 'هذا المنتج محفوظ بالفعل، ولم تتم إضافته مرة أخرى.' })
     }
-    let imagePath: string | null = null
-    let imageUrl: string | null = null
     async function removeImage() {
       if (!imagePath) return
       const result = await admin.storage.from(PRODUCT_IMAGE_BUCKET).remove([imagePath])
       if (result.error) console.error('Product image cleanup failed:', result.error.message)
     }
-    if (imageBytes && format) {
-      imagePath = `products/${input.product_id}/${crypto.randomUUID()}.${format.extension}`
-      const upload = await admin.storage.from(PRODUCT_IMAGE_BUCKET).upload(imagePath, imageBytes, { contentType: format.type, upsert: false })
-      if (upload.error) return Response.json({ error: 'تعذر رفع الصورة. تحققي من الاتصال ومخزن الصور ثم حاولي مجددًا.' }, { status: 502 })
-      imageUrl = admin.storage.from(PRODUCT_IMAGE_BUCKET).getPublicUrl(imagePath).data.publicUrl
-    }
+    const imageUrl = imagePath ? admin.storage.from(PRODUCT_IMAGE_BUCKET).getPublicUrl(imagePath).data.publicUrl : null
     // Publish only after the complete stock/variant batch has been saved.
     const created = await admin.from('products').insert({
       id: input.product_id, name: input.name, description: input.description || null,

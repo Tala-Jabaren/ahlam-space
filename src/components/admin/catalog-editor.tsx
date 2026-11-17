@@ -4,7 +4,7 @@ import { useState, type FormEvent } from 'react'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import { meditationsAr } from '@/i18n/meditations'
-import { UploadError, uploadFile } from '@/lib/admin-upload'
+import { UploadError, publicUrlFor, uploadFileDirect } from '@/lib/admin-upload'
 
 const weekdayNames = ['الأحد', 'الاثنين', 'الثلاثاء', 'الأربعاء', 'الخميس', 'الجمعة', 'السبت']
 
@@ -72,8 +72,8 @@ export default function CatalogEditor(props: { kind: 'class'; record: ClassRecor
         let coverImageUrl = props.record?.cover_image_url ?? null
         const coverFile = form.get('cover_image')
         if (coverFile instanceof File && coverFile.size > 0) {
-          const uploaded = await uploadFile('/admin/courses/upload-cover', { course_id: courseId }, 'image', coverFile, 'COVER_UPLOAD')
-          coverImageUrl = uploaded.url ?? coverImageUrl
+          const uploaded = await uploadFileDirect('/admin/courses/upload-cover', { course_id: courseId }, coverFile, 'COVER_UPLOAD')
+          coverImageUrl = publicUrlFor(uploaded.bucket, uploaded.path)
         }
 
         let values: Record<string, unknown>
@@ -83,8 +83,8 @@ export default function CatalogEditor(props: { kind: 'class'; record: ClassRecor
           let audioPathValue = props.record?.content_type === 'audio' ? (props.record?.audio_path ?? null) : null
           const audioFile = form.get('audio_file')
           if (audioFile instanceof File && audioFile.size > 0) {
-            const uploaded = await uploadFile('/admin/courses/upload-audio', { course_id: courseId }, 'audio', audioFile, 'AUDIO_UPLOAD')
-            audioPathValue = uploaded.path ?? audioPathValue
+            const uploaded = await uploadFileDirect('/admin/courses/upload-audio', { course_id: courseId }, audioFile, 'AUDIO_UPLOAD')
+            audioPathValue = uploaded.path
           }
           if (!audioPathValue) throw new Error('AUDIO_REQUIRED')
           values = { ...common, title: name, price, content_type: 'audio', video_url: null, article_body: null, audio_path: audioPathValue, duration_minutes: duration, cover_image_url: coverImageUrl }
@@ -101,8 +101,8 @@ export default function CatalogEditor(props: { kind: 'class'; record: ClassRecor
         let imageUrl = props.record.image_url ?? null
         const imageFile = form.get('image')
         if (imageFile instanceof File && imageFile.size > 0) {
-          const uploaded = await uploadFile('/admin/classes/upload-cover', { class_id: props.record.id }, 'image', imageFile, 'CLASS_IMAGE_UPLOAD')
-          imageUrl = uploaded.url ?? imageUrl
+          const uploaded = await uploadFileDirect('/admin/classes/upload-cover', { class_id: props.record.id }, imageFile, 'CLASS_IMAGE_UPLOAD')
+          imageUrl = publicUrlFor(uploaded.bucket, uploaded.path)
         }
         const isRecurring = form.get('recurring') === 'on'
         let weekday: number | null = null

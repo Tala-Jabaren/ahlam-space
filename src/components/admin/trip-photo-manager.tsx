@@ -3,6 +3,7 @@
 import { useState, type FormEvent } from 'react'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
+import { UploadError, publicUrlFor, uploadFileDirect } from '@/lib/admin-upload'
 import TripDeleteButton from './trip-delete-button'
 import type { TripPhotoRow } from '@/lib/trips'
 
@@ -27,25 +28,18 @@ export default function TripPhotoManager({ tripId, photos }: { tripId: string; p
     setBusy(true)
     setMessage('')
     try {
-      const body = new FormData()
-      body.append('trip_id', tripId)
-      body.append('image', file)
-      const response = await fetch('/admin/trips/upload-photo', { method: 'POST', body })
-      const json = await response.json().catch(() => null)
-      if (!response.ok || !json?.url) {
-        // Relay the route's own Arabic error (invalid file type, too large,
-        // not an admin, storage failure, etc.) instead of a single generic
-        // message that was hiding which of those actually happened.
-        setFailed(true)
-        setMessage(json?.error || 'تعذر رفع الصورة. تحققي من الاتصال ثم حاولي مجددًا.')
-        return
-      }
+      // Relays the upload route's own Arabic error (invalid file type, too
+      // large, not an admin, storage failure, etc.) via UploadError instead
+      // of a single generic message that was hiding which of those
+      // actually happened.
+      const uploaded = await uploadFileDirect('/admin/trips/upload-photo', { trip_id: tripId }, file, 'PHOTO_UPLOAD')
+      const url = publicUrlFor(uploaded.bucket, uploaded.path)
 
       const caption = String(form.get('caption') || '').trim() || null
       const nextOrder = photos.length ? Math.max(...photos.map((item) => item.display_order)) + 1 : 0
       const { error } = await createClient().from('trip_photos').insert({
         trip_id: tripId,
-        photo_url: json.url,
+        photo_url: url,
         caption,
         display_order: nextOrder,
         is_published: false,
@@ -67,7 +61,7 @@ export default function TripPhotoManager({ tripId, photos }: { tripId: string; p
     } catch (err) {
       console.error('Trip photo upload failed:', err)
       setFailed(true)
-      setMessage('تعذر رفع الصورة. تحققي من الاتصال ثم حاولي مجددًا.')
+      setMessage(err instanceof UploadError && err.serverMessage ? err.serverMessage : 'تعذر رفع الصورة. تحققي من الاتصال ثم حاولي مجددًا.')
     } finally {
       setBusy(false)
     }
