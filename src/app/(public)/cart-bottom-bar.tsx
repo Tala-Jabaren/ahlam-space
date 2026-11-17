@@ -46,6 +46,7 @@ export default function CartBottomBar({ member = false }: { member?: boolean }) 
       )}
 
       <div
+        data-cart-bottom-bar={member ? 'member' : 'public'}
         dir={dir}
         className={member ? 'fixed inset-x-4 bottom-24 z-40 mx-auto max-w-xl rounded-2xl border border-[#617A55]/15 bg-[#D6E2B6] p-3 shadow-sm md:end-[304px] md:bottom-6' : 'fixed inset-x-4 bottom-4 z-50 mx-auto max-w-xl rounded-2xl border border-[#617A55]/15 bg-[#D6E2B6] p-3 shadow-[0_8px_28px_rgba(37,49,31,0.14)] sm:bottom-6'}
       >

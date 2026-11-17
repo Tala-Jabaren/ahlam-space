@@ -1,0 +1,39 @@
+.launcher {
+  --contact-bottom: 20px;
+  position: fixed;
+  z-index: 40;
+  inset-inline-end: max(18px, env(safe-area-inset-left), env(safe-area-inset-right));
+  inset-block-end: calc(var(--contact-bottom) + env(safe-area-inset-bottom));
+  display: grid;
+  place-items: center;
+  inline-size: 54px;
+  block-size: 54px;
+  border: 1px solid rgb(247 246 240 / 75%);
+  border-radius: 9999px;
+  background: #617A55;
+  color: #F7F6F0;
+  box-shadow: 0 5px 18px rgb(37 49 31 / 16%);
+  transition: background-color .2s ease, color .2s ease, transform .2s ease;
+}
+.launcher:hover { background: #D6E2B6; color: #617A55; transform: translateY(-2px); }
+.launcher:focus-visible { outline: 3px solid #C7D6E8; outline-offset: 4px; }
+.tooltip { position: absolute; inset-inline-end: calc(100% + 10px); inline-size: max-content; max-inline-size: min(220px, 60vw); padding-block: 7px; padding-inline: 12px; border: 1px solid rgb(97 122 85 / 14%); border-radius: 12px; background: #F7F6F0; color: #617A55; font-size: 14px; line-height: 1.5; box-shadow: 0 3px 12px rgb(37 49 31 / 7%); opacity: 0; visibility: hidden; pointer-events: none; transition: opacity .2s ease, visibility .2s ease; }
+.launcher:focus-visible .tooltip { opacity: 1; visibility: visible; }
+@media (hover: hover) { .launcher:hover .tooltip { opacity: 1; visibility: visible; } }
+.member { --contact-bottom: 96px; }
+@media (max-width: 767px) {
+  :global(body:has([data-cart-bottom-bar='public'])) .launcher:not(.member) { --contact-bottom: 112px; }
+  :global(body:has([data-cart-bottom-bar='member'])) .member { --contact-bottom: 184px; }
+}
+@media (min-width: 768px) {
+  .launcher { --contact-bottom: 24px; }
+  .launcher.member { inset-inline-end: 304px; }
+}
+@media (min-width: 768px) {
+  :global(body:has([data-cart-bottom-bar='member'])) .member { --contact-bottom: 112px; }
+}
+:global(body:has(dialog[open])) .launcher { visibility: hidden; }
+@media (prefers-reduced-motion: reduce) {
+  .launcher, .tooltip { transition: none; }
+  .launcher:hover { transform: none; }
+}

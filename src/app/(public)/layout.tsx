@@ -1,4 +1,5 @@
 import Link from 'next/link'
+import FloatingWhatsApp from '@/components/contact/floating-whatsapp'
 import { createClient } from '@/lib/supabase/server'
 import { getT } from '@/i18n/get-t'
 import { I18nProvider } from '@/i18n/i18n-context'
@@ -34,6 +35,7 @@ export default async function PublicLayout({
         <SiteHeader user={Boolean(user)} userName={userName} t={t} locale={locale} />
         <MainContent>{children}</MainContent>
         <CartBottomBar />
+        <FloatingWhatsApp href={WHATSAPP_URL} />
         <footer className="relative overflow-hidden border-t border-[#617A55]/15 bg-[#34472B] px-5 py-10 text-[#E4ECD6] sm:px-8 lg:px-10">
           <div className="mx-auto flex max-w-7xl flex-col gap-3 text-sm sm:flex-row sm:items-center sm:justify-between">
             <p>{t.footer.address}</p>
