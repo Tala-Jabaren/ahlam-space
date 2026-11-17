@@ -3,7 +3,7 @@
 import { useState, type FormEvent } from 'react'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
-import { UploadError, uploadFile } from '@/lib/admin-upload'
+import { UploadError, publicUrlFor, uploadFileDirect } from '@/lib/admin-upload'
 import { endTime } from './session-controls'
 
 const fieldStyle = 'mt-2 w-full min-w-0 rounded-lg border border-[#617A55]/25 bg-[#F7F6F0] px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#617A55]'
@@ -66,8 +66,8 @@ export default function CreateClassForm({ today }: { today: string }) {
       let imageUrl: string | null = null
       const imageFile = form.get('image')
       if (imageFile instanceof File && imageFile.size > 0) {
-        const uploaded = await uploadFile('/admin/classes/upload-cover', { class_id: classId }, 'image', imageFile, 'CLASS_IMAGE_UPLOAD')
-        imageUrl = uploaded.url ?? null
+        const uploaded = await uploadFileDirect('/admin/classes/upload-cover', { class_id: classId }, imageFile, 'CLASS_IMAGE_UPLOAD')
+        imageUrl = publicUrlFor(uploaded.bucket, uploaded.path)
       }
 
       // Stored as a real column rather than embedded in the session itself,

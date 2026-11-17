@@ -5,6 +5,7 @@ import { ImagePlus, Plus, Save, Trash2, X } from 'lucide-react'
 import { useEffect, useId, useRef, useState, type FormEvent } from 'react'
 import { useRouter } from 'next/navigation'
 import { MAX_PRODUCT_IMAGE_BYTES, PRODUCT_IMAGE_TYPES } from './product-input'
+import { UploadError, uploadFileDirect } from '@/lib/admin-upload'
 
 type Variant = { key: number; size: string; color: string; sku: string; stock: string }
 const initialVariant = (): Variant => ({ key: 0, size: '', color: '', sku: '', stock: '0' })
@@ -69,12 +70,21 @@ export default function CreateProductForm() {
     if (busy || imageError) return
     const body = new FormData(event.currentTarget)
     if (!requestId.current) requestId.current = crypto.randomUUID()
-    body.set('product_id', requestId.current)
+    const productId = requestId.current
+    body.set('product_id', productId)
     body.set('variants', JSON.stringify(variants.map(({ size, color, sku, stock }) => ({ size, color, sku, stock: Number(stock) }))))
+    // The image, if any, goes straight to storage below instead of riding
+    // along in this request - see src/lib/admin-upload.ts.
+    const imageFile = fileRef.current?.files?.[0] ?? null
+    body.delete('image')
     setBusy(true)
     setMessage('')
     setFailed(false)
     try {
+      if (imageFile) {
+        const uploaded = await uploadFileDirect('/admin/products/upload-cover', { product_id: productId }, imageFile, 'IMAGE_UPLOAD')
+        body.set('image_path', uploaded.path)
+      }
       const response = await fetch('/admin/products/create', { method: 'POST', body })
       const result = await response.json()
       if (!response.ok) {
@@ -88,9 +98,10 @@ export default function CreateProductForm() {
       reset()
       router.refresh()
       toggleRef.current?.focus()
-    } catch {
+    } catch (error) {
       setFailed(true)
-      setMessage('تعذر إكمال الإضافة. تحققي من قائمة المنتجات قبل إعادة الإرسال.')
+      const serverMessage = error instanceof UploadError ? error.serverMessage : undefined
+      setMessage(serverMessage ?? 'تعذر إكمال الإضافة. تحققي من قائمة المنتجات قبل إعادة الإرسال.')
       router.refresh()
     } finally {
       setBusy(false)

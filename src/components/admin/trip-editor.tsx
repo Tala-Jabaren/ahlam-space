@@ -3,6 +3,7 @@
 import { useState, type FormEvent } from 'react'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
+import { UploadError, publicUrlFor, uploadFileDirect } from '@/lib/admin-upload'
 import type { TripRow, TripStatus } from '@/lib/trips'
 import { tripStatusLabels } from '@/lib/trips'
 
@@ -10,13 +11,8 @@ const inputStyle = 'mt-2 w-full min-w-0 rounded-lg border border-[#617A55]/25 bg
 const buttonStyle = 'inline-flex items-center justify-center gap-2 rounded-lg bg-[#617A55] px-4 py-2 text-sm text-white disabled:opacity-50'
 
 async function uploadCover(tripId: string, file: File): Promise<string> {
-  const body = new FormData()
-  body.append('trip_id', tripId)
-  body.append('image', file)
-  const response = await fetch('/admin/trips/upload-photo', { method: 'POST', body })
-  const json = await response.json().catch(() => null)
-  if (!response.ok || !json?.url) throw new Error('COVER_UPLOAD')
-  return json.url as string
+  const uploaded = await uploadFileDirect('/admin/trips/upload-photo', { trip_id: tripId }, file, 'COVER_UPLOAD')
+  return publicUrlFor(uploaded.bucket, uploaded.path)
 }
 
 export default function TripEditor({ record }: { record?: TripRow }) {
@@ -99,9 +95,11 @@ export default function TripEditor({ record }: { record?: TripRow }) {
     } catch (error) {
       setFailed(true)
       const code = error instanceof Error ? error.message : ''
+      const serverMessage = error instanceof UploadError ? error.serverMessage : undefined
       setMessage(
-        code === 'COVER_UPLOAD' ? 'تعذر رفع صورة الغلاف. تحققي من الاتصال ونوع الصورة (JPG أو PNG أو WebP) ثم حاولي مجددًا.'
-        : 'تعذر الحفظ. تحققي من الاتصال وتطبيق سياسات الإدارة.'
+        serverMessage ??
+        (code === 'COVER_UPLOAD' ? 'تعذر رفع صورة الغلاف. تحققي من الاتصال ونوع الصورة (JPG أو PNG أو WebP) ثم حاولي مجددًا.'
+        : 'تعذر الحفظ. تحققي من الاتصال وتطبيق سياسات الإدارة.')
       )
     } finally {
       setBusy(false)

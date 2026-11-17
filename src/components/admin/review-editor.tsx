@@ -4,6 +4,7 @@ import { useEffect, useRef, useState, type FormEvent } from 'react'
 import { useRouter } from 'next/navigation'
 import { Camera, X } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
+import { UploadError, publicUrlFor, uploadFileDirect } from '@/lib/admin-upload'
 import AdminDeleteButton from './admin-delete-button'
 import type { ReviewRow } from '@/lib/reviews'
 
@@ -94,13 +95,8 @@ function PhotoUpload({ initialUrl }: { initialUrl: string | null }) {
 }
 
 async function uploadPhoto(reviewId: string, file: File) {
-  const body = new FormData()
-  body.append('review_id', reviewId)
-  body.append('image', file)
-  const response = await fetch('/admin/reviews/upload-photo', { method: 'POST', body })
-  const json = await response.json().catch(() => null)
-  if (!response.ok || !json) throw new Error('PHOTO_UPLOAD')
-  return json as { url?: string }
+  const uploaded = await uploadFileDirect('/admin/reviews/upload-photo', { review_id: reviewId }, file, 'PHOTO_UPLOAD')
+  return publicUrlFor(uploaded.bucket, uploaded.path)
 }
 
 export default function ReviewEditor({ record }: { record?: ReviewRow }) {
@@ -144,8 +140,7 @@ export default function ReviewEditor({ record }: { record?: ReviewRow }) {
       const removePhoto = form.get('remove_photo') === 'on'
       const photoFile = form.get('photo')
       if (photoFile instanceof File && photoFile.size > 0) {
-        const uploaded = await uploadPhoto(reviewId, photoFile)
-        photoUrl = uploaded.url ?? photoUrl
+        photoUrl = await uploadPhoto(reviewId, photoFile)
       } else if (removePhoto) {
         photoUrl = null
       }
@@ -170,10 +165,12 @@ export default function ReviewEditor({ record }: { record?: ReviewRow }) {
     } catch (error) {
       setFailed(true)
       const code = error instanceof Error ? error.message : ''
+      const serverMessage = error instanceof UploadError ? error.serverMessage : undefined
       setMessage(
-        code === 'PHOTO_UPLOAD'
+        serverMessage ??
+        (code === 'PHOTO_UPLOAD'
           ? 'تعذر رفع الصورة. تحققي من الاتصال ونوع الصورة (JPG أو PNG أو WebP) ثم حاولي مجددًا.'
-          : 'تعذر الحفظ. تحققي من الاتصال وتطبيق سياسات الإدارة.'
+          : 'تعذر الحفظ. تحققي من الاتصال وتطبيق سياسات الإدارة.')
       )
     } finally {
       setBusy(false)
