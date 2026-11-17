@@ -17,7 +17,7 @@ const sections: Record<AdminSection, { title: string; href: string; tabs: { id: 
   ] },
 }
 
-export default async function AdminSectionPage({ section, activeTab, children }: { section: AdminSection; activeTab: string; children: ReactNode }) {
+export default async function AdminSectionPage({ section, activeTab, itemOpen, children }: { section: AdminSection; activeTab: string; itemOpen?: boolean; children: ReactNode }) {
   const definition = sections[section]
   const { counts } = await getAdminNotificationCounts()
   return <main className="mx-auto min-w-0 max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
@@ -29,6 +29,7 @@ export default async function AdminSectionPage({ section, activeTab, children }:
         </Link>)}
       </nav>
     </header>
+    {itemOpen && <Link href={`${definition.href}?tab=${activeTab}`} className="mt-3 inline-flex min-h-11 items-center text-sm text-[#617A55] underline underline-offset-4">عرض القائمة كاملة</Link>}
     <div className="mt-5 min-w-0">{children}</div>
   </main>
 }

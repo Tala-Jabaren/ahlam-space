@@ -7,7 +7,7 @@ export default async function AdminCoursesPage({ searchParams }: {
 }) {
   const params = await searchParams
   const tab = params.tab === 'payments' ? 'payments' : 'content'
-  return <AdminSectionPage section="courses" activeTab={tab}>
+  return <AdminSectionPage section="courses" activeTab={tab} itemOpen={Boolean(params.item)}>
     {tab === 'payments' ? <DomainPayments kind="course" filter={params.filter} selectedId={params.item} /> : <CoursesContent />}
   </AdminSectionPage>
 }

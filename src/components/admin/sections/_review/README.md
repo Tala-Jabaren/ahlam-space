@@ -1,4 +1,4 @@
-﻿# Admin domain sections (PR 1)
+# Admin domain sections (PR 1)
 
 ## Navigation and routes
 
@@ -15,11 +15,11 @@ The existing sidebar configuration remains the single source of navigation group
 
 Legacy `/admin/payments` redirects to Classes > Payments. Legacy `/admin/orders` redirects to Shop > Orders. Existing home cards now link to domain tabs; the state-based home/mobile redesign is intentionally deferred to PR 2.
 
-The former server page bodies are reused in `classes-content`, `courses-content`, `products-content`, `orders-content` and `domain-payments`. Existing query shapes, payment confirmation/dialog/RPC arguments, stock/cancellation controls, class creation and recurrence logic are preserved. Class creation is placed under Types. No booking/payment RPC or RLS change.
+The former server page bodies are reused in `classes-content`, `courses-content`, `products-content`, `orders-content` and `domain-payments`. Existing query projections, payment confirmation/dialog/RPC arguments, stock/cancellation controls, class creation and recurrence logic are preserved. Class creation is placed under Types. No booking/payment RPC or RLS change.
 
 ## Notifications / manual SQL review
 
-Review **[supabase/admin-notification-seen.sql](../../../../../..//supabase/admin-notification-seen.sql)**. It has NOT been executed. It only adds nullable `seen_at` and an index for unseen counts; no policy/grant/RPC changes.
+Review **[supabase/admin-notification-seen.sql](../../../../../supabase/admin-notification-seen.sql)**. It has NOT been executed. It only adds nullable `seen_at` and an index for unseen counts; no policy/grant/RPC changes.
 
 Queue retention audit: `claim_admin_notifications` sets `sent_at`/attempts; failed sends reset `sent_at`. Successfully sent and skipped rows stay in the queue. This PR does not alter cron, sending, retry behavior or retention. Existing manual cleanup SQL scripts remain unchanged.
 
@@ -33,14 +33,14 @@ Event mapping:
 - `session_request` -> Private sessions.
 - `trip_application` -> Trips; the application ID resolves to its parent trip on the guarded server.
 
-A list/section visit does not mark any row. Explicitly expanding one item (or following its email deep link) calls the admin-checked action for that item only. Counts refresh after success; zero badges disappear. Collapsing/reopening permits retry after a failed write. Payment state never derives from `seen_at`.
+Email targets are fetched by their exact ID, independently of list row limits, with a link back to the full list. A list/section visit does not mark any row. Explicitly expanding one item (or following its email deep link) calls the admin-checked action for that item only. Counts refresh after success; zero badges disappear. Collapsing/reopening permits retry after a failed write. Payment state never derives from `seen_at`.
 
 Before the SQL runs, missing-column errors hide badges and disable seen writes while content, details and existing actions remain available. Migration does not backfill history: old queue rows start unseen. `seen_at` is shared across admins as requested, not a per-admin read receipt. Old queue records whose referenced item was deleted may need owner-reviewed cleanup; this PR does not silently discard them.
 
 ## Validation
 
-- Lint and explicit TypeScript checks passed.
-- Production compilation/type generation passed. Next 16.4.3 also emits its existing security-version upgrade advisory; dependency upgrades are outside this PR and must be reviewed separately. See PR check results for the final CLI build status.
+- `npm run lint`, `npx tsc --noEmit` and the final `npm run build` passed after rebasing onto current main.
+- Next 16.4.3 initially stopped the build with its security-version upgrade reminder; the final retry exited 0 while still reporting the advisory. A security upgrade is recommended and must be reviewed separately; dependencies are unchanged in this PR.
 - Playwright/Edge against the production build and local-only auth/data fixtures: 1440x900, 1024x768, 768x1024, 393x852 in Arabic/English layout; supplemental 360px phone check. No horizontal page overflow or client errors.
 - All five event kinds: sent rows still count as unseen, exact one-item marking, siblings untouched, zero badges hidden, specific email/item routes open the right item.
 - Replayed seen action POSTs were rejected for anonymous/non-admin sessions and invalid kind/UUID, with zero queue updates.

@@ -73,6 +73,7 @@ export default async function OrdersContent({ selectedId }: { selectedId?: strin
       'id, user_id, created_at, status, fulfillment_method, payment_method, delivery_address, guest_name, guest_phone, guest_email, total, order_items(id, quantity, unit_price, product_variants(size, color, products(name)))'
     )
     .order('created_at', { ascending: false })
+    .match(selectedId ? { id: selectedId } : {})
     .returns<OrderRow[]>()
 
   const userIds = Array.from(

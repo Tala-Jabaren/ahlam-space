@@ -115,11 +115,13 @@ export default async function DomainPayments({ kind, filter, selectedId }: {
           'id, user_id, created_at, payment_status, class_sessions(classes(name, price))'
         )
         .order('created_at', { ascending: false })
+        .match(selectedId && activeTab === 'booking' ? { id: selectedId } : {})
         .returns<BookingRow[]>(),
       admin
         .from('course_purchases')
         .select('id, user_id, created_at, status, courses(title, price)')
         .order('created_at', { ascending: false })
+        .match(selectedId && activeTab === 'course' ? { id: selectedId } : {})
         .returns<CourseRow[]>(),
       admin
         .from('orders')
@@ -127,6 +129,7 @@ export default async function DomainPayments({ kind, filter, selectedId }: {
           'id, user_id, created_at, status, total, guest_name, guest_phone, guest_email, order_items(quantity, product_variants(products(name)))'
         )
         .order('created_at', { ascending: false })
+        .match(selectedId && activeTab === 'order' ? { id: selectedId } : {})
         .returns<OrderRow[]>(),
       admin
         .from('payments')

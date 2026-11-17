@@ -8,7 +8,7 @@ export default async function AdminProductsPage({ searchParams }: {
 }) {
   const params = await searchParams
   const tab = params.tab === 'orders' || params.tab === 'payments' ? params.tab : 'products'
-  return <AdminSectionPage section="shop" activeTab={tab}>
+  return <AdminSectionPage section="shop" activeTab={tab} itemOpen={Boolean(params.item)}>
     {tab === 'orders' ? <OrdersContent selectedId={params.item} /> : tab === 'payments'
       ? <DomainPayments kind="order" filter={params.filter} selectedId={params.item} /> : <ProductsContent />}
   </AdminSectionPage>
