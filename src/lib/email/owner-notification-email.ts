@@ -1,9 +1,11 @@
+import { adminNotificationHref } from '@/lib/admin-notification-links'
 import { escapeHtml, wrapEmailHtml } from './html'
 
 export type OwnerNotificationEventKind = 'booking' | 'session_request' | 'order' | 'course_purchase' | 'trip_application'
 
 export type OwnerNotificationEvent = {
   kind: OwnerNotificationEventKind
+  refId: string
   customerName: string | null
   customerPhone: string | null
   details: string
@@ -76,12 +78,6 @@ function statusLabel(kind: OwnerNotificationEventKind, status: string) {
   return map[status] ?? status
 }
 
-function eventLink(kind: OwnerNotificationEventKind, siteUrl: string) {
-  if (kind === 'session_request') return `${siteUrl}/admin/requests`
-  if (kind === 'trip_application') return `${siteUrl}/admin/trips`
-  return `${siteUrl}/admin/payments`
-}
-
 function formatAmount(amount: number | null) {
   if (amount === null) return null
   return `${new Intl.NumberFormat('ar').format(amount)} ₪`
@@ -101,7 +97,7 @@ export function buildOwnerNotificationEmail(event: OwnerNotificationEvent, siteU
   if (event.reference) rows.push(['المرجع', event.reference])
   rows.push(['الحالة', statusLabel(event.kind, event.status)])
 
-  const link = eventLink(event.kind, siteUrl)
+  const link = new URL(adminNotificationHref(event.kind, event.refId), siteUrl).toString()
 
   const html = wrapEmailHtml(`
 <p style="font-size:16px;line-height:1.8;margin:0 0 20px;">${escapeHtml(subject)}:</p>
@@ -116,7 +112,7 @@ ${rows
   .join('\n')}
 </table>
 <p style="margin:0;">
-<a href="${link}" style="color:#617A55;font-size:13px;">فتح في لوحة الإدارة</a>
+<a href="${escapeHtml(link)}" style="color:#617A55;font-size:13px;">فتح في لوحة الإدارة</a>
 </p>
 `)
 

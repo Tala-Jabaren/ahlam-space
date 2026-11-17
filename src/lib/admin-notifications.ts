@@ -62,6 +62,7 @@ export async function loadNotificationEvent(
 
     return {
       kind: 'booking',
+      refId: row.ref_id,
       customerName: profile?.full_name ?? null,
       customerPhone: profile?.phone ?? null,
       details: `${klass?.name ?? 'حصة'} - ${sessionLabel}`,
@@ -81,6 +82,7 @@ export async function loadNotificationEvent(
 
     return {
       kind: 'session_request',
+      refId: row.ref_id,
       customerName: request.full_name,
       customerPhone: request.phone,
       details: request.session_type,
@@ -123,6 +125,7 @@ export async function loadNotificationEvent(
 
     return {
       kind: 'order',
+      refId: row.ref_id,
       customerName,
       customerPhone,
       details,
@@ -154,6 +157,7 @@ export async function loadNotificationEvent(
 
     return {
       kind: 'course_purchase',
+      refId: row.ref_id,
       customerName: profile?.full_name ?? null,
       customerPhone: profile?.phone ?? null,
       details: course?.title ?? 'محاضرة',
@@ -185,6 +189,7 @@ export async function loadNotificationEvent(
 
   return {
     kind: 'trip_application',
+    refId: row.ref_id,
     customerName: application.full_name,
     customerPhone: application.phone,
     details: trip?.title ?? 'مشوار',

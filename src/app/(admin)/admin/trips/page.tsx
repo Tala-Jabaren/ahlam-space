@@ -1,10 +1,17 @@
+import { redirect } from 'next/navigation'
+import { resolveTripNotification } from '@/components/admin/notifications/notification-data'
 import Link from 'next/link'
 import TripDeleteButton from '@/components/admin/trip-delete-button'
 import TripEditor from '@/components/admin/trip-editor'
 import { getAdminSession } from '@/components/admin/admin-session'
 import { TRIP_COLUMNS, tripStatusLabels, type TripRow } from '@/lib/trips'
 
-export default async function AdminTripsPage() {
+export default async function AdminTripsPage({ searchParams }: { searchParams: Promise<{ item?: string }> }) {
+  const { item } = await searchParams
+  if (item) {
+    const tripId = await resolveTripNotification(item)
+    if (tripId) redirect(`/admin/trips/${encodeURIComponent(tripId)}?item=${encodeURIComponent(item)}`)
+  }
   const supabase = await getAdminSession()
   const { data, error } = await supabase
     .from('trips')
@@ -15,6 +22,7 @@ export default async function AdminTripsPage() {
   return <main className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
     <h1 className="border-b border-[#617A55]/15 pb-6 font-serif text-3xl text-[#617A55]">المشاوير</h1>
 
+    {item && <p role="status" className="mt-5 rounded-lg bg-[#C7D6E8]/40 p-4 text-sm">لم نتمكن من فتح هذا الطلب. قد يكون محذوفًا أو غير متاح حاليًا.</p>}
     <div className="mt-6"><TripEditor /></div>
 
     {error ? (

@@ -1,3 +1,4 @@
+import type { AdminNotificationKind } from '@/lib/admin-notification-links'
 import type { Locale } from '@/i18n/config'
 
 // Regroup or relabel the existing routes here; the sidebar reads only this file.
@@ -15,17 +16,16 @@ export type AdminNavItem = {
   href: string
   icon: AdminNavIcon
   group: AdminNavGroup
+  notificationKind?: AdminNotificationKind
 }
 
 export const adminNavItems: readonly AdminNavItem[] = [
   { href: '/admin', label: { ar: 'الرئيسية', en: 'Home' }, icon: 'home', group: 'overview' },
-  { href: '/admin/classes', label: { ar: 'الحصص والمواعيد', en: 'Classes & sessions' }, icon: 'calendar', group: 'programs' },
-  { href: '/admin/requests', label: { ar: 'طلبات الجلسات الفردية', en: 'Private session requests' }, icon: 'flower', group: 'programs' },
-  { href: '/admin/courses', label: { ar: 'المحاضرات والتأملات', en: 'Lectures & meditations' }, icon: 'book', group: 'programs' },
-  { href: '/admin/trips', label: { ar: 'المشاوير', en: 'Trips' }, icon: 'compass', group: 'programs' },
-  { href: '/admin/products', label: { ar: 'المنتجات', en: 'Products' }, icon: 'shop', group: 'sales' },
-  { href: '/admin/orders', label: { ar: 'الطلبات', en: 'Orders' }, icon: 'package', group: 'sales' },
-  { href: '/admin/payments', label: { ar: 'الدفعات', en: 'Payments' }, icon: 'wallet', group: 'sales' },
+  { href: '/admin/classes', label: { ar: 'الحصص', en: 'Classes' }, icon: 'calendar', group: 'programs', notificationKind: 'booking' },
+  { href: '/admin/requests', label: { ar: 'الجلسات الفردية', en: 'Private sessions' }, icon: 'flower', group: 'programs', notificationKind: 'session_request' },
+  { href: '/admin/courses', label: { ar: 'المحاضرات والتأملات', en: 'Lectures & meditations' }, icon: 'book', group: 'programs', notificationKind: 'course_purchase' },
+  { href: '/admin/trips', label: { ar: 'المشاوير', en: 'Trips' }, icon: 'compass', group: 'programs', notificationKind: 'trip_application' },
+  { href: '/admin/products', label: { ar: 'المتجر', en: 'Shop' }, icon: 'shop', group: 'sales', notificationKind: 'order' },
   { href: '/admin/customers', label: { ar: 'الزبائن', en: 'Customers' }, icon: 'users', group: 'community' },
   { href: '/admin/reviews', label: { ar: 'آراء المشاركات', en: 'Reviews' }, icon: 'reviews', group: 'community' },
 ]

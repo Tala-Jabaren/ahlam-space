@@ -2,6 +2,8 @@
 
 import { useCallback, useEffect, useRef, useState, type CSSProperties } from 'react'
 import Link from 'next/link'
+import NotificationBadge from '@/components/admin/notifications/notification-badge'
+import type { AdminNotificationCounts } from '@/lib/admin-notification-links'
 import { usePathname } from 'next/navigation'
 import { ArrowUpRight, BookOpen, CalendarDays, Compass, Flower2, House, LogOut, Menu, MessageSquare, Package, ShoppingBag, Users, WalletCards, X, type LucideIcon } from 'lucide-react'
 import { adminNavGroups, adminNavItems, type AdminNavIcon } from '@/app/(admin)/admin/admin-nav'
@@ -30,10 +32,11 @@ function revealCurrentLink(container: HTMLElement) {
   else if (item.bottom > area.bottom - 4) container.scrollTop += item.bottom - area.bottom + 4
 }
 
-function SidebarPanel({ locale, pathname, name, onNavigate, closeButton }: {
+function SidebarPanel({ locale, pathname, name, notificationCounts, onNavigate, closeButton }: {
   locale: Locale
   pathname: string
   name: string
+  notificationCounts: AdminNotificationCounts
   onNavigate: () => void
   closeButton?: React.ReactNode
 }) {
@@ -71,6 +74,7 @@ function SidebarPanel({ locale, pathname, name, onNavigate, closeButton }: {
               <Link href={item.href} className={styles.navLink} aria-current={active ? 'page' : undefined} onClick={onNavigate}>
                 <Icon size={20} strokeWidth={1.6} aria-hidden="true" />
                 <span>{item.label[locale]}</span>
+                {item.notificationKind && <NotificationBadge count={notificationCounts[item.notificationKind]} locale={locale} />}
               </Link>
             </li>
           })}
@@ -97,7 +101,7 @@ function SidebarPanel({ locale, pathname, name, onNavigate, closeButton }: {
   </>
 }
 
-export default function AdminSidebar({ locale, children }: { locale: Locale; children: React.ReactNode }) {
+export default function AdminSidebar({ locale, notificationCounts, children }: { locale: Locale; notificationCounts: AdminNotificationCounts; children: React.ReactNode }) {
   const pathname = usePathname()
   const copy = adminSidebarCopy[locale]
   const dir = dirFor(locale)
@@ -160,7 +164,7 @@ export default function AdminSidebar({ locale, children }: { locale: Locale; chi
 
   return <div className={styles.shell} dir={dir}>
     <aside className={styles.desktopSidebar}>
-      <SidebarPanel locale={locale} pathname={pathname} name={displayName} onNavigate={close} />
+      <SidebarPanel locale={locale} pathname={pathname} name={displayName} notificationCounts={notificationCounts} onNavigate={close} />
     </aside>
     <header className={styles.topbar}>
       <Link href="/admin" className={styles.topbarBrand}>
@@ -188,7 +192,7 @@ export default function AdminSidebar({ locale, children }: { locale: Locale; chi
         else if (!event.shiftKey && document.activeElement === last) { event.preventDefault(); first?.focus() }
       }}>
       <h2 id={titleId} className="sr-only">{copy.navigation}</h2>
-      <SidebarPanel locale={locale} pathname={pathname} name={displayName} onNavigate={close} closeButton={
+      <SidebarPanel locale={locale} pathname={pathname} name={displayName} notificationCounts={notificationCounts} onNavigate={close} closeButton={
         <button ref={closeControl} type="button" className={styles.iconButton} aria-label={copy.close} onClick={close}>
           <X size={22} aria-hidden="true" />
         </button>
