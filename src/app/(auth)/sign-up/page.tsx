@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
@@ -12,6 +12,8 @@ import {
   authErrorMessage,
   localizeValidation,
 } from '@/i18n/checkout-ar'
+
+const RESEND_COOLDOWN_SECONDS = 60
 
 export default function SignUpPage() {
   const { t, locale, dir } = useT()
@@ -26,6 +28,20 @@ export default function SignUpPage() {
   } | null>(null)
   const [loading, setLoading] = useState(false)
   const router = useRouter()
+
+  // Set once signUp() succeeds, and stays set (never auto-dismissed) until
+  // she either leaves the page or taps "تغيير البريد" - signUp() itself,
+  // and what it sends, are unchanged; this only decides what we show
+  // afterward, in place of navigating straight to /login.
+  const [checkEmailFor, setCheckEmailFor] = useState<string | null>(null)
+  const [resendState, setResendState] = useState<'idle' | 'sending' | 'sent' | 'error'>('idle')
+  const [cooldown, setCooldown] = useState(0)
+
+  useEffect(() => {
+    if (cooldown <= 0) return
+    const timer = setTimeout(() => setCooldown((value) => value - 1), 1000)
+    return () => clearTimeout(timer)
+  }, [cooldown])
 
   function handleLoginLink(event: React.MouseEvent<HTMLAnchorElement>) {
     const returnTo = getSafeReturnTo(
@@ -59,21 +75,92 @@ export default function SignUpPage() {
         return
       }
 
-      const loginParams = new URLSearchParams({
-        message: 'check-email',
-      })
-      const returnTo = getSafeReturnTo(
-        new URLSearchParams(window.location.search).get('returnTo'),
-      )
-      if (returnTo) {
-        loginParams.set('returnTo', returnTo)
-      }
-
-      router.push(`/login?${loginParams.toString()}`)
+      setCheckEmailFor(email)
     } catch {
       setError({})
       setLoading(false)
     }
+  }
+
+  async function handleResend() {
+    if (!checkEmailFor || resendState === 'sending' || cooldown > 0) return
+    setResendState('sending')
+
+    try {
+      const supabase = createClient()
+      const { error } = await supabase.auth.resend({
+        type: 'signup',
+        email: checkEmailFor,
+      })
+
+      if (error) {
+        setResendState('error')
+        return
+      }
+
+      setResendState('sent')
+      setCooldown(RESEND_COOLDOWN_SECONDS)
+    } catch {
+      setResendState('error')
+    }
+  }
+
+  function handleChangeEmail() {
+    setCheckEmailFor(null)
+    setResendState('idle')
+    setCooldown(0)
+  }
+
+  if (checkEmailFor) {
+    return (
+      <main
+        dir={dir}
+        className="flex min-h-screen items-center justify-center bg-[#F7F6F0] px-5 py-12 text-[#25311f] sm:px-8"
+      >
+        <section className="w-full max-w-md rounded-[2rem] border border-[#617A55]/10 bg-white/70 p-6 shadow-sm sm:p-8">
+          <p
+            role="status"
+            className="rounded-2xl bg-[#D6E2B6]/70 p-4 text-sm leading-7 text-[#4f5d49]"
+          >
+            {c.auth.checkEmailFor.replace('{email}', checkEmailFor)}
+          </p>
+
+          <button
+            type="button"
+            onClick={handleResend}
+            disabled={resendState === 'sending' || cooldown > 0}
+            className="mt-5 min-h-11 w-full rounded-full bg-[#617A55] px-7 py-3 text-sm font-semibold uppercase tracking-[0.16em] text-white transition hover:bg-[#4f6645] disabled:cursor-not-allowed disabled:opacity-60"
+          >
+            {resendState === 'sending'
+              ? c.auth.sending
+              : cooldown > 0
+                ? c.auth.resendCooldown.replace('{seconds}', String(cooldown))
+                : c.auth.resend}
+          </button>
+
+          {resendState === 'sent' && (
+            <p role="status" className="mt-3 text-sm leading-6 text-[#4f5d49]">
+              {c.auth.resendSuccess}
+            </p>
+          )}
+          {resendState === 'error' && (
+            <p role="alert" className="mt-3 text-sm leading-6 text-red-700">
+              {c.auth.resendError}
+            </p>
+          )}
+
+          <div className="mt-6 text-center">
+            <button
+              type="button"
+              onClick={handleChangeEmail}
+              className="inline-flex min-h-11 items-center justify-center rounded-full px-4 text-sm font-medium text-[#617A55] underline-offset-4 transition hover:bg-[#D6E2B6]/50 hover:text-[#25311f] hover:underline"
+            >
+              {c.auth.changeEmail}
+            </button>
+          </div>
+        </section>
+      </main>
+    )
   }
 
   return (
