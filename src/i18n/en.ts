@@ -297,6 +297,8 @@ export const en: typeof ar = {
       notFoundNotice: 'This course isn’t available right now.',
       loadError: 'Unable to load courses right now.',
       empty: 'No courses are available for purchase right now.',
+      allFilter: 'All',
+      filterLabel: 'Filter by type',
       contentTypeVideo: 'Video Lecture',
       contentTypeArticle: 'Article',
       loginToBuy: 'Log in to purchase',

@@ -1,13 +1,13 @@
 import type { Metadata } from 'next'
-import { Flower2, PlayCircle } from 'lucide-react'
 import { createClient } from '@/lib/supabase/server'
 import { getT } from '@/i18n/get-t'
 import { getLocale } from '@/i18n/get-locale'
 import { getDictionary } from '@/i18n/dictionaries'
 import { pageMetadata } from '@/lib/seo'
 import { meditationsAr } from '@/i18n/meditations'
-import CourseCard, { type CourseCardData } from '@/app/(public)/courses/course-card'
+import type { CourseCardData } from '@/app/(public)/courses/course-card'
 import ClassesBanner from '@/components/classes/classes-banner'
+import CourseGrid from '@/components/commerce/course-grid'
 import { publicRoutes, type ExperienceRoutes } from '@/lib/experience-routes'
 
 export async function generateMetadata(): Promise<Metadata> {
@@ -83,9 +83,9 @@ export default async function CoursesPage({
   }
 
   const allCourses = courses ?? []
-  const meditations = allCourses.filter((course) => course.content_type === 'audio')
-  const lectures = allCourses.filter((course) => course.content_type !== 'audio')
   const isEmpty = !coursesError && allCourses.length === 0
+  const purchasesById: Record<string, { status: PurchaseStatus; reference: string | null }> = {}
+  for (const [courseId, purchase] of purchaseByCourseId) purchasesById[courseId] = purchase
 
   return (
     <div className="bg-[#F7F6F0] text-[#25311f]" dir={dir}>
@@ -118,54 +118,19 @@ export default async function CoursesPage({
           </div>
         )}
 
-        {meditations.length > 0 && (
-          <section aria-labelledby="meditations-heading" id="meditations" className="scroll-mt-28">
-            <div className="flex items-center gap-3">
-              <Flower2 aria-hidden="true" strokeWidth={1.5} className="size-6 text-[#617A55]" />
-              <h2 id="meditations-heading" className="font-serif text-3xl text-[#25311f]">
-                {copy.heading}
-              </h2>
-            </div>
-            <div className="mt-4 h-px bg-[#617A55]/15" />
-            <div className="mt-7 grid gap-6">
-              {meditations.map((course) => (
-                <CourseCard
-                  key={course.id}
-                  course={course}
-                  isLoggedIn={Boolean(user)}
-                  purchase={purchaseByCourseId.get(course.id)}
-                  t={t}
-                  locale={locale}
-                  coursesHref={routes.courses}
-                />
-              ))}
-            </div>
-          </section>
-        )}
-
-        {lectures.length > 0 && (
-          <section aria-labelledby="lectures-heading" id="lectures" className={`scroll-mt-28 ${meditations.length > 0 ? 'mt-14' : ''}`}>
-            <div className="flex items-center gap-3">
-              <PlayCircle aria-hidden="true" strokeWidth={1.5} className="size-6 text-[#617A55]" />
-              <h2 id="lectures-heading" className="font-serif text-3xl text-[#25311f]">
-                {copy.lectures}
-              </h2>
-            </div>
-            <div className="mt-4 h-px bg-[#617A55]/15" />
-            <div className="mt-7 grid gap-6">
-              {lectures.map((course) => (
-                <CourseCard
-                  key={course.id}
-                  course={course}
-                  isLoggedIn={Boolean(user)}
-                  purchase={purchaseByCourseId.get(course.id)}
-                  t={t}
-                  locale={locale}
-                  coursesHref={routes.courses}
-                />
-              ))}
-            </div>
-          </section>
+        {!isEmpty && !coursesError && (
+          <CourseGrid
+            courses={allCourses}
+            purchases={purchasesById}
+            isLoggedIn={Boolean(user)}
+            t={t}
+            locale={locale}
+            coursesHref={routes.courses}
+            allLabel={t.courses.list.allFilter}
+            meditationsLabel={copy.heading}
+            lecturesLabel={copy.lectures}
+            filterLabel={t.courses.list.filterLabel}
+          />
         )}
       </div>
     </div>

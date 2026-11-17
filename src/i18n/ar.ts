@@ -293,6 +293,8 @@ export const ar = {
       notFoundNotice: 'هذا الكورس غير متاح حاليًا.',
       loadError: 'تعذر تحميل الكورسات الآن.',
       empty: 'لا توجد كورسات متاحة للشراء حاليًا.',
+      allFilter: 'الكل',
+      filterLabel: 'تصفية حسب النوع',
       contentTypeVideo: 'محاضرة مرئية',
       contentTypeArticle: 'مقال',
       loginToBuy: 'سجلي دخول لتشتري',
