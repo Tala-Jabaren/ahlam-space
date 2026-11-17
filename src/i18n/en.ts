@@ -319,10 +319,8 @@ export const en: typeof ar = {
   },
   shop: {
     list: {
-      heroHeading: 'Small things, made with care.',
       heroParagraph:
         'From Zulfa and Ahlam Space, picks that add warmth, balance, and calmer moments to your day.',
-      heroImageAlt: 'Wellness and self-care products from Ahlam Space',
       searchSrLabel: 'Search for a product',
       searchPlaceholder: 'Search for a product...',
       categoriesAriaLabel: 'Product categories',
