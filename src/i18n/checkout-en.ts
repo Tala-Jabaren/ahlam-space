@@ -122,6 +122,13 @@ export const checkoutEn: CheckoutCopy = {
     updated: 'Password updated. Redirecting to login...',
     checkEmail: 'Check your email to confirm your account.',
     sessionExpired: 'Your session expired or could not be verified. Please log in again to continue.',
+    checkEmailFor:
+      'We sent a confirmation link to {email}. Open your email and tap the link to activate your account. If you don’t see it, check your spam folder.',
+    resend: 'Resend link',
+    resendCooldown: 'Resend in {seconds}s',
+    resendSuccess: 'The link was sent again.',
+    resendError: 'Could not send the link. Please try again.',
+    changeEmail: 'Change email',
   },
   authErrors: {
     credentials: 'The email or password is incorrect.',
