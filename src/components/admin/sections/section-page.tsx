@@ -3,11 +3,14 @@ import type { ReactNode } from 'react'
 import NotificationBadge from '@/components/admin/notifications/notification-badge'
 import { getAdminNotificationCounts } from '@/components/admin/notifications/notification-data'
 import type { AdminNotificationKind } from '@/lib/admin-notification-links'
+import { PACKAGES_ENABLED } from '@/lib/feature-flags'
 
 export type AdminSection = 'classes' | 'courses' | 'shop'
 const sections: Record<AdminSection, { title: string; href: string; tabs: { id: string; label: string; kind?: AdminNotificationKind }[] }> = {
   classes: { title: 'الحصص', href: '/admin/classes', tabs: [
-    { id: 'sessions', label: 'المواعيد' }, { id: 'types', label: 'أنواع الحصص' }, { id: 'payments', label: 'الدفعات', kind: 'booking' },
+    { id: 'sessions', label: 'المواعيد' }, { id: 'types', label: 'أنواع الحصص' },
+    ...(PACKAGES_ENABLED ? [{ id: 'packages', label: 'الباقات' }] : []),
+    { id: 'payments', label: 'الدفعات', kind: 'booking' },
   ] },
   courses: { title: 'المحاضرات والتأملات', href: '/admin/courses', tabs: [
     { id: 'content', label: 'المحتوى' }, { id: 'payments', label: 'الدفعات', kind: 'course_purchase' },

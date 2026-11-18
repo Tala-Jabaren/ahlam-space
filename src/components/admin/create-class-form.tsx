@@ -15,7 +15,7 @@ const buttonStyle = 'inline-flex items-center justify-center gap-2 rounded-lg bg
 // repeats on the same weekday/time every week afterward via the
 // generate_weekly_class_sessions() cron job reading classes.is_recurring;
 // a non-recurring one is just this single date.
-export default function CreateClassForm({ today, initiallyOpen = false }: { today: string; initiallyOpen?: boolean }) {
+export default function CreateClassForm({ today, initiallyOpen = false, packagesEnabled = false }: { today: string; initiallyOpen?: boolean; packagesEnabled?: boolean }) {
   const router = useRouter()
   const [open, setOpen] = useState(initiallyOpen)
   const [busy, setBusy] = useState(false)
@@ -24,10 +24,11 @@ export default function CreateClassForm({ today, initiallyOpen = false }: { toda
   const [start, setStart] = useState('')
   const [duration, setDuration] = useState('')
   const [recurring, setRecurring] = useState(false)
+  const [packageEligible, setPackageEligible] = useState(true)
   const end = duration ? endTime(start, Number(duration)) : null
 
   function reset() {
-    setStart(''); setDuration(''); setRecurring(false)
+    setStart(''); setDuration(''); setRecurring(false); setPackageEligible(true)
   }
 
   async function submit(event: FormEvent<HTMLFormElement>) {
@@ -91,6 +92,7 @@ export default function CreateClassForm({ today, initiallyOpen = false }: { toda
           is_recurring: recurring,
           weekday,
           default_start_time: recurring ? start : null,
+          ...(packagesEnabled ? { package_eligible: packageEligible } : {}),
         })
         .select('id')
         .single()
@@ -169,6 +171,12 @@ export default function CreateClassForm({ today, initiallyOpen = false }: { toda
             <input type="checkbox" checked={recurring} onChange={e => setRecurring(e.target.checked)} className="size-4 accent-[#617A55]" />
             حصة دائمة (تتكرر تلقائيًا في نفس اليوم والوقت كل أسبوع) - اتركيها بدون تحديد لحصة لمرة واحدة فقط
           </label>
+          {packagesEnabled && (
+            <label className="flex items-center gap-2 text-sm sm:col-span-2 lg:col-span-3">
+              <input type="checkbox" checked={packageEligible} onChange={e => setPackageEligible(e.target.checked)} className="size-4 accent-[#617A55]" />
+              تدخل ضمن الباقات
+            </label>
+          )}
           <div className="flex gap-2 sm:col-span-2 lg:col-span-3">
             <button disabled={busy} className={buttonStyle}>{busy ? 'جارٍ الحفظ…' : 'حفظ الحصة'}</button>
             <button type="button" disabled={busy} onClick={() => setOpen(false)} className="rounded-lg border border-[#617A55]/25 px-4 py-2 text-sm">إلغاء</button>

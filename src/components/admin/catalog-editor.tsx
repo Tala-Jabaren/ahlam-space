@@ -19,6 +19,10 @@ export type ClassRecord = {
   is_recurring?: boolean | null
   weekday?: number | null
   default_start_time?: string | null
+  // undefined unless PACKAGES_ENABLED - the column may not exist in the
+  // database yet, so the parent server component only ever includes it
+  // in the query (and this prop gets passed down) once the flag is on.
+  package_eligible?: boolean | null
 }
 export type CourseRecord = { id: string; title: string; description: string | null; price: number; content_type: string; video_url: string | null; article_body: string | null; is_active: boolean | null; audio_path: string | null; duration_minutes: number | null; cover_image_url: string | null }
 
@@ -38,7 +42,7 @@ function videoPath(value: string) {
   return decodeURIComponent(match[1])
 }
 
-export default function CatalogEditor(props: { kind: 'class'; record: ClassRecord } | { kind: 'course'; record?: CourseRecord }) {
+export default function CatalogEditor(props: { kind: 'class'; record: ClassRecord; packagesEnabled?: boolean } | { kind: 'course'; record?: CourseRecord }) {
   const router = useRouter()
   const [editing, setEditing] = useState(false)
   const [busy, setBusy] = useState(false)
@@ -116,7 +120,15 @@ export default function CatalogEditor(props: { kind: 'class'; record: ClassRecor
         }
         result = await supabase
           .from('classes')
-          .update({ ...common, name, image_url: imageUrl, is_recurring: isRecurring, weekday, default_start_time: defaultStartTime })
+          .update({
+            ...common,
+            name,
+            image_url: imageUrl,
+            is_recurring: isRecurring,
+            weekday,
+            default_start_time: defaultStartTime,
+            ...(props.packagesEnabled ? { package_eligible: form.get('package_eligible') === 'on' } : {}),
+          })
           .eq('id', props.record.id)
           .select('id')
           .single()
@@ -176,6 +188,12 @@ export default function CatalogEditor(props: { kind: 'class'; record: ClassRecor
           </select></label>
           <label className="text-sm">وقت البداية<input name="default_start_time" type="time" required defaultValue={props.record.default_start_time?.slice(0, 5) || ''} className={inputStyle} /></label>
         </>}
+        {props.packagesEnabled && (
+          <label className="flex items-center gap-2 text-sm sm:col-span-2">
+            <input type="checkbox" name="package_eligible" defaultChecked={props.record.package_eligible !== false} className="size-4 accent-[#617A55]" />
+            تدخل ضمن الباقات
+          </label>
+        )}
       </>}
       {isCourse && <>
         <label className="text-sm sm:col-span-2">

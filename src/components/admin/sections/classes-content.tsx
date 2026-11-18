@@ -7,6 +7,7 @@ import CatalogEditor, { type ClassRecord } from '@/components/admin/catalog-edit
 import SessionsTab, { type SessionRow } from '@/components/admin/sessions-tab'
 import type { BookingContact } from '@/components/admin/session-controls'
 import { getSessionAttendees, isActiveAttendee } from '@/lib/admin-session-attendees'
+import { PACKAGES_ENABLED } from '@/lib/feature-flags'
 
 const categories: Record<string, string> = { yoga: 'يوغا', fitness: 'لياقة', dance: 'رقص' }
 const weekdayNames = ['الأحد', 'الاثنين', 'الثلاثاء', 'الأربعاء', 'الخميس', 'الجمعة', 'السبت']
@@ -44,9 +45,15 @@ export default async function ClassesContent({
   const tab = tabParam === 'types' ? 'types' : 'sessions'
   const supabase = await getAdminSession()
 
+  // Only listed once the flag is on, since the column may not exist in
+  // the database yet otherwise - see classes.package_eligible in
+  // supabase/class-packages.sql.
+  const classesSelect = 'id, name, description, category, is_active, duration_minutes, price, image_url, is_recurring, weekday, default_start_time'
+    + (PACKAGES_ENABLED ? ', package_eligible' : '')
+
   const { data: classes, error: classesError } = await supabase
     .from('classes')
-    .select('id, name, description, category, is_active, duration_minutes, price, image_url, is_recurring, weekday, default_start_time')
+    .select(classesSelect)
     .order('name')
     .returns<ClassRow[]>()
 
@@ -113,7 +120,7 @@ export default async function ClassesContent({
         />
       ) : (
         <div>
-          <CreateClassForm key={createParam === '1' ? 'new' : 'list'} today={today} initiallyOpen={createParam === '1'} />
+          <CreateClassForm key={createParam === '1' ? 'new' : 'list'} today={today} initiallyOpen={createParam === '1'} packagesEnabled={PACKAGES_ENABLED} />
           {classesError ? (
             <p role="alert" className="rounded-lg bg-[#C7D6E8]/50 p-5">تعذر تحميل الحصص. تحققي من صلاحيات العرض والاتصال.</p>
           ) : !classes?.length ? (
@@ -152,7 +159,7 @@ export default async function ClassesContent({
                       </Link>
                     </div>
                     <AddSessionForm classId={item.id} durationMinutes={item.duration_minutes} today={today} />
-                    <div className="mt-4"><CatalogEditor kind="class" record={item} /></div>
+                    <div className="mt-4"><CatalogEditor kind="class" record={item} packagesEnabled={PACKAGES_ENABLED} /></div>
                   </article>
                 )
               })}

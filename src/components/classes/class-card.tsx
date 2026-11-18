@@ -50,6 +50,11 @@ export default function ClassCard({ session, headingLevel = 2 }: { session: Clas
         {session.requested && !booking && <p className={styles.notice}>{t.classes.requestedNotice}</p>}
         {category && <p className={styles.eyebrow}>{category}</p>}
         <Heading className={styles.title}>{name}</Heading>
+        {session.packageEligible === false && (
+          <span className="mt-1 inline-flex w-fit items-center rounded-full bg-[#C7D6E8]/55 px-2.5 py-0.5 text-xs font-medium text-[#4f5d49]">
+            {t.classCards.packageIneligible}
+          </span>
+        )}
         <div className={styles.instructor}>
           <span className={styles.avatar} aria-hidden="true">{t.memberSchedule.instructorName.charAt(0)}</span>
           <span><span className="sr-only">{t.memberSchedule.instructorLabel}: </span>{t.memberSchedule.instructorName}</span>
