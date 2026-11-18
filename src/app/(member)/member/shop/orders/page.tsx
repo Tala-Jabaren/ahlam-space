@@ -112,16 +112,30 @@ function OrderCard({ order }: { order: OrderRow }) {
         </span>
       </header>
       <details className="group mt-3">
-        <summary aria-label="التفاصيل" className="flex cursor-pointer list-none flex-wrap items-center justify-between gap-3 rounded-lg focus-visible:outline-2 focus-visible:outline-offset-2 [&::-webkit-details-marker]:hidden">
+        <summary aria-label="التفاصيل" aria-description="بيانات الطلب والتحويل البنكي" className="flex cursor-pointer list-none flex-wrap items-center justify-between gap-3 rounded-lg focus-visible:outline-2 focus-visible:outline-offset-2 [&::-webkit-details-marker]:hidden">
           <span className="flex flex-wrap items-center gap-2 text-sm text-[#25311f]">
             الإجمالي <strong className="text-lg"><bdi>{money.format(order.total)}</bdi></strong>
           </span>
-          <span className="inline-flex min-h-11 items-center gap-2 rounded-full bg-[var(--blue-soft)] px-4 text-sm font-semibold text-[var(--blue-deep)] transition-colors hover:bg-[var(--blue-mist)]">
-            التفاصيل
+          <span className="inline-flex min-h-11 items-center gap-2 rounded-full bg-[var(--blue-soft)] px-4 py-2 text-sm font-semibold text-[var(--blue-deep)] transition-colors hover:bg-[var(--blue-mist)]">
+            <span className="leading-tight">
+              <span className="block">التفاصيل</span>
+              <span className="mt-0.5 block text-xs font-medium">الطلب والتحويل البنكي</span>
+            </span>
             <ChevronDown aria-hidden="true" size={17} className="group-open:rotate-180 motion-safe:transition-transform" />
           </span>
         </summary>
-        <div className="mt-4 border-t border-[#617A55]/15">
+        <div className="mt-4 border-t border-[#617A55]/15 pt-4">
+          {order.status === 'pending' && !order.reference && (
+            <p className="mb-3 rounded-lg bg-[#C7D6E8]/45 p-4 text-sm leading-7">
+              مرجع الطلب غير متاح الآن. تواصلي معنا قبل إجراء التحويل.
+            </p>
+          )}
+          <PaymentConfirmationBlock
+            amount={order.total}
+            reference={order.reference}
+            showAdminWarning={false}
+            showInstructions={order.status === 'pending'}
+          />
           <ul className="divide-y divide-[#617A55]/10">
             {order.order_items.map((item) => {
               const product = item.product_variants?.products
@@ -148,21 +162,6 @@ function OrderCard({ order }: { order: OrderRow }) {
               <p>{fulfillmentLabel}</p>
               {order.fulfillment_method === 'delivery' && order.delivery_address && (
                 <p className="break-words text-xs">{order.delivery_address}</p>
-              )}
-            </div>
-          )}
-          {order.status === 'pending' && (
-            <div className="border-t border-[#617A55]/10 pt-4">
-              {order.reference ? (
-                <PaymentConfirmationBlock
-                  amount={order.total}
-                  reference={order.reference}
-                  showAdminWarning={false}
-                />
-              ) : (
-                <p className="rounded-lg bg-[#C7D6E8]/45 p-4 text-sm leading-7">
-                  مرجع الطلب غير متاح الآن. تواصلي معنا قبل إجراء التحويل.
-                </p>
               )}
             </div>
           )}

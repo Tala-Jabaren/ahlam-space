@@ -7,23 +7,24 @@ import { BANK, bankDetailsArePlaceholders } from '@/content/site-contact'
 
 type Props = {
   amount: number
-  reference: string
+  reference: string | null
   title?: string
   showAdminWarning?: boolean
+  showInstructions?: boolean
 }
 
-// Shown right after placing an order / buying a course / booking a paid
-// session, and again in My Orders / My Bookings for anything still unpaid.
 export default function PaymentConfirmationBlock({
   amount,
   reference,
   title,
   showAdminWarning = true,
+  showInstructions = true,
 }: Props) {
   const { t, locale, dir } = useT()
   const c = t.checkout ?? checkoutAr
   const [copied, setCopied] = useState(false)
   const [accountCopied, setAccountCopied] = useState(false)
+  const canTransfer = showInstructions && Boolean(reference)
   const amountLabel = new Intl.NumberFormat(locale === 'ar' ? 'ar' : 'en-US', {
     style: 'currency',
     currency: 'ILS',
@@ -33,6 +34,7 @@ export default function PaymentConfirmationBlock({
   const groupedAccountNumber = BANK.iban.replace(/(.{4})/g, '$1 ').trim()
 
   async function copyReference() {
+    if (!reference) return
     try {
       await navigator.clipboard.writeText(reference)
       setCopied(true)
@@ -60,26 +62,26 @@ export default function PaymentConfirmationBlock({
       dir={dir}
       className="rounded-lg border border-[#617A55]/15 bg-[#D6E2B6]/35 p-5 text-sm leading-7 text-[#25311f]"
     >
-      <p className="font-serif text-lg">{title ?? c.bank.title}</p>
-      <p className="mt-2">
-        {c.bank.amount}:{' '}
-        <strong>
-          <bdi>{amountLabel}</bdi>
-        </strong>
-      </p>
-      <p className="flex flex-wrap items-center gap-2">
-        {c.bank.reference}:{' '}
-        <strong className="font-mono" dir="ltr">
-          {reference}
-        </strong>
-        <button
-          type="button"
-          onClick={copyReference}
-          className="inline-flex min-h-8 items-center rounded-full border border-[#617A55]/30 px-3 py-1 text-xs font-medium text-[#617A55] transition hover:bg-[#617A55]/10 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#617A55]"
-        >
-          {copied ? c.bank.referenceCopied : c.bank.copyReference}
-        </button>
-      </p>
+      {canTransfer && (
+        <>
+          <p className="font-serif text-lg">{title ?? c.bank.title}</p>
+          <p className="mt-2">
+            {c.bank.amount}:{' '}
+            <strong><bdi>{amountLabel}</bdi></strong>
+          </p>
+          <p className="flex flex-wrap items-center gap-2">
+            {c.bank.reference}:{' '}
+            <strong className="font-mono" dir="ltr">{reference}</strong>
+            <button
+              type="button"
+              onClick={copyReference}
+              className="inline-flex min-h-8 items-center rounded-full border border-[#617A55]/30 px-3 py-1 text-xs font-medium text-[#617A55] transition hover:bg-[#617A55]/10 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#617A55]"
+            >
+              {copied ? c.bank.referenceCopied : c.bank.copyReference}
+            </button>
+          </p>
+        </>
+      )}
 
       {showAdminWarning && bankDetailsArePlaceholders && (
         <p role="alert" className="mt-3 rounded-lg border-2 border-red-600 bg-red-50 p-3 font-semibold text-red-700">
@@ -87,7 +89,7 @@ export default function PaymentConfirmationBlock({
         </p>
       )}
 
-      <div className="mt-3 border-t border-[#617A55]/15 pt-3">
+      <div className={canTransfer ? 'mt-3 border-t border-[#617A55]/15 pt-3' : undefined}>
         <p className="font-semibold">{c.bank.details}</p>
         <p>
           {c.bank.holder}: {BANK.accountHolder}
@@ -107,18 +109,24 @@ export default function PaymentConfirmationBlock({
               <strong className="select-all font-mono" dir="ltr">
                 {groupedAccountNumber}
               </strong>
-              <button
-                type="button"
-                onClick={copyAccountNumber}
-                className="inline-flex min-h-8 items-center rounded-full border border-[#617A55]/30 px-3 py-1 text-xs font-medium text-[#617A55] transition hover:bg-[#617A55]/10 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#617A55]"
-              >
-                {accountCopied ? c.bank.accountCopied : c.bank.copyAccount}
-              </button>
+              {canTransfer && (
+                <button
+                  type="button"
+                  onClick={copyAccountNumber}
+                  className="inline-flex min-h-8 items-center rounded-full border border-[#617A55]/30 px-3 py-1 text-xs font-medium text-[#617A55] transition hover:bg-[#617A55]/10 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#617A55]"
+                >
+                  {accountCopied ? c.bank.accountCopied : c.bank.copyAccount}
+                </button>
+              )}
             </>
           )}
         </p>
-        <p className="mt-2 font-semibold">{c.bank.transferNote}</p>
-        <p className="mt-1 text-[#4f5d49]">{BANK.note}</p>
+        {canTransfer && (
+          <>
+            <p className="mt-2 font-semibold">{c.bank.transferNote}</p>
+            <p className="mt-1 text-[#4f5d49]">{BANK.note}</p>
+          </>
+        )}
       </div>
     </div>
   )
