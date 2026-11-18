@@ -57,10 +57,6 @@ sending domain:
    propagate) - Resend rejects sends from an unverified domain.
 3. Once verified, set `EMAIL_FROM` (step 4) to an address on that domain, e.g.
    `Ahlam Space <notifications@ahlamspace.com>`.
-4. `src/app/api/contact/route.ts` (the contact form) reads this same `EMAIL_FROM` too, so
-   setting it covers the contact form as well as both cron emails - nothing extra to do
-   here. If `EMAIL_FROM` is ever unset, the contact form still works, just falling back to
-   Resend's shared `onboarding@resend.dev` sender.
 
 ## 4. Environment variables
 
@@ -74,15 +70,13 @@ otherwise create a second Supabase project for previews and use its values there
 | `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Supabase dashboard > Project Settings > API | No (public - RLS-governed) |
 | `SUPABASE_SERVICE_ROLE_KEY` | Supabase dashboard > Project Settings > API | **Yes** - server-only, never prefix with `NEXT_PUBLIC_` |
 | `RESEND_API_KEY` | Resend dashboard > API Keys | **Yes** |
-| `EMAIL_FROM` | An address on your Resend-verified domain (step 3) | No (not sensitive, but required for both crons; contact form falls back to Resend's shared sender if unset) |
+| `EMAIL_FROM` | An address on your Resend-verified domain (step 3) | No (required for both cron jobs) |
 | `ADMIN_NOTIFY_EMAIL` | Your own choice; defaults to `nmi.ahlam@gmail.com` if unset | No - optional |
-| `CONTACT_TO_EMAIL` | Your own choice; defaults to `nmi.ahlam@gmail.com` if unset | No - optional |
 | `CRON_SECRET` | Generate with `openssl rand -hex 32` | **Yes** |
 | `NEXT_PUBLIC_SITE_URL` | The real production domain, no trailing slash, e.g. `https://ahlamspace.com` | No (public) - falls back to `http://localhost:3000` if unset |
 
-`EMAIL_FROM` and `RESEND_API_KEY` are both required for the contact form and both cron
-jobs to send anything - without them, the contact form's POST returns 500 and both cron
-routes return `mailer_not_configured`.
+Both cron routes require `EMAIL_FROM` and `RESEND_API_KEY`. If either is missing,
+the routes return `mailer_not_configured`.
 
 Redeploy after setting these (Vercel does not retroactively apply new env vars to an
 already-built deployment).

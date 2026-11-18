@@ -10,7 +10,6 @@ const staticPaths = [
   '/shop',
   '/private-sessions',
   '/journeys',
-  '/contact',
   '/legal/terms',
   '/legal/privacy',
   '/legal/cancellation',

@@ -2,7 +2,7 @@ import Link from 'next/link'
 import FloatingWhatsApp from '@/components/contact/floating-whatsapp'
 import { WHATSAPP_URL } from '@/content/site-contact'
 import { redirect } from 'next/navigation'
-import { ArrowUpRight, BookOpen, CalendarDays, CircleHelp, Compass, Package, ShoppingBag, Ticket, UserRound } from 'lucide-react'
+import { ArrowUpRight, BookOpen, CalendarDays, Compass, Package, ShoppingBag, Ticket, UserRound } from 'lucide-react'
 import { createClient } from '@/lib/supabase/server'
 import LogoutButton from './dashboard/logout-button'
 import MemberNavLink from './member-nav-link'
@@ -89,15 +89,6 @@ export default async function MemberLayout({
           >
             <ArrowUpRight aria-hidden="true" className="size-5 shrink-0" strokeWidth={1.5} />
             العودة للموقع
-          </Link>
-          <Link
-            href="/contact"
-            className="flex min-h-12 items-center gap-4 rounded-lg px-4 font-medium transition hover:bg-[#C7D6E8]/60"
-          >
-            <span aria-hidden="true" className="grid size-7 place-items-center">
-              <CircleHelp className="size-6" strokeWidth={1.5} />
-            </span>
-            المساعدة
           </Link>
           <LogoutButton variant="sidebar" />
 

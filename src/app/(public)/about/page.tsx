@@ -1,6 +1,7 @@
 import type { Metadata } from 'next'
 import Image from 'next/image'
 import Link from 'next/link'
+import { WHATSAPP_URL } from '@/content/site-contact'
 import { ArrowUpRight, Heart, Leaf, Wind } from 'lucide-react'
 import WordRevealText from '@/components/home/word-reveal-text'
 import { getT } from '@/i18n/get-t'
@@ -39,7 +40,7 @@ export default async function AboutPage() {
           <span className={styles.heroEmblem} aria-hidden="true"><Leaf size={25} strokeWidth={1.4} /></span>
           <p>{copy.role}</p>
         </div>
-        <Link href="/contact" className={styles.heroContact}>{copy.contact}<ArrowUpRight aria-hidden="true" size={18} /></Link>
+        <a href={WHATSAPP_URL} className={styles.heroContact}>{copy.contact}<ArrowUpRight aria-hidden="true" size={18} /></a>
       </div>
     </section>
 
@@ -109,7 +110,7 @@ export default async function AboutPage() {
         <h2 id="closing-title">{t.about.finalHeading}</h2><p>{t.about.finalParagraph}</p>
         <div className={styles.actions}>
           <Link href="/classes" className={styles.primaryAction}>{t.about.ctaExplore}<ArrowUpRight size={18} aria-hidden="true" /></Link>
-          <Link href="/contact">{copy.contact}</Link>
+          <a href={WHATSAPP_URL}>{copy.contact}</a>
         </div>
       </div>
     </section>

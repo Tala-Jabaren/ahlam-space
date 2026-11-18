@@ -13,11 +13,7 @@ export const PHONE_DISPLAY = '+972 56-699-3658'
 export const PHONE_E164 = '+972566993658'
 export const WHATSAPP_URL = 'https://wa.me/972566993658'
 
-// Public-facing contact address only (privacy policy, contact page copy).
-// Deliberately NOT used as the default for ADMIN_NOTIFY_EMAIL or
-// CONTACT_TO_EMAIL - those stay nmi.ahlam@gmail.com, the address the owner
-// actually monitors for operational notifications; swapping that default
-// without being asked would silently redirect real booking/payment alerts.
+// Public-facing support address for legal pages and customer emails.
 export const SUPPORT_EMAIL = 'ahlamspace@ahlamspace.com'
 
 // bankName/accountHolder/iban come from src/lib/bank-details.ts (the

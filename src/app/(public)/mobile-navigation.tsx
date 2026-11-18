@@ -3,7 +3,7 @@
 import { useEffect, useRef, type CSSProperties, type RefObject } from 'react'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import { BookOpen, CalendarDays, Flower2, House, Info, Mail, Map, ShoppingBag, UserRound, X } from 'lucide-react'
+import { BookOpen, CalendarDays, Flower2, House, Info, Map, ShoppingBag, UserRound, X } from 'lucide-react'
 import { useT } from '@/i18n/i18n-context'
 import { mobileNavigationCopy } from './mobile-navigation-copy'
 import styles from './site-header.module.css'
@@ -39,9 +39,6 @@ export default function MobileNavigation({
     [
       { href: '/journeys', label: t.nav.journeys, icon: Map },
       { href: '/shop', label: t.nav.shop, icon: ShoppingBag },
-    ],
-    [
-      { href: '/contact', label: t.nav.contact, icon: Mail },
     ],
   ]
 

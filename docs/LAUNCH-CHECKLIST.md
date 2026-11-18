@@ -16,7 +16,7 @@ See also `docs/DEPLOY-STEPS.md` (the exact Vercel/Supabase/Resend setup order) a
 - [ ] Double-check every variable in `.env.example` is set in production with real
       values (`NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`,
       `SUPABASE_SERVICE_ROLE_KEY`, `RESEND_API_KEY`, `EMAIL_FROM`, `CRON_SECRET`,
-      `ADMIN_NOTIFY_EMAIL`, `CONTACT_TO_EMAIL`, `NEXT_PUBLIC_SITE_URL`).
+      `ADMIN_NOTIFY_EMAIL`, `NEXT_PUBLIC_SITE_URL`).
 
 ## 2. Supabase project
 
@@ -33,11 +33,8 @@ See also `docs/DEPLOY-STEPS.md` (the exact Vercel/Supabase/Resend setup order) a
       status to flip to "Verified" (can take a few minutes to a few hours for DNS
       to propagate) - sends from an unverified domain are rejected. Once verified,
       set `EMAIL_FROM` to an address on that domain, e.g.
-      `Ahlam Space <notifications@ahlamspace.com>`. Used by the contact form
-      (`src/app/api/contact/route.ts`, as of the `chore/deploy-final-prep` pass -
-      it falls back to Resend's shared `onboarding@resend.dev` sender only if
-      `EMAIL_FROM` is unset) and by the class-reminder / admin-notification
-      cron emails (`src/lib/email/mailer.ts`).
+      `Ahlam Space <notifications@ahlamspace.com>`. The class reminder and admin
+      notification jobs use this sender (`src/lib/email/mailer.ts`).
 - [ ] **Set `CRON_SECRET`** to a random value (e.g. `openssl rand -hex 32`) in the
       production environment. Vercel Cron sends it automatically as
       `Authorization: Bearer <CRON_SECRET>` to the two jobs in `vercel.json`
@@ -52,15 +49,6 @@ See also `docs/DEPLOY-STEPS.md` (the exact Vercel/Supabase/Resend setup order) a
       `bookings.reminder_sent_at`, the claim/release/count functions, and the
       `admin_notification_queue` table + triggers the two cron jobs depend on).
       Without it, both cron routes fail every run (missing column/function/table).
-- [x] ~~Replace the business email placeholder~~ - already done in code.
-      `src/app/api/contact/route.ts` now reads
-      `process.env.CONTACT_TO_EMAIL || 'nmi.ahlam@gmail.com'` (no hardcoded
-      TODO left). Only remaining action: set `CONTACT_TO_EMAIL` in production if
-      contact-form messages should go somewhere other than that default - same
-      as the `ADMIN_NOTIFY_EMAIL` item above. The sender address now reads
-      `EMAIL_FROM` too (as of the `chore/deploy-final-prep` pass) - falls back
-      to Resend's shared `onboarding@resend.dev` only if that's unset (see the
-      "Set up Resend's sending domain" item above).
 - [ ] **Update Auth redirect URLs** (Authentication > URL Configuration) to the
       real domain - Site URL and every Redirect URL currently pointing at a
       localhost or preview URL. Login, signup, and password-reset emails link

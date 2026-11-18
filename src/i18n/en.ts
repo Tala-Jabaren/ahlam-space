@@ -40,10 +40,6 @@ export const en: typeof ar = {
       description:
         'Private sessions tailored to your needs and goals: a personal facilitation journey, sound healing, and private one-on-one sessions.',
     },
-    contact: {
-      title: 'Contact | Ahlam Space',
-      description: 'Get in touch about classes, private sessions, products, or any other question.',
-    },
     journeys: {
       title: 'Ahlam’s Trips | Ahlam Space',
       description: 'Small group trips with movement, breath, and space to listen to ourselves. See the upcoming trip and submit your application.',
@@ -57,7 +53,6 @@ export const en: typeof ar = {
     privateSessions: 'Private Sessions',
     shop: 'Shop',
     journeys: 'Trips',
-    contact: 'Contact',
     account: 'My Account',
     login: 'Log In',
   },
@@ -396,25 +391,6 @@ export const en: typeof ar = {
     successMessage: 'Your request was sent successfully, we’ll be in touch soon.',
     errorPrefix: 'Something went wrong sending your request',
     errorSuffix: '. Please try again.',
-  },
-  contact: {
-    eyebrow: 'Contact',
-    heading: 'Tell us what you’re looking for.',
-    paragraph:
-      'Ask about classes, private sessions, products, or finding the right place to begin.',
-    directContactLabel: 'Or reach us directly',
-    phoneLabel: 'Phone',
-    whatsappLink: 'WhatsApp',
-    nameLabel: 'Name',
-    emailLabel: 'Email',
-    messageLabel: 'Message',
-    namePlaceholder: 'Name',
-    emailPlaceholder: 'Email',
-    messagePlaceholder: 'Your message',
-    sending: 'Sending...',
-    send: 'Send Message',
-    genericError: 'Unable to send message.',
-    sentMessage: 'Message sent.',
   },
   legal: {
     onlyArabicNote: 'This policy is currently available in Arabic only.',

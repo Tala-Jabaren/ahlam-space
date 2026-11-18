@@ -38,10 +38,6 @@ export const ar = {
       description:
         'جلسات فردية مخصصة حسب احتياجاتك وأهدافك: رحلة تيسير شخصية، علاج بالصوت، وجلسات فردية خاصة.',
     },
-    contact: {
-      title: 'تواصل معنا | مساحة أحلام',
-      description: 'تواصلي معنا بخصوص الحصص، الجلسات الفردية، المنتجات، أو أي استفسار آخر.',
-    },
     journeys: {
       title: 'مشاوير أحلام | مساحة أحلام',
       description: 'مشاوير جماعية صغيرة فيها حركة وتنفّس ومساحة للإنصات لحالنا. تعرّفي على المشوار القادم وقدّمي طلب مشاركتك.',
@@ -55,7 +51,6 @@ export const ar = {
     privateSessions: 'جلسات فردية',
     shop: 'المتجر',
     journeys: 'المشاوير',
-    contact: 'تواصل معنا',
     account: 'حسابي',
     login: 'تسجيل الدخول',
   },
@@ -392,25 +387,6 @@ export const ar = {
     successMessage: 'تم إرسال طلبك بنجاح، سنتواصل معك قريبًا.',
     errorPrefix: 'حدث خطأ أثناء إرسال الطلب',
     errorSuffix: '. حاولي مرة أخرى.',
-  },
-  contact: {
-    eyebrow: 'تواصل معنا',
-    heading: 'أخبرينا عن ما تبحثين عنه.',
-    paragraph:
-      'اسألينا عن الحصص، الجلسات الفردية، المنتجات، أو كيف تبدأين بالشكل الصحيح.',
-    directContactLabel: 'أو تواصلي معنا مباشرة',
-    phoneLabel: 'الهاتف',
-    whatsappLink: 'واتساب',
-    nameLabel: 'الاسم',
-    emailLabel: 'البريد الإلكتروني',
-    messageLabel: 'رسالة',
-    namePlaceholder: 'الاسم',
-    emailPlaceholder: 'البريد الإلكتروني',
-    messagePlaceholder: 'رسالتك',
-    sending: 'جارٍ الإرسال...',
-    send: 'إرسال الرسالة',
-    genericError: 'تعذر إرسال الرسالة.',
-    sentMessage: 'تم إرسال الرسالة.',
   },
   legal: {
     onlyArabicNote: 'هذه السياسة متاحة بالعربية فقط حاليًا.',

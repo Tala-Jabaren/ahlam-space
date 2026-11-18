@@ -46,12 +46,6 @@ over its claimed batch and sends one email per row, one at a time.
 `ADMIN_NOTIFY_EMAIL` defaults to `nmi.ahlam@gmail.com` if unset - unchanged by this
 pass on purpose (see the "SUPPORT_EMAIL" note below).
 
-## The contact form
-
-`POST /api/contact` sends one email per submission to `CONTACT_TO_EMAIL` (default
-`nmi.ahlam@gmail.com`), sender `EMAIL_FROM`. Unrelated to everything above - it's a
-direct form-to-inbox relay, not an event in `admin_notification_queue`.
-
 ## Cron schedule (`vercel.json`)
 
 | Route | Schedule | Covers |
@@ -62,12 +56,9 @@ direct form-to-inbox relay, not an event in `admin_notification_queue`.
 Both support `?dry=1` (zero writes, zero sends, counts only) and share
 `src/lib/cron-auth.ts` for a timing-safe `CRON_SECRET` check.
 
-## SUPPORT_EMAIL vs ADMIN_NOTIFY_EMAIL/CONTACT_TO_EMAIL
+## Support and admin notification addresses
 
 `SUPPORT_EMAIL` (`ahlamspace@ahlamspace.com`, `src/content/site-contact.ts`) is used
-**only** where a contact address is shown publicly: the privacy policy's data-deletion
-line, the `/contact` page, and the shared customer-email footer
-(`emailFooterHtml`/`emailFooterText` in `src/lib/email/html.ts`). It is deliberately
-**not** the default for `ADMIN_NOTIFY_EMAIL` or `CONTACT_TO_EMAIL` - those stay
-`nmi.ahlam@gmail.com`, the inbox the owner actually monitors for operational
-notifications.
+on legal pages and in the shared customer email footer. `ADMIN_NOTIFY_EMAIL`
+controls the destination for operational notifications and defaults to
+`nmi.ahlam@gmail.com`.

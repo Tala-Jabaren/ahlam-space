@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import PaymentConfirmationBlock from '@/components/payment-confirmation-block'
+import { WHATSAPP_URL } from '@/content/site-contact'
 import { createClient } from '@/lib/supabase/client'
 import { useT } from '@/i18n/i18n-context'
 import type { BookingReceipt } from '@/components/classes/types'
@@ -173,7 +174,7 @@ export default function BookSessionButton({
       {state === 'too_late' && (
         <p className="text-sm text-red-600">
           {t.schedule.tooLateMessagePrefix}{' '}
-          <a href="/contact" className="underline">
+          <a href={WHATSAPP_URL} className="underline">
             {t.schedule.tooLateContactLink}
           </a>{' '}
           {t.schedule.tooLateMessageSuffix}

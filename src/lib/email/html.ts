@@ -13,9 +13,7 @@ export function escapeHtml(value: string): string {
 // Shared contact footer for every CUSTOMER-facing email (reminders, trip
 // approved/declined) - never used on the owner's own notification email,
 // which isn't a "contact us" context. Phone/WhatsApp from site-contact.ts;
-// the support address here is the public one (SUPPORT_EMAIL), not
-// CONTACT_TO_EMAIL/ADMIN_NOTIFY_EMAIL - those stay the owner's own inbox
-// default and are never shown to a customer.
+// the support address here is the public one (SUPPORT_EMAIL).
 export function emailFooterHtml(): string {
   return `<p style="font-size:13px;line-height:1.8;color:#617A55;margin:16px 0 0;">
 للتواصل: <a href="tel:${PHONE_E164}" style="color:#617A55;">${PHONE_DISPLAY}</a>
