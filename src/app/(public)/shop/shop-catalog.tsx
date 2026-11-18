@@ -3,8 +3,10 @@
 import { useMemo, useState } from 'react'
 import Image from 'next/image'
 import Link from 'next/link'
+import { Package } from 'lucide-react'
 import { useExperienceRoutes } from '@/components/commerce/experience-provider'
 import { useT } from '@/i18n/i18n-context'
+import { checkoutAr } from '@/i18n/checkout-ar'
 import ClassesBanner from '@/components/classes/classes-banner'
 import AddToCartButton from './[id]/add-to-cart-button'
 import type { ShopProduct } from './page'
@@ -69,6 +71,15 @@ export default function ShopCatalog({
       <ClassesBanner image="/images/shopbanner.png" title={t.nav.shop} tagline={t.shop.list.heroParagraph} />
 
       <main className="mx-auto max-w-7xl px-4 pt-7 sm:px-8 lg:px-10">
+        {routes.scope === 'member' && (
+          <Link
+            href={routes.orders}
+            className="mb-5 inline-flex min-h-11 items-center gap-2 rounded-full bg-[var(--blue-soft)] px-5 py-2.5 text-sm font-semibold text-[var(--blue-deep)] transition-colors hover:bg-[var(--blue-mist)] focus-visible:outline-2 focus-visible:outline-offset-2"
+          >
+            <Package aria-hidden="true" size={18} strokeWidth={1.75} />
+            {(t.checkout ?? checkoutAr).order.viewOrders}
+          </Link>
+        )}
         <div className="grid gap-4 border-b border-[#617A55]/12 pb-7 lg:grid-cols-[minmax(220px,0.8fr)_minmax(0,1.4fr)_220px] lg:items-center">
           <label className="relative block">
             <span className="sr-only">{t.shop.list.searchSrLabel}</span>

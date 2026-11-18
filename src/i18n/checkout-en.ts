@@ -39,8 +39,8 @@ export const checkoutEn: CheckoutCopy = {
     received: 'Your order has been received',
     guestSuccess:
       'We will contact you by phone to follow up on order confirmation.',
-    memberSuccess: 'You can follow your order status on My Orders.',
-    viewOrders: 'View my orders',
+    memberSuccess: 'You can track your order from the shop.',
+    viewOrders: 'Track orders',
   },
   consent: {
     prefix: 'By continuing, you agree to the',
@@ -63,7 +63,7 @@ export const checkoutEn: CheckoutCopy = {
     referenceCopied: 'Copied',
     copyAccount: 'Copy',
     accountCopied: 'Copied',
-    transferNote: 'Write your booking number (AS-0000) in the transfer note.',
+    transferNote: 'Write the reference code shown above in the transfer note.',
   },
   errors: {
     OUT_OF_STOCK:

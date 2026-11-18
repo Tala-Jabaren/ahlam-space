@@ -36,8 +36,8 @@ export const checkoutAr = {
     confirm: 'تأكيد الطلب',
     received: 'تم استلام طلبك بنجاح',
     guestSuccess: 'سنتواصل معك عبر رقم الهاتف لمتابعة تأكيد الطلب.',
-    memberSuccess: 'يمكنك متابعة حالة الطلب من صفحة طلباتي.',
-    viewOrders: 'عرض طلباتي',
+    memberSuccess: 'يمكنك متابعة حالة طلبك من قسم الطلبات في المتجر.',
+    viewOrders: 'متابعة الطلبات',
   },
   consent: {
     prefix: 'بالمتابعة أنت توافق على',
@@ -59,7 +59,7 @@ export const checkoutAr = {
     referenceCopied: 'تم النسخ',
     copyAccount: 'نسخ',
     accountCopied: 'تم النسخ',
-    transferNote: 'اكتبي رقم الحجز (AS-0000) في ملاحظة التحويل.',
+    transferNote: 'اكتبي رمز المرجع الموضح أعلاه في ملاحظة التحويل.',
   },
   errors: {
     OUT_OF_STOCK: 'عذرًا، أحد المنتجات لم يعد متوفرًا بالكمية المطلوبة.',
