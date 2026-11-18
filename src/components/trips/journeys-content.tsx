@@ -51,7 +51,7 @@ export default function JourneysContent({
 }) {
   return (
     <div dir={dir} className="bg-[#F6F5EE] text-[#34472B]">
-      <section className="mx-auto max-w-7xl px-5 py-16 sm:px-8 lg:px-10 lg:py-20">
+      <section className="mx-auto max-w-7xl px-5 pb-16 sm:px-8 lg:px-10 lg:pb-20">
         <h1 className="font-serif text-4xl leading-tight text-[#34472B] sm:text-5xl">{copy.heading}</h1>
         <p className="mt-3 max-w-2xl text-base leading-8 text-[#34472B]/80">
           {copy.paragraphBase}
