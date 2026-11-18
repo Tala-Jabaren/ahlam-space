@@ -290,7 +290,7 @@ begin
     raise exception 'FORBIDDEN';
   end if;
 
-  if p_payment_method not in ('bank_transfer', 'studio') then
+  if p_payment_method is null or p_payment_method not in ('bank_transfer', 'studio') then
     raise exception 'INVALID_PAYMENT_METHOD';
   end if;
 
@@ -336,6 +336,7 @@ grant execute on function public.admin_confirm_package_purchase(uuid, text) to a
 -- Test (as non-admin authenticated user): expect FORBIDDEN.
 -- Test (p_payment_method anything other than 'bank_transfer'/'studio'):
 --   expect INVALID_PAYMENT_METHOD.
+-- Test (p_payment_method = null): expect INVALID_PAYMENT_METHOD.
 
 -- Make all of the above visible to PostgREST immediately.
 notify pgrst, 'reload schema';
