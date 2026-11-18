@@ -53,7 +53,6 @@ export default async function MemberLayout({
     .maybeSingle()
 
   const fullName = profile?.full_name?.trim() || user.email || 'عضوة'
-  const avatarLetter = fullName.charAt(0).toLocaleUpperCase('ar')
   const { t, locale } = await getT()
 
   return (
@@ -104,35 +103,18 @@ export default async function MemberLayout({
 
       <div className="min-h-screen pb-24 md:pb-0 md:pe-72">
         <header className="sticky top-0 z-30 border-b border-[#617A55]/15 bg-[#F7F6F0]/95 px-4 py-3 backdrop-blur sm:px-6 lg:px-8">
-          <div className="mx-auto flex max-w-7xl items-center gap-3" dir="ltr">
-            <label className="relative min-w-0 flex-1 sm:max-w-md">
-              <span className="sr-only">البحث</span>
-              <span
-                aria-hidden="true"
-                className="absolute start-4 top-1/2 -translate-y-1/2 text-xl"
-              >
-                ⌕
+          <div className="flex items-center gap-3">
+            <Link
+              href="/account"
+              title={fullName}
+              className="inline-flex min-h-11 min-w-0 max-w-xs items-center gap-2 rounded-full bg-[var(--blue-soft)] ps-2 pe-4 text-sm font-semibold text-[var(--blue-deep)] transition-colors hover:bg-[var(--blue-mist)] focus-visible:outline-2 focus-visible:outline-offset-2"
+            >
+              <span className="grid size-8 shrink-0 place-items-center rounded-full bg-[#F7F6F0]">
+                <UserRound aria-hidden="true" size={19} strokeWidth={1.75} />
               </span>
-              <input
-                type="search"
-                placeholder="ابحثي عن حصة أو يوم..."
-                className="min-h-12 w-full rounded-lg border border-[#617A55]/10 bg-[#C7D6E8]/30 px-4 pe-11 text-start text-sm text-[#617A55] outline-none placeholder:text-[#617A55]/65 focus:border-[#617A55]/40"
-                dir="rtl"
-              />
-            </label>
-
+              <bdi className="truncate">{fullName}</bdi>
+            </Link>
             <MemberCartLink />
-            <div className="ms-auto flex min-w-0 items-center gap-3" dir="rtl">
-              <div className="grid size-11 shrink-0 place-items-center rounded-full bg-[#617A55] font-serif text-lg text-[#F7F6F0]">
-                {avatarLetter}
-              </div>
-              <div className="hidden min-w-0 text-start sm:block">
-                <p className="truncate text-sm font-semibold text-[#617A55]">
-                  {fullName}
-                </p>
-                <p className="text-xs text-[#617A55]/70">Member</p>
-              </div>
-            </div>
           </div>
         </header>
 
