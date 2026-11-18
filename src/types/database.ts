@@ -121,6 +121,10 @@ export type Database = {
           is_active: boolean | null
           is_recurring: boolean
           name: string
+          // Only a real column once supabase/class-packages.sql has been
+          // run - see src/lib/feature-flags.ts (PACKAGES_ENABLED) before
+          // referencing this anywhere.
+          package_eligible: boolean
           price: number
           weekday: number | null
         }
@@ -135,6 +139,7 @@ export type Database = {
           is_active?: boolean | null
           is_recurring?: boolean
           name: string
+          package_eligible?: boolean
           price: number
           weekday?: number | null
         }
@@ -149,10 +154,103 @@ export type Database = {
           is_active?: boolean | null
           is_recurring?: boolean
           name?: string
+          package_eligible?: boolean
           price?: number
           weekday?: number | null
         }
         Relationships: []
+      }
+      class_packages: {
+        Row: {
+          id: string
+          name: string
+          description: string | null
+          sessions_count: number
+          price: number
+          validity_days: number | null
+          is_active: boolean
+          sort_order: number
+          image_url: string | null
+          created_at: string | null
+        }
+        Insert: {
+          id?: string
+          name: string
+          description?: string | null
+          sessions_count: number
+          price: number
+          validity_days?: number | null
+          is_active?: boolean
+          sort_order?: number
+          image_url?: string | null
+          created_at?: string | null
+        }
+        Update: {
+          id?: string
+          name?: string
+          description?: string | null
+          sessions_count?: number
+          price?: number
+          validity_days?: number | null
+          is_active?: boolean
+          sort_order?: number
+          image_url?: string | null
+          created_at?: string | null
+        }
+        Relationships: []
+      }
+      package_purchases: {
+        Row: {
+          id: string
+          user_id: string
+          package_id: string
+          status: string
+          reference: string
+          price_snapshot: number
+          sessions_total: number
+          sessions_remaining: number
+          payment_method: string | null
+          created_at: string | null
+          paid_at: string | null
+          expires_at: string | null
+        }
+        Insert: {
+          id?: string
+          user_id: string
+          package_id: string
+          status?: string
+          reference?: string
+          price_snapshot: number
+          sessions_total: number
+          sessions_remaining?: number
+          payment_method?: string | null
+          created_at?: string | null
+          paid_at?: string | null
+          expires_at?: string | null
+        }
+        Update: {
+          id?: string
+          user_id?: string
+          package_id?: string
+          status?: string
+          reference?: string
+          price_snapshot?: number
+          sessions_total?: number
+          sessions_remaining?: number
+          payment_method?: string | null
+          created_at?: string | null
+          paid_at?: string | null
+          expires_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "package_purchases_package_id_fkey"
+            columns: ["package_id"]
+            isOneToOne: false
+            referencedRelation: "class_packages"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       course_purchases: {
         Row: {
@@ -467,6 +565,14 @@ export type Database = {
       }
       confirm_pending_booking: {
         Args: { p_booking_id: string }
+        Returns: undefined
+      }
+      create_package_purchase: {
+        Args: { p_package_id: string; p_user_id: string }
+        Returns: Json
+      }
+      admin_confirm_package_purchase: {
+        Args: { p_purchase_id: string; p_payment_method: string }
         Returns: undefined
       }
     }

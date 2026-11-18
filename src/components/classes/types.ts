@@ -35,6 +35,9 @@ export type ClassCardData = {
   bookingStatusKnown: boolean
   authenticated: boolean
   requested: boolean
+  // undefined unless the page explicitly opted in (PACKAGES_ENABLED) - see
+  // src/lib/class-cards.ts.
+  packageEligible?: boolean | null
 }
 
 export type BookingReceipt = { id: string; reference: string | null }
