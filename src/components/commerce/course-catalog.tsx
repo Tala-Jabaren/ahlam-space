@@ -89,12 +89,7 @@ export default async function CoursesPage({
 
   return (
     <div className="bg-[#F7F6F0] text-[#25311f]" dir={dir}>
-      {/* Member embed keeps its own plain header (no banner) - unaffected
-          by the public page's banner below. */}
-      {routes.scope === 'member' ? <header className="mx-auto max-w-5xl px-5 sm:px-8">
-        <h1 className="font-serif text-3xl sm:text-4xl">{t.courses.list.heading}</h1>
-        <p className="mt-2 text-sm leading-7 text-[#617A55]">{t.courses.list.subtitle}</p>
-      </header> : <ClassesBanner title={t.courses.list.heading} tagline={t.courses.list.tagline} />}
+      <ClassesBanner title={t.courses.list.heading} tagline={t.courses.list.tagline} />
 
       <div className="mx-auto max-w-5xl px-5 py-6 sm:px-8 sm:py-8" dir={dir}>
         {errorParam === 'access_denied' && (
