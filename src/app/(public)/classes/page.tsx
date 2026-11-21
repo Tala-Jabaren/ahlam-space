@@ -60,6 +60,17 @@ export default async function ClassesPage({ searchParams }: {
   const now = new Date()
   const current = await loadClassBookings(supabase, user?.id ?? null, upcoming.map(session => session.id), now)
 
+  // Computed before `cards` below (not just the balance bar/packages tab
+  // further down) so each session card can also offer "book with package"
+  // when she has credit - only /classes passes this through to
+  // classCardData, matching the same "undefined unless this page opted in"
+  // rule packageEligible already uses.
+  const packageSummary: PackagePurchaseSummary | null =
+    PACKAGES_ENABLED && user ? await loadPackagePurchases(supabase, user.id) : null
+  const packageCredit = packageSummary?.active
+    ? { purchaseId: packageSummary.active.id, remaining: packageSummary.active.sessions_remaining, total: packageSummary.active.sessions_total }
+    : null
+
   // One flat, chronological list of every upcoming session across every
   // class - no longer grouped under a per-class heading, since each class
   // now has its own free-form name rather than a shared category to group
@@ -78,6 +89,7 @@ export default async function ClassesPage({ searchParams }: {
         classInfo: classInfo ? { ...classInfo, package_eligible: PACKAGES_ENABLED ? classInfo.package_eligible : undefined } : undefined,
         booking: current.bookings.get(session.id), known: current.known,
         authenticated: Boolean(user), requested: requestedSessionId === session.id,
+        packageCredit,
       })
     })
     .sort((a, b) => (a.startsAt ?? '').localeCompare(b.startsAt ?? ''))
@@ -102,13 +114,6 @@ export default async function ClassesPage({ searchParams }: {
       validityDays: row.validity_days,
     }))
   }
-
-  // Fetched regardless of which tab is showing - the balance bar needs it
-  // on both, and it's the only thing driving whether the bar renders at
-  // all (null when she has no active package, or isn't logged in, or the
-  // flag is off).
-  const packageSummary: PackagePurchaseSummary | null =
-    PACKAGES_ENABLED && user ? await loadPackagePurchases(supabase, user.id) : null
 
   const loginHref = `/login?returnTo=${encodeURIComponent('/classes?view=packages')}`
 

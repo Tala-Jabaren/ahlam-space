@@ -60,6 +60,7 @@ export async function loadClassBookings(supabase: SupabaseClient, userId: string
 export function classCardData(session: ClassSession, locale: Locale, options: {
   now: Date; booking?: ClassBooking; known: boolean; authenticated: boolean; requested?: boolean
   classInfo?: { name: string; category: string | null; price: number | null; image_url?: string | null; package_eligible?: boolean | null }
+  packageCredit?: { purchaseId: string; remaining: number; total: number } | null
 }): ClassCardData {
   const info = options.classInfo ?? session.classes
   const price = typeof info?.price === 'number' && Number.isFinite(info.price) ? info.price : null
@@ -83,5 +84,8 @@ export function classCardData(session: ClassSession, locale: Locale, options: {
     // undefined here means "don't show the packages badge at all", not
     // "ineligible", so this never renders anything while the flag is off.
     packageEligible: options.classInfo?.package_eligible,
+    // Same "undefined unless the caller opted in" rule as packageEligible
+    // above - only /classes/page.tsx ever passes this.
+    packageCredit: options.packageCredit,
   }
 }
