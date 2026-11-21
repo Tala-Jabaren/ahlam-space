@@ -7,6 +7,7 @@ import type { ClassSession } from '@/components/classes/types'
 import { classCardData, loadClassBookings } from '@/lib/class-cards'
 import styles from '@/components/classes/class-card.module.css'
 import { getScheduleWindow, sessionsInWindow } from './schedule-weeks'
+import { PACKAGES_ENABLED } from '@/lib/feature-flags'
 
 type ScheduleRow = ClassSession
 
@@ -24,7 +25,7 @@ export default async function MemberSchedulePage() {
   if (error) console.error('Failed to load schedule:', error.message)
   const upcomingSessions = sessionsInWindow(sessions ?? [], window, localNow)
   const now = new Date()
-  const current = await loadClassBookings(supabase, user?.id ?? null, upcomingSessions.map(session => session.id), now)
+  const current = await loadClassBookings(supabase, user?.id ?? null, upcomingSessions.map(session => session.id), now, { includePackageInfo: PACKAGES_ENABLED })
 
   return <I18nProvider locale={locale} dictionary={t}>
     <div dir={dir}>
