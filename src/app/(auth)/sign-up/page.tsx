@@ -17,6 +17,13 @@ import styles from '../auth.module.css'
 
 const RESEND_COOLDOWN_SECONDS = 60
 
+function normalizePhone(value: string) {
+  return value
+    .replace(/[٠-٩]/g, (digit) => String(digit.charCodeAt(0) - 0x660))
+    .replace(/[۰-۹]/g, (digit) => String(digit.charCodeAt(0) - 0x6f0))
+    .replace(/[\s().-]/g, '')
+}
+
 export default function SignUpPage() {
   const { t, locale } = useT()
   const c = t.checkout ?? checkoutAr
@@ -24,6 +31,9 @@ export default function SignUpPage() {
   const [password, setPassword] = useState('')
   const [firstName, setFirstName] = useState('')
   const [lastName, setLastName] = useState('')
+  const [phone, setPhone] = useState('')
+  const [city, setCity] = useState('')
+  const [contactError, setContactError] = useState<'phone' | 'city' | null>(null)
   const [error, setError] = useState<{
     code?: string
     message?: string
@@ -50,6 +60,19 @@ export default function SignUpPage() {
   async function handleSignUp(e: React.FormEvent) {
     e.preventDefault()
     setError(null)
+    setContactError(null)
+
+    const normalizedPhone = normalizePhone(phone)
+    const trimmedCity = city.trim()
+    if (!/^\+?[0-9]{7,15}$/.test(normalizedPhone)) {
+      setContactError('phone')
+      return
+    }
+    if (!trimmedCity) {
+      setContactError('city')
+      return
+    }
+
     setLoading(true)
 
     try {
@@ -58,7 +81,11 @@ export default function SignUpPage() {
         email,
         password,
         options: {
-          data: { full_name: `${firstName.trim()} ${lastName.trim()}` },
+          data: {
+            full_name: `${firstName.trim()} ${lastName.trim()}`,
+            phone: normalizedPhone,
+            city: trimmedCity,
+          },
         },
       })
 
@@ -152,6 +179,10 @@ export default function SignUpPage() {
           <AuthField label={c.order.firstName} value={firstName} onChange={setFirstName} autoComplete="given-name" />
           <AuthField label={c.order.lastName} value={lastName} onChange={setLastName} autoComplete="family-name" />
         </div>
+        <div className={styles.nameFields}>
+          <AuthField label={c.order.phone} type="tel" value={phone} onChange={setPhone} autoComplete="tel" maxLength={40} />
+          <AuthField label={c.auth.city} value={city} onChange={setCity} autoComplete="address-level2" maxLength={100} />
+        </div>
         <AuthField label={c.auth.email} type="email" value={email} onChange={setEmail} autoComplete="email" />
         <AuthField
           label={c.auth.password}
@@ -161,6 +192,11 @@ export default function SignUpPage() {
           autoComplete="new-password"
           minLength={6}
         />
+        {contactError && (
+          <p role="alert" className={styles.error}>
+            {contactError === 'phone' ? c.auth.invalidPhone : c.auth.cityRequired}
+          </p>
+        )}
         {error && <p role="alert" className={styles.error}>{authErrorMessage(error, c)}</p>}
         <button className={styles.submit} type="submit" disabled={loading}>
           {loading ? c.auth.creating : c.auth.signup}
