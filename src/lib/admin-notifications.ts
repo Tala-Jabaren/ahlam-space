@@ -2,6 +2,7 @@ import 'server-only'
 import type { SupabaseClient } from '@supabase/supabase-js'
 import { formatSessionDate, formatSessionTime } from './email/class-reminder-email'
 import type { OwnerNotificationEvent } from './email/owner-notification-email'
+import { formatPreferredSlot } from './private-session-preferences'
 
 export type NotificationQueueRow = {
   id: string
@@ -75,7 +76,7 @@ export async function loadNotificationEvent(
   if (row.kind === 'session_request') {
     const { data: request } = await supabase
       .from('session_requests')
-      .select('full_name, phone, session_type, status')
+      .select('full_name, phone, session_type, status, preferred_slots')
       .eq('id', row.ref_id)
       .maybeSingle()
     if (!request) return null
@@ -86,6 +87,9 @@ export async function loadNotificationEvent(
       customerName: request.full_name,
       customerPhone: request.phone,
       details: request.session_type,
+      preferredTimes: ((request.preferred_slots ?? []) as string[])
+        .map((slot) => formatPreferredSlot(slot, 'ar'))
+        .filter((label) => label !== null),
       amount: null,
       reference: null,
       status: request.status,

@@ -9,6 +9,7 @@ export type OwnerNotificationEvent = {
   customerName: string | null
   customerPhone: string | null
   details: string
+  preferredTimes?: string[]
   amount: number | null
   reference: string | null
   status: string
@@ -93,6 +94,9 @@ export function buildOwnerNotificationEmail(event: OwnerNotificationEvent, siteU
     ['الهاتف', event.customerPhone ?? 'غير متوفر'],
     ['التفاصيل', event.details],
   ]
+  if (event.preferredTimes?.length) {
+    rows.push(['المواعيد المقترحة بتوقيت القدس', event.preferredTimes.join('؛ ')])
+  }
   if (amountLabel) rows.push(['المبلغ', amountLabel])
   if (event.reference) rows.push(['المرجع', event.reference])
   rows.push(['الحالة', statusLabel(event.kind, event.status)])

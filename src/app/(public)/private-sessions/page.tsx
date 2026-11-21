@@ -5,7 +5,9 @@ import { createClient } from '@/lib/supabase/client'
 import { useT } from '@/i18n/i18n-context'
 import { ar } from '@/i18n/ar'
 import ClassesBanner from '@/components/classes/classes-banner'
+import { studioMinute } from '@/lib/private-session-preferences'
 import PrivateSessionCard from './private-session-card'
+import PreferredTimes from './preferred-times'
 
 const SERVICE_IMAGES = [
   '/images/about2.png',
@@ -13,7 +15,7 @@ const SERVICE_IMAGES = [
   '/member/fitness-class.png',
 ] as const
 
-type SubmitStatus = 'idle' | 'submitting' | 'success' | 'error'
+type SubmitStatus = 'idle' | 'submitting' | 'success' | 'past-times' | 'error'
 
 export default function PrivateSessionsPage() {
   const { t, dir } = useT()
@@ -35,6 +37,7 @@ export default function PrivateSessionsPage() {
   const [phone, setPhone] = useState('')
   const [email, setEmail] = useState('')
   const [message, setMessage] = useState('')
+  const [preferredSlots, setPreferredSlots] = useState<string[]>([])
   const [status, setStatus] = useState<SubmitStatus>('idle')
   const [errorMessage, setErrorMessage] = useState<string | null>(null)
 
@@ -45,6 +48,11 @@ export default function PrivateSessionsPage() {
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
+    const now = studioMinute()
+    if (preferredSlots.some((slot) => slot <= now)) {
+      setStatus('past-times')
+      return
+    }
     setStatus('submitting')
     setErrorMessage(null)
 
@@ -55,6 +63,7 @@ export default function PrivateSessionsPage() {
       phone,
       email: email || null,
       message: message || null,
+      preferred_slots: preferredSlots,
     })
 
     if (error) {
@@ -68,6 +77,7 @@ export default function PrivateSessionsPage() {
     setPhone('')
     setEmail('')
     setMessage('')
+    setPreferredSlots([])
   }
 
   return (
@@ -150,6 +160,15 @@ export default function PrivateSessionsPage() {
             />
           </div>
 
+          <PreferredTimes
+            slots={preferredSlots}
+            onChange={(slots) => {
+              setPreferredSlots(slots)
+              if (status === 'past-times' || status === 'success') setStatus('idle')
+            }}
+            disabled={status === 'submitting'}
+          />
+
           <div className="mt-5 grid gap-2 text-sm font-medium text-[#617A55]">
             <label htmlFor="message">{t.privateSessions.messageLabel}</label>
             <textarea
@@ -169,9 +188,10 @@ export default function PrivateSessionsPage() {
             {status === 'submitting' ? t.privateSessions.submitting : t.privateSessions.submit}
           </button>
 
-          {status === 'success' && <p>{t.privateSessions.successMessage}</p>}
+          {status === 'success' && <p role="status" className="mt-3 text-sm text-[#465d3d]">{t.privateSessions.successMessage}</p>}
+          {status === 'past-times' && <p role="alert" className="mt-3 text-sm text-red-700">{t.privateSessions.availability.past}</p>}
           {status === 'error' && (
-            <p>
+            <p role="alert" className="mt-3 text-sm text-red-700">
               {t.privateSessions.errorPrefix}
               {errorMessage ? `: ${errorMessage}` : ''}
               {t.privateSessions.errorSuffix}

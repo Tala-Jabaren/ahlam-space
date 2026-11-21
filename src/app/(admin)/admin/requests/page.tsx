@@ -4,6 +4,7 @@ import { getAdminNotificationCounts } from '@/components/admin/notifications/not
 import AdminDeleteButton from '@/components/admin/admin-delete-button'
 import { getAdminSession } from '@/components/admin/admin-session'
 import RequestStatusSelect from '@/components/admin/request-status-select'
+import { formatPreferredSlot } from '@/lib/private-session-preferences'
 
 type SessionRequest = {
   id: string
@@ -14,6 +15,7 @@ type SessionRequest = {
   session_type: string
   created_at: string
   status: string
+  preferred_slots: string[]
 }
 
 function contactNumbers(phone: string) {
@@ -36,7 +38,7 @@ export default async function AdminRequestsPage({ searchParams }: { searchParams
   const supabase = await getAdminSession()
   const { data, error } = await supabase
     .from('session_requests')
-    .select('id, full_name, phone, email, message, session_type, created_at, status')
+    .select('id, full_name, phone, email, message, session_type, created_at, status, preferred_slots')
     .order('created_at', { ascending: false })
     .match({ ...(selectedId ? { id: selectedId } : {}), ...(onlyPending ? { status: 'pending' } : {}) })
     .returns<SessionRequest[]>()
@@ -54,6 +56,10 @@ export default async function AdminRequestsPage({ searchParams }: { searchParams
         <div className="mt-6 grid gap-4">
           {data.map((request) => {
             const phone = contactNumbers(request.phone)
+            const preferredTimes = (request.preferred_slots ?? []).flatMap((slot) => {
+              const label = formatPreferredSlot(slot, 'ar')
+              return label ? [{ slot, label }] : []
+            })
             return (
               <NotificationItem key={`${request.id}-${selectedId === request.id}`} kind="session_request" id={request.id} title={request.full_name} preview={request.session_type} status={({ pending: 'جديد', contacted: 'تم التواصل', scheduled: 'تم تحديد موعد', closed: 'مغلق' } as Record<string, string>)[request.status] ?? request.status} initiallyOpen={selectedId === request.id} enabled={available}>
               <article className="min-w-0 rounded-lg border border-[#617A55]/15 bg-white p-5 sm:p-6">
@@ -77,6 +83,16 @@ export default async function AdminRequestsPage({ searchParams }: { searchParams
                         <dd>{request.email ? <a href={`mailto:${request.email}`} dir="ltr" className="inline-block max-w-full break-all underline underline-offset-4">{request.email}</a> : '-'}</dd>
                       </div>
                     </dl>
+                    {preferredTimes.length > 0 && (
+                      <div className="mt-4 rounded-lg bg-[#EAF1F8] p-4 text-sm text-[#25311f]">
+                        <h3 className="font-semibold">المواعيد المقترحة بتوقيت القدس</h3>
+                        <ul className="mt-2 grid gap-1">
+                          {preferredTimes.map(({ slot, label }, index) => (
+                            <li key={`${slot}-${index}`}><time dateTime={slot}>{label}</time></li>
+                          ))}
+                        </ul>
+                      </div>
+                    )}
                     {request.message && <div className="mt-4 border-t border-[#617A55]/15 pt-4"><h3 className="text-xs font-semibold text-[#617A55]">الرسالة</h3><p className="mt-2 whitespace-pre-wrap break-words text-sm leading-7 text-[#617A55]">{request.message}</p></div>}
                   </div>
                   <div className="flex flex-col items-start gap-3"><RequestStatusSelect id={request.id} status={request.status} /><AdminDeleteButton kind="request" id={request.id} label={`طلب جلسة / ${request.full_name}`} /></div>
