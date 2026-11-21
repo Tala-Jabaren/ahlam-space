@@ -13,6 +13,9 @@ import PackagesGrid from './packages-grid'
 import type { PackageCardData } from './package-card'
 import type { ClassSession } from '@/components/classes/types'
 import { classCardData, loadClassBookings } from '@/lib/class-cards'
+import { loadPackagePurchases, type PackagePurchaseSummary } from '@/lib/package-purchases'
+import BalanceBar from './balance-bar'
+import MyPackagesPanel from './my-packages-panel'
 
 export async function generateMetadata(): Promise<Metadata> {
   const locale = await getLocale()
@@ -100,6 +103,13 @@ export default async function ClassesPage({ searchParams }: {
     }))
   }
 
+  // Fetched regardless of which tab is showing - the balance bar needs it
+  // on both, and it's the only thing driving whether the bar renders at
+  // all (null when she has no active package, or isn't logged in, or the
+  // flag is off).
+  const packageSummary: PackagePurchaseSummary | null =
+    PACKAGES_ENABLED && user ? await loadPackagePurchases(supabase, user.id) : null
+
   const loginHref = `/login?returnTo=${encodeURIComponent('/classes?view=packages')}`
 
   return <div dir={dir}>
@@ -125,26 +135,35 @@ export default async function ClassesPage({ searchParams }: {
           </nav>
         )}
 
+        {packageSummary?.active && <BalanceBar purchase={packageSummary.active} locale={locale} t={t} />}
+
         {showPackagesView ? (
-          <PackagesGrid
-            packages={packages}
-            locale={locale}
-            isLoggedIn={Boolean(user)}
-            loginHref={loginHref}
-            emptyLabel={t.classes.packages.empty}
-            copy={{
-              sessionsLabel: t.classes.packages.sessionsLabel,
-              perSessionLabel: t.classes.packages.perSessionLabel,
-              savings: t.classes.packages.savings,
-              validity: t.classes.packages.validity,
-              buy: t.classes.packages.buy,
-              loginToBuy: t.classes.packages.loginToBuy,
-            }}
-          />
-        ) : !classes || classes.length === 0 ? (
-          <div className="rounded-[1.75rem] bg-[#C7D6E8]/55 p-8 text-[#4f5d49]">{t.classes.noClasses}</div>
+          <>
+            {packageSummary && <MyPackagesPanel summary={packageSummary} locale={locale} t={t} />}
+            <PackagesGrid
+              packages={packages}
+              locale={locale}
+              isLoggedIn={Boolean(user)}
+              loginHref={loginHref}
+              emptyLabel={t.classes.packages.empty}
+              copy={{
+                sessionsLabel: t.classes.packages.sessionsLabel,
+                perSessionLabel: t.classes.packages.perSessionLabel,
+                savings: t.classes.packages.savings,
+                validity: t.classes.packages.validity,
+                buy: t.classes.packages.buy,
+                loginToBuy: t.classes.packages.loginToBuy,
+              }}
+            />
+          </>
         ) : (
-          <ClassesGrid sessions={cards} allLabel={t.classes.allFilter} emptyLabel={t.classes.noUpcoming} filterLabel={t.classes.filterLabel} />
+          <div id="sessions-list">
+            {!classes || classes.length === 0 ? (
+              <div className="rounded-[1.75rem] bg-[#C7D6E8]/55 p-8 text-[#4f5d49]">{t.classes.noClasses}</div>
+            ) : (
+              <ClassesGrid sessions={cards} allLabel={t.classes.allFilter} emptyLabel={t.classes.noUpcoming} filterLabel={t.classes.filterLabel} />
+            )}
+          </div>
         )}
       </section>
     </div>
