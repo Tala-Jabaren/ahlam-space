@@ -2,6 +2,9 @@ import Link from 'next/link'
 import { getAdminSession } from '@/components/admin/admin-session'
 import { createAdminClient } from '@/lib/supabase/admin'
 import ConfirmPackagePayment from '@/components/admin/confirm-package-payment'
+import NotificationItem from '@/components/admin/notifications/notification-item'
+import NotificationBadge from '@/components/admin/notifications/notification-badge'
+import { getAdminNotificationCounts, getUnseenNotificationCount } from '@/components/admin/notifications/notification-data'
 
 type PurchaseRow = {
   id: string
@@ -42,6 +45,8 @@ function formatDate(value: string | null) {
 export default async function PackagePayments({ filter, selectedId }: { filter?: string; selectedId?: string }) {
   const activeFilter: PackageFilter = filter === 'paid' || filter === 'all' ? filter : 'unpaid'
   await getAdminSession()
+  const { available } = await getAdminNotificationCounts()
+  const unseenCount = await getUnseenNotificationCount('package_purchase')
   const admin = createAdminClient()
 
   const { data: purchases, error } = await admin
@@ -73,7 +78,10 @@ export default async function PackagePayments({ filter, selectedId }: { filter?:
   return (
     <section>
       <header className="border-t border-[#617A55]/15 pt-8">
-        <h2 className="font-serif text-xl text-[#617A55] sm:text-2xl">دفعات الباقات</h2>
+        <h2 className="flex items-center gap-2 font-serif text-xl text-[#617A55] sm:text-2xl">
+          دفعات الباقات
+          <NotificationBadge count={unseenCount} />
+        </h2>
         <p className="mt-3 max-w-2xl leading-7 text-[#617A55]/80">راجعي طلبات شراء الباقات وأكديها بعد التحقق من التحويل أو الاستلام في الاستوديو.</p>
       </header>
 
@@ -100,34 +108,46 @@ export default async function PackagePayments({ filter, selectedId }: { filter?:
             const profile = profiles.get(purchase.user_id)
             const isPaid = purchase.status === 'paid'
             const isSelected = selectedId === purchase.id
+            const customerName = profile?.full_name?.trim() || 'عميلة مسجلة'
+            const packageName = purchase.class_packages?.name ?? 'باقة'
+            const status = isPaid ? 'مدفوع' : purchase.status === 'cancelled' ? 'ملغي' : 'بانتظار الدفع'
             return (
-              <article
+              <NotificationItem
                 key={purchase.id}
-                id={`package-purchase-${purchase.id}`}
-                className={`rounded-lg border bg-white p-5 shadow-sm sm:p-6 ${isSelected ? 'border-[#617A55] ring-2 ring-[#617A55]/35' : 'border-[#617A55]/12'}`}
+                kind="package_purchase"
+                id={purchase.id}
+                title={`${customerName} · ${packageName}`}
+                preview={`${formatAmount(purchase.price_snapshot)} · ${formatDate(purchase.created_at)}`}
+                status={status}
+                initiallyOpen={isSelected}
+                enabled={available}
               >
-                <div className="flex flex-col gap-5 xl:flex-row xl:items-start xl:justify-between">
-                  <div className="min-w-0 flex-1">
-                    <div className="flex flex-wrap items-center gap-3">
-                      <h3 className="font-serif text-2xl text-[#25311f]">{purchase.class_packages?.name ?? 'باقة'}</h3>
-                      <span className={`rounded-full px-3 py-1 text-xs font-semibold ${isPaid ? 'bg-[#D6E2B6]' : purchase.status === 'cancelled' ? 'bg-[#617A55]/10' : 'bg-[#C7D6E8]'}`}>
-                        {isPaid ? 'مدفوع' : purchase.status === 'cancelled' ? 'ملغي' : 'بانتظار الدفع'}
-                      </span>
+                <article
+                  className={`rounded-lg border bg-white p-5 shadow-sm sm:p-6 ${isSelected ? 'border-[#617A55] ring-2 ring-[#617A55]/35' : 'border-[#617A55]/12'}`}
+                >
+                  <div className="flex flex-col gap-5 xl:flex-row xl:items-start xl:justify-between">
+                    <div className="min-w-0 flex-1">
+                      <div className="flex flex-wrap items-center gap-3">
+                        <h3 className="font-serif text-2xl text-[#25311f]">{packageName}</h3>
+                        <span className={`rounded-full px-3 py-1 text-xs font-semibold ${isPaid ? 'bg-[#D6E2B6]' : purchase.status === 'cancelled' ? 'bg-[#617A55]/10' : 'bg-[#C7D6E8]'}`}>
+                          {status}
+                        </span>
+                      </div>
+                      <dl className="mt-4 grid gap-x-8 gap-y-3 text-sm sm:grid-cols-2 lg:grid-cols-3">
+                        <Info label="الاسم" value={customerName} />
+                        <Info label="الهاتف" value={profile?.phone?.trim() || '-'} ltr />
+                        <Info label="عدد الحصص" value={String(purchase.sessions_total)} />
+                        <Info label="المبلغ" value={formatAmount(purchase.price_snapshot)} />
+                        <Info label="تاريخ الإنشاء" value={formatDate(purchase.created_at)} />
+                        <Info label="المرجع" value={purchase.reference} ltr />
+                      </dl>
                     </div>
-                    <dl className="mt-4 grid gap-x-8 gap-y-3 text-sm sm:grid-cols-2 lg:grid-cols-3">
-                      <Info label="الاسم" value={profile?.full_name?.trim() || 'عميلة مسجلة'} />
-                      <Info label="الهاتف" value={profile?.phone?.trim() || '-'} ltr />
-                      <Info label="عدد الحصص" value={String(purchase.sessions_total)} />
-                      <Info label="المبلغ" value={formatAmount(purchase.price_snapshot)} />
-                      <Info label="تاريخ الإنشاء" value={formatDate(purchase.created_at)} />
-                      <Info label="المرجع" value={purchase.reference} ltr />
-                    </dl>
+                    <div className="shrink-0">
+                      <ConfirmPackagePayment purchaseId={purchase.id} label={packageName} disabled={isPaid || purchase.status === 'cancelled'} />
+                    </div>
                   </div>
-                  <div className="shrink-0">
-                    <ConfirmPackagePayment purchaseId={purchase.id} label={purchase.class_packages?.name ?? 'الباقة'} disabled={isPaid || purchase.status === 'cancelled'} />
-                  </div>
-                </div>
-              </article>
+                </article>
+              </NotificationItem>
             )
           })}
         </div>
