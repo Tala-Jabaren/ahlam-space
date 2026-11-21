@@ -98,7 +98,7 @@ export const checkoutEn: CheckoutCopy = {
     memberAccess: 'Member access',
     login: 'Login',
     welcome: 'Welcome back to Ahlam Space.',
-    loginArtCaption: 'Calm · Movement · Balance',
+    artCaption: 'Calm · Movement · Balance',
     email: 'Email',
     password: 'Password',
     showPassword: 'Show password',
@@ -124,6 +124,7 @@ export const checkoutEn: CheckoutCopy = {
     updating: 'Updating...',
     updated: 'Password updated. Redirecting to login...',
     checkEmail: 'Check your email to confirm your account.',
+    checkEmailTitle: 'Confirm your email',
     sessionExpired: 'Your session expired or could not be verified. Please log in again to continue.',
     checkEmailFor:
       'We sent a confirmation link to {email}. Open your email and tap the link to activate your account. If you don’t see it, check your spam folder.',
