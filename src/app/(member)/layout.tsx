@@ -91,14 +91,6 @@ export default async function MemberLayout({
             العودة للموقع
           </Link>
           <LogoutButton variant="sidebar" />
-
-          <div className="mt-6 overflow-hidden rounded-lg bg-[#D6E2B6]/55 p-5 text-center">
-            <div aria-hidden="true" className="mx-auto mb-3 flex justify-center">
-              <span className="block h-12 w-7 -rotate-12 rounded-[100%_0_100%_0] bg-[#617A55]/70" />
-              <span className="-ms-1 mt-6 block h-9 w-5 rotate-12 rounded-[0_100%_0_100%] bg-[#617A55]/45" />
-            </div>
-            <p className="font-serif text-lg">هدوء · حركة · توازن</p>
-          </div>
         </div>
       </aside>
 
