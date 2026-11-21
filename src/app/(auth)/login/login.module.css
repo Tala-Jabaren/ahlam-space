@@ -1,0 +1,278 @@
+.page {
+  display: grid;
+  justify-items: center;
+  min-block-size: 100svh;
+  padding: 4rem clamp(1rem, 4vw, 3rem) 2.5rem;
+  background: radial-gradient(ellipse at 50% 0%, #f7f6f0 0%, #ecefe5 76%);
+  color: #25311f;
+}
+
+.shell {
+  display: grid;
+  isolation: isolate;
+  inline-size: 100%;
+  max-inline-size: 66rem;
+  margin-block: auto;
+  padding: .5rem;
+  gap: .5rem;
+  border: 1px solid #617a551f;
+  border-radius: 1.75rem;
+  background: #e7ebdd;
+  box-shadow: 0 1.5rem 3.5rem #2838241f;
+}
+
+.panel {
+  display: grid;
+  align-items: center;
+  min-inline-size: 0;
+  padding: clamp(1.25rem, 4vw, 3.25rem);
+  border-radius: 1.25rem;
+  background: #fcfbf6;
+}
+
+.content {
+  inline-size: 100%;
+  max-inline-size: 23rem;
+  margin-inline: auto;
+}
+
+.brand {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: .55rem;
+  min-block-size: 2.25rem;
+  inline-size: fit-content;
+  margin: 0 auto 1.25rem;
+  border-radius: .5rem;
+  color: #465d3d;
+  font-size: .83rem;
+  font-weight: 700;
+  letter-spacing: .12em;
+}
+
+.brand span {
+  display: grid;
+  place-items: center;
+  inline-size: 1.8rem;
+  block-size: 1.8rem;
+  border-radius: 50%;
+  background: #d6e2b6;
+}
+
+.title {
+  margin: 0;
+  font-size: clamp(2.2rem, 4.3vw, 3.45rem);
+  line-height: 1.12;
+  text-align: center;
+}
+
+.intro {
+  margin-block-start: .75rem;
+  color: #52634c;
+  font-size: .97rem;
+  text-align: center;
+}
+
+.form {
+  display: grid;
+  gap: 1rem;
+  margin-block-start: 1.6rem;
+}
+
+.field {
+  display: grid;
+  gap: .35rem;
+  min-inline-size: 0;
+  font-size: .93rem;
+  font-weight: 600;
+}
+
+.fieldHeader {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: .25rem .75rem;
+}
+
+.fieldHeader a,
+.signup a {
+  color: #465d3d;
+  font-weight: 650;
+  text-decoration: underline;
+  text-decoration-color: #617a5570;
+  text-underline-offset: .2em;
+}
+
+.fieldHeader a {
+  display: inline-flex;
+  align-items: center;
+  min-block-size: 1.5rem;
+  font-size: .87rem;
+}
+
+.inputWrap {
+  position: relative;
+  min-inline-size: 0;
+}
+
+.inputWrap input {
+  inline-size: 100%;
+  min-inline-size: 0;
+  min-block-size: 3.15rem;
+  padding: .55rem .85rem;
+  padding-inline-end: 3rem;
+  border: 1px solid #617a5545;
+  border-radius: .7rem;
+  background: #f3f3eb;
+  color: #25311f;
+  font-size: 1rem;
+  font-weight: 500;
+  transition: background-color .16s, border-color .16s, box-shadow .16s;
+}
+
+.inputWrap input::placeholder {
+  color: #67745f;
+}
+
+.inputWrap input:focus {
+  border-color: #617a55;
+  outline: none;
+  background: #fff;
+  box-shadow: 0 0 0 3px #d6e2b699;
+}
+
+.inputIcon,
+.passwordToggle {
+  position: absolute;
+  inset-block-start: 50%;
+  inset-inline-end: .85rem;
+  translate: 0 -50%;
+  color: #53694b;
+}
+
+.inputIcon {
+  pointer-events: none;
+}
+
+.passwordToggle {
+  display: grid;
+  place-items: center;
+  inset-inline-end: .2rem;
+  inline-size: 2.75rem;
+  block-size: 2.75rem;
+  border-radius: .55rem;
+  cursor: pointer;
+}
+
+.passwordToggle:hover {
+  background: #d6e2b670;
+}
+
+.submit {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: .6rem;
+  min-block-size: 3.15rem;
+  margin-block-start: .2rem;
+  padding: .65rem 1rem;
+  border-radius: .7rem;
+  background: linear-gradient(110deg, #405b39, #586f4c);
+  color: #fff;
+  font-size: 1rem;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.submit:hover {
+  background: #3f5638;
+}
+
+.submit:disabled {
+  opacity: .65;
+  cursor: wait;
+}
+
+.page[dir='rtl'] .submit svg {
+  transform: scaleX(-1);
+}
+
+.panel :where(a, button):focus-visible {
+  outline: 2px solid #53694b;
+  outline-offset: 3px;
+}
+
+.signup {
+  display: grid;
+  place-items: center;
+  margin-block-start: .7rem;
+  font-size: .95rem;
+}
+
+.signup a {
+  display: inline-grid;
+  place-items: center;
+  min-block-size: 2.75rem;
+  padding-inline: .75rem;
+}
+
+.notice,
+.error {
+  margin-block-start: .8rem;
+  padding: .75rem .9rem;
+  border-radius: .7rem;
+  background: #e8eddb;
+  color: #394d33;
+  font-size: .9rem;
+  line-height: 1.5;
+}
+
+.error {
+  background: #fbece9;
+  color: #8c3028;
+}
+
+.form .error {
+  margin-block-start: 0;
+}
+
+.art {
+  display: flex;
+  align-items: end;
+  min-block-size: 7.5rem;
+  padding: 1.15rem;
+  border-radius: 1.25rem;
+  background-color: #617a55;
+  background-image: linear-gradient(0deg, #25311fcc, #25311f00 78%), url('/images/login-marbling.webp');
+  background-position: center, center 55%;
+  background-size: cover;
+  color: #fcfbf6;
+}
+
+.art p {
+  font-size: clamp(1rem, 2.5vw, 1.5rem);
+  font-weight: 700;
+  text-shadow: 0 1px 10px #25311fb3;
+}
+
+@media (min-width: 760px) {
+  .page {
+    padding-block-end: 3.5rem;
+  }
+
+  .shell {
+    grid-template-columns: minmax(0, .96fr) minmax(0, 1.04fr);
+  }
+
+  .panel,
+  .art {
+    min-block-size: 35rem;
+  }
+
+  .art {
+    padding: clamp(1.75rem, 4vw, 2.75rem);
+    background-position: center;
+  }
+}

@@ -1,8 +1,9 @@
 'use client'
 
-import { useState, useSyncExternalStore } from 'react'
+import { useState } from 'react'
 import Link from 'next/link'
-import { useRouter } from 'next/navigation'
+import { useRouter, useSearchParams } from 'next/navigation'
+import { ArrowRight, Eye, EyeOff, Leaf, Mail } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
 import { getSafeReturnTo } from '@/lib/safe-return-to'
 
@@ -12,44 +13,26 @@ import {
   authErrorMessage,
   localizeValidation,
 } from '@/i18n/checkout-ar'
+import styles from './login.module.css'
 
 export default function LoginPage() {
   const { t, locale, dir } = useT()
   const c = t.checkout ?? checkoutAr
-  const checkEmail = useSyncExternalStore(
-    () => () => {},
-    () =>
-      ['check-email', 'Check your email to confirm your account'].includes(
-        new URLSearchParams(window.location.search).get('message') ?? '',
-      ),
-    () => false,
-  )
-  // Set by the member layout (and the account/bookings pages' own fallback
-  // checks) when a session couldn't be verified server-side - it used to
-  // bounce straight to a blank login form with no explanation at all.
-  const sessionExpired = useSyncExternalStore(
-    () => () => {},
-    () => new URLSearchParams(window.location.search).get('message') === 'session-expired',
-    () => false,
-  )
+  const searchParams = useSearchParams()
+  const message = searchParams.get('message')
+  const checkEmail = message === 'check-email' || message === 'Check your email to confirm your account'
+  const sessionExpired = message === 'session-expired'
+  const returnTo = getSafeReturnTo(searchParams.get('returnTo'))
+  const signUpHref = returnTo ? `/sign-up?returnTo=${encodeURIComponent(returnTo)}` : '/sign-up'
   const router = useRouter()
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
+  const [passwordVisible, setPasswordVisible] = useState(false)
   const [error, setError] = useState<{
     code?: string
     message?: string
   } | null>(null)
   const [loading, setLoading] = useState(false)
-
-  function handleCreateAccount(event: React.MouseEvent<HTMLAnchorElement>) {
-    const returnTo = getSafeReturnTo(
-      new URLSearchParams(window.location.search).get('returnTo'),
-    )
-    if (!returnTo) return
-
-    event.preventDefault()
-    router.push(`/sign-up?returnTo=${encodeURIComponent(returnTo)}`)
-  }
 
   async function handleLogin(e: React.FormEvent) {
     e.preventDefault()
@@ -70,12 +53,7 @@ export default function LoginPage() {
         return
       }
 
-      const returnTo =
-        getSafeReturnTo(
-          new URLSearchParams(window.location.search).get('returnTo'),
-        ) ?? '/member-schedule'
-
-      router.replace(returnTo)
+      router.replace(returnTo ?? '/member-schedule')
       router.refresh()
     } catch {
       setError({})
@@ -84,100 +62,81 @@ export default function LoginPage() {
   }
 
   return (
-    <main
-      dir={dir}
-      className="flex min-h-screen items-center justify-center bg-[#F7F6F0] px-5 py-12 text-[#25311f] sm:px-8"
-    >
-      <section className="w-full max-w-md rounded-[2rem] border border-[#617A55]/10 bg-white/70 p-6 shadow-sm sm:p-8">
-        <div className="space-y-3 text-center">
-          <p className="text-sm font-medium uppercase tracking-[0.28em] text-[#617A55]">
-            {c.auth.memberAccess}
-          </p>
-          <h1 className="font-serif text-4xl leading-tight sm:text-5xl">
-            {c.auth.login}
-          </h1>
-          <p className="text-sm leading-6 text-[#4f5d49]">{c.auth.welcome}</p>
-        </div>
+    <main dir={dir} className={styles.page}>
+      <div className={styles.shell}>
+        <section className={styles.panel} aria-labelledby="login-title">
+          <div className={styles.content}>
+            <Link href="/" className={styles.brand} lang="en" dir="ltr">
+              <span><Leaf aria-hidden="true" size={17} strokeWidth={1.6} /></span>
+              Ahlam Space
+            </Link>
+            <h1 id="login-title" className={styles.title}>{c.auth.login}</h1>
+            <p className={styles.intro}>{c.auth.welcome}</p>
 
-        {checkEmail && (
-          <p
-            role="status"
-            className="mt-5 rounded-2xl bg-[#D6E2B6]/70 p-4 text-sm text-[#4f5d49]"
-          >
-            {c.auth.checkEmail}
-          </p>
-        )}
-        {sessionExpired && (
-          <p
-            role="alert"
-            className="mt-5 rounded-2xl bg-red-50 p-4 text-sm leading-6 text-red-700"
-          >
-            {c.auth.sessionExpired}
-          </p>
-        )}
-        <form
-          className="mt-8 grid gap-5"
-          key={locale}
-          onInvalid={(event) => localizeValidation(event.target, c)}
-          onInput={(event) => localizeValidation(event.target, c, true)}
-          onSubmit={handleLogin}
-        >
-          <label className="grid gap-2 text-sm font-medium text-[#617A55]">
-            {c.auth.email}
-            <input
-              className="min-h-11 min-w-0 w-full rounded-2xl border border-[#617A55]/20 bg-[#F7F6F0] px-4 py-3 text-[#25311f] outline-none transition placeholder:text-[#617A55]/55 focus:border-[#617A55]"
-              type="email"
-              placeholder={c.auth.email}
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              required
-              autoComplete="email"
-            />
-          </label>
-          <label className="grid gap-2 text-sm font-medium text-[#617A55]">
-            {c.auth.password}
-            <input
-              className="min-h-11 min-w-0 w-full rounded-2xl border border-[#617A55]/20 bg-[#F7F6F0] px-4 py-3 text-[#25311f] outline-none transition placeholder:text-[#617A55]/55 focus:border-[#617A55]"
-              type="password"
-              placeholder={c.auth.password}
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              required
-              autoComplete="current-password"
-            />
-          </label>
-          {error && (
-            <p
-              role="alert"
-              className="rounded-2xl bg-red-50 p-4 text-sm leading-6 text-red-700"
+            {checkEmail && <p role="status" className={styles.notice}>{c.auth.checkEmail}</p>}
+            {sessionExpired && <p role="alert" className={styles.error}>{c.auth.sessionExpired}</p>}
+
+            <form
+              className={styles.form}
+              key={locale}
+              onInvalid={(event) => localizeValidation(event.target, c)}
+              onInput={(event) => localizeValidation(event.target, c, true)}
+              onSubmit={handleLogin}
             >
-              {authErrorMessage(error, c)}
-            </p>
-          )}
-          <button
-            className="min-h-11 rounded-full bg-[#617A55] px-7 py-3 text-sm font-semibold uppercase tracking-[0.16em] text-white transition hover:bg-[#4f6645] disabled:cursor-not-allowed disabled:opacity-60"
-            type="submit"
-            disabled={loading}
-          >
-            {loading ? c.auth.loggingIn : c.auth.login}
-          </button>
-        </form>
-        <div className="mt-6 flex flex-col gap-2 text-center text-sm text-[#4f5d49]">
-          <Link
-            className="inline-flex min-h-11 items-center justify-center rounded-full px-4 font-medium text-[#617A55] underline-offset-4 transition hover:bg-[#D6E2B6]/50 hover:text-[#25311f] hover:underline"
-            href="/forgot-password"
-          >
-            {c.auth.forgotLink}
-          </Link>
-          <Link
-            className="inline-flex min-h-11 items-center justify-center rounded-full px-4 font-medium text-[#617A55] underline-offset-4 transition hover:bg-[#D6E2B6]/50 hover:text-[#25311f] hover:underline"
-            href="/sign-up"
-            onClick={handleCreateAccount}
-          >
-            {c.auth.createAccount}
-          </Link>
+              <div className={styles.field}>
+                <label htmlFor="login-email">{c.auth.email}</label>
+                <div className={styles.inputWrap}>
+                  <input
+                    id="login-email"
+                    type="email"
+                    placeholder="name@example.com"
+                    value={email}
+                    onChange={(event) => setEmail(event.target.value)}
+                    required
+                    autoComplete="email"
+                  />
+                  <Mail aria-hidden="true" className={styles.inputIcon} size={18} strokeWidth={1.6} />
+                </div>
+              </div>
+              <div className={styles.field}>
+                <div className={styles.fieldHeader}>
+                  <label htmlFor="login-password">{c.auth.password}</label>
+                  <Link href="/forgot-password">{c.auth.forgotLink}</Link>
+                </div>
+                <div className={styles.inputWrap}>
+                  <input
+                    id="login-password"
+                    type={passwordVisible ? 'text' : 'password'}
+                    value={password}
+                    onChange={(event) => setPassword(event.target.value)}
+                    required
+                    autoComplete="current-password"
+                  />
+                  <button
+                    type="button"
+                    className={styles.passwordToggle}
+                    aria-label={passwordVisible ? c.auth.hidePassword : c.auth.showPassword}
+                    onClick={() => setPasswordVisible((visible) => !visible)}
+                  >
+                    {passwordVisible ? <EyeOff aria-hidden="true" size={19} /> : <Eye aria-hidden="true" size={19} />}
+                  </button>
+                </div>
+              </div>
+              {error && <p role="alert" className={styles.error}>{authErrorMessage(error, c)}</p>}
+              <button className={styles.submit} type="submit" disabled={loading}>
+                {loading ? c.auth.loggingIn : c.auth.login}
+                <ArrowRight aria-hidden="true" size={18} />
+              </button>
+            </form>
+            <div className={styles.signup}>
+              <Link href={signUpHref}>{c.auth.createAccount}</Link>
+            </div>
+          </div>
+        </section>
+        <div className={styles.art}>
+          <p>{c.auth.loginArtCaption}</p>
         </div>
-      </section>
+      </div>
     </main>
   )
 }
