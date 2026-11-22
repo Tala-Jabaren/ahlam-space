@@ -227,6 +227,12 @@ export const ar = {
     noClasses: 'لا توجد حصص متاحة حاليًا.',
     upcomingHeading: 'المواعيد القادمة',
     noUpcoming: 'لا توجد مواعيد قادمة لهذه الحصة حاليًا.',
+    weekGroups: {
+      thisWeek: 'حصص هذا الأسبوع',
+      nextWeek: 'حصص الأسبوع القادم',
+      later: 'حصص في أسابيع لاحقة',
+      empty: 'لا توجد حصص لهذا الأسبوع.',
+    },
     requestedNotice: 'أكملي الحجز باختيار طريقة الدفع.',
     dateLabel: 'التاريخ',
     timeLabel: 'الوقت',

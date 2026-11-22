@@ -13,6 +13,7 @@ import PackagesGrid from './packages-grid'
 import type { PackageCardData } from './package-card'
 import type { ClassSession } from '@/components/classes/types'
 import { classCardData, loadClassBookings } from '@/lib/class-cards'
+import { getScheduleWindow, groupClassWeeks, isUpcomingSession } from '@/lib/class-schedule-weeks'
 import { loadPackagePurchases, type PackagePurchaseSummary } from '@/lib/package-purchases'
 import BalanceBar from './balance-bar'
 import MyPackagesPanel from './my-packages-panel'
@@ -24,13 +25,6 @@ export async function generateMetadata(): Promise<Metadata> {
 }
 
 type ScheduleRow = ClassSession
-
-function isUpcoming(session: ScheduleRow) {
-  return (
-    session.status === 'scheduled' &&
-    new Date(`${session.session_date}T${session.end_time}`) > new Date()
-  )
-}
 
 export default async function ClassesPage({ searchParams }: {
   searchParams: Promise<{ book?: string; view?: string }>
@@ -56,8 +50,9 @@ export default async function ClassesPage({ searchParams }: {
   if (sessionsError) console.error('Failed to load class sessions:', sessionsError.message)
 
   const classesById = new Map((classes ?? []).map(classItem => [classItem.id, classItem]))
-  const upcoming = (sessions ?? []).filter(isUpcoming)
   const now = new Date()
+  const { localNow, nextWeekStart } = getScheduleWindow(now)
+  const upcoming = (sessions ?? []).filter(session => isUpcomingSession(session, localNow))
   const current = await loadClassBookings(supabase, user?.id ?? null, upcoming.map(session => session.id), now, { includePackageInfo: PACKAGES_ENABLED })
 
   // Computed before `cards` below (not just the balance bar/packages tab
@@ -71,14 +66,10 @@ export default async function ClassesPage({ searchParams }: {
     ? { purchaseId: packageSummary.active.id, remaining: packageSummary.active.sessions_remaining, total: packageSummary.active.sessions_total }
     : null
 
-  // One flat, chronological list of every upcoming session across every
-  // class - no longer grouped under a per-class heading, since each class
-  // now has its own free-form name rather than a shared category to group
-  // by (ClassesGrid offers a name filter instead).
   const cards = upcoming
     .map(session => {
       const classInfo = session.classes?.id ? classesById.get(session.classes.id) : undefined
-      return classCardData(session, locale, {
+      const card = classCardData(session, locale, {
         now,
         // `classes` came from select('*'), which already tolerates
         // package_eligible not existing in the database yet (see
@@ -91,8 +82,10 @@ export default async function ClassesPage({ searchParams }: {
         authenticated: Boolean(user), requested: requestedSessionId === session.id,
         packageCredit,
       })
+      return { ...card, sessionDate: session.session_date }
     })
     .sort((a, b) => (a.startsAt ?? '').localeCompare(b.startsAt ?? ''))
+  const weeks = groupClassWeeks(cards, nextWeekStart, card => card.sessionDate)
 
   // Packages are only ever fetched when both the flag is on AND this exact
   // view is requested - never on the default/single-session view, and
@@ -166,7 +159,7 @@ export default async function ClassesPage({ searchParams }: {
             {!classes || classes.length === 0 ? (
               <div className="rounded-[1.75rem] bg-[#C7D6E8]/55 p-8 text-[#4f5d49]">{t.classes.noClasses}</div>
             ) : (
-              <ClassesGrid sessions={cards} allLabel={t.classes.allFilter} emptyLabel={t.classes.noUpcoming} filterLabel={t.classes.filterLabel} />
+              <ClassesGrid weeks={weeks} weekLabels={t.classes.weekGroups} allLabel={t.classes.allFilter} filterLabel={t.classes.filterLabel} />
             )}
           </div>
         )}

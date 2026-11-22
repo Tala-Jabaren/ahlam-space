@@ -1,18 +1,18 @@
 import { createClient } from '@/lib/supabase/server'
 import { getT } from '@/i18n/get-t'
 import { I18nProvider } from '@/i18n/i18n-context'
-import ClassCard from '@/components/classes/class-card'
+import ClassWeekSections from '@/components/classes/class-week-sections'
 import ClassesBanner from '@/components/classes/classes-banner'
 import type { ClassSession } from '@/components/classes/types'
 import { classCardData, loadClassBookings } from '@/lib/class-cards'
-import styles from '@/components/classes/class-card.module.css'
-import { getScheduleWindow, sessionsInWindow } from './schedule-weeks'
+import { getScheduleWindow, groupClassWeeks, sessionsInWindow } from '@/lib/class-schedule-weeks'
 import { PACKAGES_ENABLED } from '@/lib/feature-flags'
 
 type ScheduleRow = ClassSession
 
 export default async function MemberSchedulePage() {
-  const { window, localNow } = getScheduleWindow()
+  const now = new Date()
+  const { window, localNow, nextWeekStart } = getScheduleWindow(now)
   const supabase = await createClient()
   const { t, locale, dir } = await getT()
   const { data: { user } } = await supabase.auth.getUser()
@@ -24,8 +24,13 @@ export default async function MemberSchedulePage() {
     .returns<ScheduleRow[]>()
   if (error) console.error('Failed to load schedule:', error.message)
   const upcomingSessions = sessionsInWindow(sessions ?? [], window, localNow)
-  const now = new Date()
   const current = await loadClassBookings(supabase, user?.id ?? null, upcomingSessions.map(session => session.id), now, { includePackageInfo: PACKAGES_ENABLED })
+  const weeks = groupClassWeeks(upcomingSessions, nextWeekStart, session => session.session_date).map(({ kind, sessions }) => ({
+    kind,
+    sessions: sessions.map(session => classCardData(session, locale, {
+      now, booking: current.bookings.get(session.id), known: current.known, authenticated: Boolean(user),
+    })),
+  }))
 
   return <I18nProvider locale={locale} dictionary={t}>
     <div dir={dir}>
@@ -40,12 +45,7 @@ export default async function MemberSchedulePage() {
             <p className="text-sm font-medium text-[#617A55]/75">{upcomingSessions.length} {t.memberSchedule.sessionsAvailable}</p>
           </div>
           {error && <div className="mt-8 rounded-lg bg-[#C7D6E8]/55 p-6">{t.memberSchedule.loadError}</div>}
-          {!error && upcomingSessions.length === 0 && <div className="mt-8 rounded-lg bg-[#C7D6E8]/55 p-8 text-center">{t.memberSchedule.empty}</div>}
-          {!error && upcomingSessions.length > 0 && <div className={`mt-8 ${styles.grid}`}>
-            {upcomingSessions.map(session => <ClassCard key={session.id} session={classCardData(session, locale, {
-              now, booking: current.bookings.get(session.id), known: current.known, authenticated: Boolean(user),
-            })} />)}
-          </div>}
+          {!error && <div className="mt-8"><ClassWeekSections weeks={weeks} labels={t.classes.weekGroups} /></div>}
         </section>
       </main>
     </div>

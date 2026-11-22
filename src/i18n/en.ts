@@ -231,6 +231,12 @@ export const en: typeof ar = {
     noClasses: 'No classes available right now.',
     upcomingHeading: 'Upcoming Sessions',
     noUpcoming: 'No upcoming sessions for this class right now.',
+    weekGroups: {
+      thisWeek: 'Classes This Week',
+      nextWeek: 'Classes Next Week',
+      later: 'Classes in Later Weeks',
+      empty: 'No classes this week.',
+    },
     requestedNotice: 'Complete your booking by choosing a payment method.',
     dateLabel: 'Date',
     timeLabel: 'Time',
