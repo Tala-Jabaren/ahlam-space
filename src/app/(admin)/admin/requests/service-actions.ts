@@ -43,5 +43,6 @@ export async function savePrivateSession(id: number | null, form: FormData) {
 
   revalidatePath('/admin/requests')
   revalidatePath('/private-sessions')
+  revalidatePath('/member/private-sessions')
   return { error: '' }
 }

@@ -8,6 +8,7 @@ type MemberNavLinkProps = {
   label: string
   icon: React.ReactNode
   mobile?: boolean
+  mobileLabel?: string
 }
 
 export default function MemberNavLink({
@@ -15,6 +16,7 @@ export default function MemberNavLink({
   label,
   icon,
   mobile = false,
+  mobileLabel,
 }: MemberNavLinkProps) {
   const pathname = usePathname()
   const isActive = pathname === href || pathname.startsWith(`${href}/`)
@@ -22,6 +24,7 @@ export default function MemberNavLink({
   return (
     <Link
       href={href}
+      aria-label={mobile && mobileLabel ? label : undefined}
       aria-current={isActive ? 'page' : undefined}
       className={
         mobile
@@ -41,7 +44,7 @@ export default function MemberNavLink({
       >
         {icon}
       </span>
-      <span className={mobile ? 'max-w-full truncate' : undefined}>{label}</span>
+      <span className={mobile ? 'max-w-full truncate' : undefined}>{mobile ? mobileLabel ?? label : label}</span>
     </Link>
   )
 }

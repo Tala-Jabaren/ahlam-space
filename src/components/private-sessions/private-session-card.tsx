@@ -14,6 +14,7 @@ type Props = {
   image: string
   description: string
   requestLabel: string
+  bookingInDialog: boolean
   onRequest: () => void
 }
 
@@ -25,6 +26,7 @@ export default function PrivateSessionCard({
   image,
   description,
   requestLabel,
+  bookingInDialog,
   onRequest,
 }: Props) {
   const { t, locale } = useT()
@@ -50,6 +52,16 @@ export default function PrivateSessionCard({
   )
   const focusStyle =
     'focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[#617A55]'
+  const requestButton = (
+    <button
+      type="button"
+      aria-haspopup={bookingInDialog ? 'dialog' : undefined}
+      onClick={onRequest}
+      className={`min-h-11 max-w-full cursor-pointer rounded-full bg-[#617A55] px-5 py-2.5 text-sm font-medium text-white transition-colors hover:bg-[#617A55]/90 ${focusStyle}`}
+    >
+      {requestLabel}
+    </button>
+  )
 
   return (
     <section className="w-full max-w-[620px] self-start overflow-hidden rounded-[18px] border border-[#617A55]/[0.12] bg-white text-start transition-transform duration-200 motion-safe:hover:-translate-y-[3px] motion-reduce:transition-none">
@@ -85,6 +97,7 @@ export default function PrivateSessionCard({
                 className={`shrink-0 transition-transform duration-250 motion-reduce:transition-none ${expanded ? 'rotate-180' : ''}`}
               />
             </button>
+            {bookingInDialog && requestButton}
           </div>
         </div>
       </div>
@@ -112,13 +125,7 @@ export default function PrivateSessionCard({
                 </dd>
               </div>}
             </dl>}
-            <button
-              type="button"
-              onClick={onRequest}
-              className={`mt-5 min-h-11 max-w-full cursor-pointer rounded-full bg-[#617A55] px-5 py-2.5 text-sm font-medium text-white transition-colors hover:bg-[#617A55]/90 ${focusStyle}`}
-            >
-              {requestLabel}
-            </button>
+            {!bookingInDialog && <div className="mt-5">{requestButton}</div>}
           </div>
         </div>
       </div>
