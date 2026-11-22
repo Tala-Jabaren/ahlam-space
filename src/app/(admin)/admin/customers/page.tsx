@@ -128,7 +128,7 @@ export default async function CustomersPage({ searchParams }: {
           })}
         </ul>
         <div tabIndex={0} role="region" aria-label="قائمة الزبائن" className="hidden overflow-x-auto lg:block rounded-lg border border-[#617A55]/15 bg-white focus-visible:outline-2 focus-visible:outline-[#617A55]">
-          <table className={`w-full text-start text-sm ${tab === 'users' ? 'min-w-[1200px]' : 'min-w-[800px]'}`}>
+          <table className={`w-full text-start text-sm ${tab === 'users' ? 'min-w-[1050px]' : 'min-w-[800px]'}`}>
             <caption className="sr-only">{tab === 'users' ? 'المسجّلون' : 'زبائن بدون حساب'}</caption>
             <thead className="border-b border-[#617A55]/15 bg-[#D6E2B6]/30 text-[#617A55]">
               <tr>
@@ -144,7 +144,7 @@ export default async function CustomersPage({ searchParams }: {
                     ? <Link href={detailHref} className="inline-block min-h-11 content-center rounded text-[#617A55] underline underline-offset-4 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#617A55]"><bdi className="break-words">{value || 'بدون اسم'}</bdi></Link>
                     : <bdi className="break-words">{value || '-'}</bdi>}</td>)}
                   {'user_id' in row && (
-                    <td className="min-w-46 px-4 py-4">
+                    <td className="min-w-32 px-4 py-4">
                       <CustomerAccountControls userId={row.user_id} name={row.full_name || row.email || 'هذا الزبون'} disabled={row.account_disabled} />
                     </td>
                   )}

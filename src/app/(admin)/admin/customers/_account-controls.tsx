@@ -2,9 +2,10 @@
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
+import { Power, PowerOff, Trash2 } from 'lucide-react'
 import { changeCustomerAccount } from './_account-actions'
 
-const button = 'min-h-11 rounded-lg border px-3 text-sm font-medium focus-visible:outline-2 focus-visible:outline-offset-2 disabled:opacity-50'
+const button = 'inline-flex min-h-11 min-w-11 flex-col items-center justify-center gap-0.5 rounded-md px-1 text-[11px] font-medium leading-tight focus-visible:outline-2 focus-visible:outline-offset-2 disabled:opacity-50'
 
 export default function CustomerAccountControls({ userId, name, disabled, backHref }: {
   userId: string
@@ -46,16 +47,34 @@ export default function CustomerAccountControls({ userId, name, disabled, backHr
   }
 
   return (
-    <div className="grid justify-items-start gap-2">
-      <span className={`rounded-full px-2.5 py-1 text-xs font-semibold ${disabled ? 'bg-[#EAF1F8] text-[#3F5F7A]' : 'bg-[#D6E2B6]/60 text-[#465d3d]'}`}>
+    <div className="grid justify-items-start gap-1">
+      <span className={`rounded-full px-2.5 py-0.5 text-xs font-semibold ${disabled ? 'bg-[#EAF1F8] text-[#3F5F7A]' : 'bg-[#D6E2B6]/60 text-[#465d3d]'}`}>
         {disabled ? 'حساب معطّل' : 'حساب مفعّل'}
       </span>
-      <div className="flex flex-wrap gap-2">
-        <button type="button" disabled={pending} onClick={() => handleChange(disabled ? 'enable' : 'disable')} className={`${button} border-[#617A55]/30 text-[#465d3d] hover:bg-[#D6E2B6]/35`}>
-          {disabled ? 'إعادة التفعيل' : 'تعطيل الحساب'}
+      <div className="flex gap-1">
+        <button
+          type="button"
+          disabled={pending}
+          aria-label={disabled ? 'إعادة التفعيل' : 'تعطيل الحساب'}
+          onClick={() => handleChange(disabled ? 'enable' : 'disable')}
+          className={`${button} text-[#465d3d] hover:bg-[#D6E2B6]/40`}
+        >
+          <span className="grid size-6 place-items-center rounded-md bg-[#D6E2B6]/60">
+            {disabled ? <Power size={15} aria-hidden="true" /> : <PowerOff size={15} aria-hidden="true" />}
+          </span>
+          <span>{disabled ? 'تفعيل' : 'تعطيل'}</span>
         </button>
-        <button type="button" disabled={pending} onClick={() => handleChange('delete')} className={`${button} border-red-200 text-red-800 hover:bg-red-50`}>
-          حذف الحساب
+        <button
+          type="button"
+          disabled={pending}
+          aria-label="حذف الحساب"
+          onClick={() => handleChange('delete')}
+          className={`${button} text-red-800 hover:bg-red-50`}
+        >
+          <span className="grid size-6 place-items-center rounded-md bg-red-50">
+            <Trash2 size={15} aria-hidden="true" />
+          </span>
+          <span>حذف</span>
         </button>
       </div>
       {pending && <p role="status" className="text-sm">جارٍ التنفيذ…</p>}
