@@ -42,9 +42,10 @@ function Section({ title, empty, children }: { title: string; empty: boolean; ch
   </section>
 }
 
-export default function CustomerDetailView({ detail, backHref }: {
+export default function CustomerDetailView({ detail, backHref, accountControls }: {
   detail: CustomerDetail | GuestDetail
   backHref: string
+  accountControls?: ReactNode
 }) {
   const profile = 'profile' in detail ? detail.profile : null
   const guest = 'guest' in detail ? detail.guest : null
@@ -68,6 +69,7 @@ export default function CustomerDetailView({ detail, backHref }: {
         <Info label="رقم الهاتف">{profile?.phone ?? guest?.guest_phone}</Info>
         {profile && <><Info label="المدينة">{profile.city}</Info><Info label="تاريخ التسجيل">{date(profile.registered_at)}</Info></>}
       </dl>
+      {accountControls && <div className="mt-5 border-t border-[#617A55]/15 pt-4">{accountControls}</div>}
     </header>
     <dl className={`mt-6 grid grid-cols-2 gap-4 ${profile ? 'lg:grid-cols-4' : ''}`}>
       {stats.map(([label, value]) => <div key={label} className="min-w-0 border-b-2 border-[#D6E2B6] px-1 py-4">

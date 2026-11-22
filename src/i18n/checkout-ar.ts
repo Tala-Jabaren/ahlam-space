@@ -132,6 +132,7 @@ export const checkoutAr = {
     changeEmail: 'تغيير البريد',
   },
   authErrors: {
+    accountDisabled: 'هذا الحساب معطّل.',
     credentials: 'البريد الإلكتروني أو كلمة المرور غير صحيحة.',
     unconfirmed: 'يرجى تأكيد بريدك الإلكتروني قبل تسجيل الدخول.',
     exists: 'يوجد حساب بهذا البريد الإلكتروني. جرّبي تسجيل الدخول.',
@@ -228,6 +229,8 @@ export function authErrorMessage(
   copy: CheckoutCopy,
 ) {
   const value = `${error.code || ''} ${error.message || ''}`.toLowerCase()
+  if (/user_banned|user is banned/.test(value))
+    return copy.authErrors.accountDisabled
   if (/invalid_login_credentials|invalid(?: login)? credentials/.test(value))
     return copy.authErrors.credentials
   if (/email_not_confirmed|email not confirmed/.test(value))
