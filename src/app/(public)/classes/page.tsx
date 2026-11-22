@@ -13,6 +13,9 @@ import PackagesGrid from './packages-grid'
 import type { PackageCardData } from './package-card'
 import type { ClassSession } from '@/components/classes/types'
 import { classCardData, loadClassBookings } from '@/lib/class-cards'
+import { loadPackagePurchases, type PackagePurchaseSummary } from '@/lib/package-purchases'
+import BalanceBar from './balance-bar'
+import MyPackagesPanel from './my-packages-panel'
 
 export async function generateMetadata(): Promise<Metadata> {
   const locale = await getLocale()
@@ -55,7 +58,18 @@ export default async function ClassesPage({ searchParams }: {
   const classesById = new Map((classes ?? []).map(classItem => [classItem.id, classItem]))
   const upcoming = (sessions ?? []).filter(isUpcoming)
   const now = new Date()
-  const current = await loadClassBookings(supabase, user?.id ?? null, upcoming.map(session => session.id), now)
+  const current = await loadClassBookings(supabase, user?.id ?? null, upcoming.map(session => session.id), now, { includePackageInfo: PACKAGES_ENABLED })
+
+  // Computed before `cards` below (not just the balance bar/packages tab
+  // further down) so each session card can also offer "book with package"
+  // when she has credit - only /classes passes this through to
+  // classCardData, matching the same "undefined unless this page opted in"
+  // rule packageEligible already uses.
+  const packageSummary: PackagePurchaseSummary | null =
+    PACKAGES_ENABLED && user ? await loadPackagePurchases(supabase, user.id) : null
+  const packageCredit = packageSummary?.active
+    ? { purchaseId: packageSummary.active.id, remaining: packageSummary.active.sessions_remaining, total: packageSummary.active.sessions_total }
+    : null
 
   // One flat, chronological list of every upcoming session across every
   // class - no longer grouped under a per-class heading, since each class
@@ -75,6 +89,7 @@ export default async function ClassesPage({ searchParams }: {
         classInfo: classInfo ? { ...classInfo, package_eligible: PACKAGES_ENABLED ? classInfo.package_eligible : undefined } : undefined,
         booking: current.bookings.get(session.id), known: current.known,
         authenticated: Boolean(user), requested: requestedSessionId === session.id,
+        packageCredit,
       })
     })
     .sort((a, b) => (a.startsAt ?? '').localeCompare(b.startsAt ?? ''))
@@ -125,26 +140,35 @@ export default async function ClassesPage({ searchParams }: {
           </nav>
         )}
 
+        {packageSummary?.active && <BalanceBar purchase={packageSummary.active} locale={locale} t={t} />}
+
         {showPackagesView ? (
-          <PackagesGrid
-            packages={packages}
-            locale={locale}
-            isLoggedIn={Boolean(user)}
-            loginHref={loginHref}
-            emptyLabel={t.classes.packages.empty}
-            copy={{
-              sessionsLabel: t.classes.packages.sessionsLabel,
-              perSessionLabel: t.classes.packages.perSessionLabel,
-              savings: t.classes.packages.savings,
-              validity: t.classes.packages.validity,
-              buy: t.classes.packages.buy,
-              loginToBuy: t.classes.packages.loginToBuy,
-            }}
-          />
-        ) : !classes || classes.length === 0 ? (
-          <div className="rounded-[1.75rem] bg-[#C7D6E8]/55 p-8 text-[#4f5d49]">{t.classes.noClasses}</div>
+          <>
+            {packageSummary && <MyPackagesPanel summary={packageSummary} locale={locale} t={t} />}
+            <PackagesGrid
+              packages={packages}
+              locale={locale}
+              isLoggedIn={Boolean(user)}
+              loginHref={loginHref}
+              emptyLabel={t.classes.packages.empty}
+              copy={{
+                sessionsLabel: t.classes.packages.sessionsLabel,
+                perSessionLabel: t.classes.packages.perSessionLabel,
+                savings: t.classes.packages.savings,
+                validity: t.classes.packages.validity,
+                buy: t.classes.packages.buy,
+                loginToBuy: t.classes.packages.loginToBuy,
+              }}
+            />
+          </>
         ) : (
-          <ClassesGrid sessions={cards} allLabel={t.classes.allFilter} emptyLabel={t.classes.noUpcoming} filterLabel={t.classes.filterLabel} />
+          <div id="sessions-list">
+            {!classes || classes.length === 0 ? (
+              <div className="rounded-[1.75rem] bg-[#C7D6E8]/55 p-8 text-[#4f5d49]">{t.classes.noClasses}</div>
+            ) : (
+              <ClassesGrid sessions={cards} allLabel={t.classes.allFilter} emptyLabel={t.classes.noUpcoming} filterLabel={t.classes.filterLabel} />
+            )}
+          </div>
         )}
       </section>
     </div>

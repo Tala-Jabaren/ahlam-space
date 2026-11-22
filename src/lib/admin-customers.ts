@@ -21,6 +21,8 @@ export type GuestBuyerRow = {
   last_order_at: string | null
 }
 
+export type RegisteredCustomerAccount = CustomerRow & { account_disabled: boolean }
+
 export type CustomerOrderItem = {
   product_name: string
   variant_label: string | null
@@ -120,10 +122,10 @@ function paginate<T>(rows: T[], page: number, pageSize: number): { rows: T[]; to
 export async function getCustomers(
   supabase: SupabaseClient,
   query: CustomerQuery = {}
-): Promise<{ rows: CustomerRow[]; total: number }> {
+): Promise<{ rows: RegisteredCustomerAccount[]; total: number }> {
   const { q = '', sort = 'registered_desc', page = 1, pageSize = DEFAULT_PAGE_SIZE } = query
 
-  const { data, error } = await supabase.rpc('admin_list_customers')
+  const { data, error } = await supabase.rpc('admin_list_customer_accounts')
 
   if (error) throw error
 
@@ -132,7 +134,7 @@ export async function getCustomers(
   // way, see src/lib/supabase/admin.ts), postgrest-js's .rpc().returns<T[]>()
   // overload resolves to its "single object" error-type branch instead of
   // the array branch. A plain cast after the error check sidesteps that.
-  const rows = (data ?? []) as CustomerRow[]
+  const rows = (data ?? []) as RegisteredCustomerAccount[]
 
   const filtered = rows.filter((row) =>
     matches(q, row.full_name, row.email, row.phone)
@@ -176,6 +178,12 @@ export async function getCustomerDetail(
   // isn't in public.profiles - supabase-js surfaces that as data: null with
   // no error, which is exactly the "not found" case this returns null for.
   return (data ?? null) as CustomerDetail | null
+}
+
+export async function getCustomerAccountState(supabase: SupabaseClient, userId: string) {
+  const { data, error } = await supabase.rpc('admin_get_customer_account_state', { p_user_id: userId })
+  if (error) throw error
+  return data === 'active' || data === 'disabled' ? data : null
 }
 
 export async function getGuestDetail(

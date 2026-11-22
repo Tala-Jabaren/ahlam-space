@@ -5,6 +5,7 @@ import { getAdminSession } from '@/components/admin/admin-session'
 import AdminDeleteButton from '@/components/admin/admin-delete-button'
 import Link from 'next/link'
 import AdminRpcButton from '@/components/admin/admin-rpc-button'
+import AdminCancelBookingButton from '@/components/admin/admin-cancel-booking-button'
 import { createAdminClient } from '@/lib/supabase/admin'
 
 type PaymentKind = 'booking' | 'course' | 'order'
@@ -26,6 +27,11 @@ type PaymentRow = {
   createdAt: string | null
   status: string
   isPaid: boolean
+  // Booking rows only, and only when includePackageInfo is on (see
+  // BookingRow above) - drive the admin cancel button's dialog wording
+  // and whether it shows at all.
+  isCancelled?: boolean
+  packagePurchaseId?: string | null
 }
 
 type BookingRow = {
@@ -33,6 +39,11 @@ type BookingRow = {
   user_id: string
   created_at: string | null
   payment_status: string
+  // Only requested (and only ever non-undefined) when includePackageInfo
+  // is passed - the column may not exist in the database yet otherwise
+  // (see supabase/package-booking.sql's header).
+  status?: string
+  package_purchase_id?: string | null
   class_sessions: {
     classes: { name: string; price: number } | null
   } | null
@@ -93,18 +104,27 @@ function formatDate(value: string | null) {
 }
 
 function statusLabel(status: string, isPaid: boolean) {
+  // A cancelled-but-paid regular booking (never auto-refunded) needs both
+  // halves shown, not just one - everywhere else "cancelled" and "paid"
+  // are already mutually exclusive values of the same status column, so
+  // this compound case is unreachable for course/order.
+  if (status === 'cancelled') return isPaid ? 'ملغي · مدفوع' : 'ملغي'
   if (isPaid) return 'مدفوع'
-  if (status === 'cancelled') return 'ملغي'
   return 'بانتظار الدفع'
 }
 
-export default async function DomainPayments({ kind, filter, selectedId, heading, showOwnBadge = false }: {
+export default async function DomainPayments({ kind, filter, selectedId, heading, showOwnBadge = false, includePackageInfo = false }: {
   kind: PaymentKind; filter?: string; selectedId?: string
   // Both optional and unused by the course/shop call sites, which keep
   // their exact current output - only /admin/classes passes these, where
   // this block now shares its tab with PackagePayments and needs its own
   // label/count to tell the two apart.
   heading?: string; showOwnBadge?: boolean
+  // Only /admin/classes passes this, and only once PACKAGES_ENABLED is on -
+  // gates whether the booking query's column list includes status/
+  // package_purchase_id at all (see BookingRow's own note). course/shop
+  // never pass it, so their query/output stay byte-for-byte unchanged.
+  includePackageInfo?: boolean
 }) {
   await getAdminSession()
   const { available } = await getAdminNotificationCounts()
@@ -113,14 +133,15 @@ export default async function DomainPayments({ kind, filter, selectedId, heading
   const activeFilter: PaymentFilter = filter === 'paid' || filter === 'all' ? filter : 'unpaid'
   const sectionHref = kind === 'booking' ? '/admin/classes' : kind === 'course' ? '/admin/courses' : '/admin/products'
 
+  const bookingColumns = 'id, user_id, created_at, payment_status, class_sessions(classes(name, price))'
+    + (includePackageInfo ? ', status, package_purchase_id' : '')
+
   const admin = createAdminClient()
   const [bookingsResult, coursesResult, ordersResult, referencesResult] =
     await Promise.all([
       admin
         .from('bookings')
-        .select(
-          'id, user_id, created_at, payment_status, class_sessions(classes(name, price))'
-        )
+        .select(bookingColumns)
         .order('created_at', { ascending: false })
         .match(selectedId && activeTab === 'booking' ? { id: selectedId } : {})
         .returns<BookingRow[]>(),
@@ -202,8 +223,13 @@ export default async function DomainPayments({ kind, filter, selectedId, heading
       amount: booking.class_sessions?.classes?.price ?? 0,
       reference: bookingReferences.get(booking.id) || booking.id,
       createdAt: booking.created_at,
-      status: booking.payment_status,
+      // `status` here is intentionally the real lifecycle column (when
+      // requested) so a cancelled booking's chip is correct - not
+      // payment_status, which can never equal 'cancelled'.
+      status: includePackageInfo && booking.status === 'cancelled' ? 'cancelled' : booking.payment_status,
       isPaid: booking.payment_status === 'paid',
+      isCancelled: includePackageInfo ? booking.status === 'cancelled' : false,
+      packagePurchaseId: booking.package_purchase_id,
     })),
     course: (coursesResult.data ?? []).map((purchase) => ({
       id: purchase.id,
@@ -335,6 +361,13 @@ export default async function DomainPayments({ kind, filter, selectedId, heading
                   successMessage="تم تأكيد الدفع بنجاح."
                   disabled={row.isPaid || row.status === 'cancelled'}
                 />
+                {row.kind === 'booking' && includePackageInfo && !row.isCancelled && (
+                  <AdminCancelBookingButton
+                    bookingId={row.id}
+                    isPackageBooking={Boolean(row.packagePurchaseId)}
+                    isPaidRegular={!row.packagePurchaseId && row.isPaid}
+                  />
+                )}
                 <div className="ms-auto border-s border-[#617A55]/15 ps-4"><AdminDeleteButton kind={row.kind === 'course' ? 'course_purchase' : row.kind} id={row.id} label={`${row.item} / ${row.customer.name}`} /></div>
                 </div>
               </div>

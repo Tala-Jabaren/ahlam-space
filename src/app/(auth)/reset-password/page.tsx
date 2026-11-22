@@ -32,6 +32,32 @@ export default function ResetPasswordPage() {
     setLoading(true)
     try {
       const supabase = createClient()
+      // Admin invitations return an implicit session in the URL fragment.
+      // Password recovery continues through the existing PKCE flow.
+      const url = new URL(window.location.href)
+      const invite = new URLSearchParams(url.hash.slice(1))
+      const isInvite = invite.get('type') === 'invite'
+      if (isInvite || url.searchParams.get('invite') === '1') {
+        const accessToken = invite.get('access_token')
+        const refreshToken = invite.get('refresh_token')
+        if (!isInvite || !accessToken || !refreshToken) {
+          setError({ code: 'session_not_found' })
+          setLoading(false)
+          return
+        }
+        const { data, error: inviteError } = await supabase.auth.setSession({
+          access_token: accessToken,
+          refresh_token: refreshToken,
+        })
+        if (inviteError || !data.session) {
+          setError(inviteError ?? { code: 'session_not_found' })
+          setLoading(false)
+          return
+        }
+        url.searchParams.delete('invite')
+        window.history.replaceState(window.history.state, '', url.pathname + url.search)
+      }
+
       const { error } = await supabase.auth.updateUser({ password })
 
       setLoading(false)

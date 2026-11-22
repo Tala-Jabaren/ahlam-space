@@ -5,8 +5,8 @@ import Link from 'next/link'
 import NotificationBadge from '@/components/admin/notifications/notification-badge'
 import type { AdminNotificationCounts } from '@/lib/admin-notification-links'
 import { usePathname } from 'next/navigation'
-import { ArrowUpRight, BookOpen, CalendarDays, Compass, Flower2, House, LogOut, MoreHorizontal, MessageSquare, Package, ShoppingBag, Users, WalletCards, X, type LucideIcon } from 'lucide-react'
-import { adminNavGroups, adminNavItems, type AdminNavIcon } from '@/app/(admin)/admin/admin-nav'
+import { ArrowUpRight, BookOpen, CalendarDays, Compass, Flower2, House, LogOut, MoreHorizontal, MessageSquare, Package, ShieldCheck, ShoppingBag, Users, WalletCards, X, type LucideIcon } from 'lucide-react'
+import { adminNavGroups, adminNavItems, type AdminNavIcon, type AdminNavItem } from '@/app/(admin)/admin/admin-nav'
 import LogoutButton from '@/app/(member)/dashboard/logout-button'
 import { dirFor, type Locale } from '@/i18n/config'
 import { adminSidebarCopy } from '@/i18n/admin-sidebar'
@@ -19,7 +19,7 @@ const titleId = 'admin-sidebar-drawer-title'
 const icons: Record<AdminNavIcon, LucideIcon> = {
   home: House, calendar: CalendarDays, flower: Flower2, book: BookOpen,
   compass: Compass, shop: ShoppingBag, package: Package, wallet: WalletCards,
-  users: Users, reviews: MessageSquare,
+  users: Users, reviews: MessageSquare, shield: ShieldCheck,
 }
 
 function revealCurrentLink(container: HTMLElement) {
@@ -32,17 +32,16 @@ function revealCurrentLink(container: HTMLElement) {
   else if (item.bottom > area.bottom - 4) container.scrollTop += item.bottom - area.bottom + 4
 }
 
-function SidebarPanel({ locale, pathname, name, notificationCounts, onNavigate, closeButton, moreOnly = false }: {
+function SidebarPanel({ locale, pathname, name, notificationCounts, onNavigate, closeButton, navigationItems }: {
   locale: Locale
   pathname: string
   name: string
   notificationCounts: AdminNotificationCounts
   onNavigate: () => void
   closeButton?: React.ReactNode
-  moreOnly?: boolean
+  navigationItems: readonly AdminNavItem[]
 }) {
   const copy = adminSidebarCopy[locale]
-  const navigationItems = moreOnly ? adminNavItems.filter(item => !item.mobilePrimary) : adminNavItems
   const navigation = useRef<HTMLElement>(null)
   const initials = name.split(/\s+/u).slice(0, 2).map(part => Array.from(part)[0]).join('').toLocaleUpperCase(locale)
 
@@ -103,7 +102,12 @@ function SidebarPanel({ locale, pathname, name, notificationCounts, onNavigate, 
   </>
 }
 
-export default function AdminSidebar({ locale, notificationCounts, children }: { locale: Locale; notificationCounts: AdminNotificationCounts; children: React.ReactNode }) {
+export default function AdminSidebar({ locale, notificationCounts, isPrimaryAdmin, children }: {
+  locale: Locale
+  notificationCounts: AdminNotificationCounts
+  isPrimaryAdmin: boolean
+  children: React.ReactNode
+}) {
   const pathname = usePathname()
   const copy = adminSidebarCopy[locale]
   const dir = dirFor(locale)
@@ -115,8 +119,9 @@ export default function AdminSidebar({ locale, notificationCounts, children }: {
   const dialog = useRef<HTMLDialogElement>(null)
   const closeControl = useRef<HTMLButtonElement>(null)
   const displayName = adminName || copy.administrator
-  const primaryItems = adminNavItems.filter(item => item.mobilePrimary)
-  const moreItems = adminNavItems.filter(item => !item.mobilePrimary)
+  const visibleItems = adminNavItems.filter(item => !item.primaryAdminOnly || isPrimaryAdmin)
+  const primaryItems = visibleItems.filter(item => item.mobilePrimary)
+  const moreItems = visibleItems.filter(item => !item.mobilePrimary)
   const moreActive = moreItems.some(item => pathname === item.href || pathname.startsWith(`${item.href}/`))
   const moreCount = moreItems.reduce((sum, item) => sum + (item.notificationKind ? notificationCounts[item.notificationKind] : 0), 0)
 
@@ -170,7 +175,7 @@ export default function AdminSidebar({ locale, notificationCounts, children }: {
 
   return <div className={styles.shell} dir={dir}>
     <aside className={styles.desktopSidebar}>
-      <SidebarPanel locale={locale} pathname={pathname} name={displayName} notificationCounts={notificationCounts} onNavigate={close} />
+      <SidebarPanel locale={locale} pathname={pathname} name={displayName} notificationCounts={notificationCounts} onNavigate={close} navigationItems={visibleItems} />
     </aside>
     <header className={styles.topbar}>
       <Link href="/admin" className={styles.topbarBrand}>
@@ -210,7 +215,7 @@ export default function AdminSidebar({ locale, notificationCounts, children }: {
         else if (!event.shiftKey && document.activeElement === last) { event.preventDefault(); first?.focus() }
       }}>
       <h2 id={titleId} className="sr-only">{copy.navigation}</h2>
-      <SidebarPanel locale={locale} pathname={pathname} name={displayName} notificationCounts={notificationCounts} onNavigate={close} moreOnly closeButton={
+      <SidebarPanel locale={locale} pathname={pathname} name={displayName} notificationCounts={notificationCounts} onNavigate={close} navigationItems={moreItems} closeButton={
         <button ref={closeControl} type="button" className={styles.iconButton} aria-label={copy.closeMore} onClick={close}>
           <X size={22} aria-hidden="true" />
         </button>

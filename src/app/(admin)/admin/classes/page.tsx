@@ -6,7 +6,7 @@ import PackagePayments from '@/components/admin/sections/package-payments'
 import { PACKAGES_ENABLED } from '@/lib/feature-flags'
 
 export default async function AdminClassesPage({ searchParams }: {
-  searchParams: Promise<{ tab?: string; classId?: string; new?: string; filter?: string; pfilter?: string; item?: string }>
+  searchParams: Promise<{ tab?: string; classId?: string; new?: string; filter?: string; pfilter?: string; item?: string; date?: string; status?: string }>
 }) {
   const params = await searchParams
   const tab =
@@ -24,6 +24,7 @@ export default async function AdminClassesPage({ searchParams }: {
           selectedId={params.item}
           heading={PACKAGES_ENABLED ? 'دفعات الحجوزات' : undefined}
           showOwnBadge={PACKAGES_ENABLED}
+          includePackageInfo={PACKAGES_ENABLED}
         />
         {PACKAGES_ENABLED && <PackagePayments filter={params.pfilter} selectedId={params.item} />}
       </div>

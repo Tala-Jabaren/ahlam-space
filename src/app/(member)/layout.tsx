@@ -2,7 +2,7 @@ import Link from 'next/link'
 import FloatingWhatsApp from '@/components/contact/floating-whatsapp'
 import { WHATSAPP_URL } from '@/content/site-contact'
 import { redirect } from 'next/navigation'
-import { ArrowUpRight, BookOpen, CalendarDays, Compass, ShoppingBag, Ticket, UserRound } from 'lucide-react'
+import { ArrowUpRight, BookOpen, CalendarDays, Compass, ShieldCheck, ShoppingBag, Ticket, UserRound } from 'lucide-react'
 import { createClient } from '@/lib/supabase/server'
 import LogoutButton from './dashboard/logout-button'
 import MemberNavLink from './member-nav-link'
@@ -24,6 +24,12 @@ const navItems = [
   { href: memberRoutes.shop, label: 'المتجر', icon: <ShoppingBag strokeWidth={1.5} /> },
   { href: '/account', label: 'حسابي', icon: <UserRound strokeWidth={1.5} /> },
 ]
+
+const adminNavItem = {
+  href: '/admin',
+  label: 'لوحة الإدارة',
+  icon: <ShieldCheck strokeWidth={1.5} />,
+}
 
 export default async function MemberLayout({
   children,
@@ -49,11 +55,12 @@ export default async function MemberLayout({
 
   const { data: profile } = await supabase
     .from('profiles')
-    .select('full_name')
+    .select('full_name, role')
     .eq('id', user.id)
     .maybeSingle()
 
   const fullName = profile?.full_name?.trim() || user.email || 'عضوة'
+  const isAdmin = profile?.role === 'admin'
   const { t, locale } = await getT()
 
   return (
@@ -80,6 +87,7 @@ export default async function MemberLayout({
               {...item}
             />
           ))}
+          {isAdmin && <MemberNavLink {...adminNavItem} />}
         </nav>
 
         <div className="mt-auto border-t border-[#617A55]/15 pt-5">
@@ -115,7 +123,7 @@ export default async function MemberLayout({
       </div>
 
       <nav
-        className="fixed inset-x-0 bottom-0 z-50 grid grid-cols-6 border-t border-[#617A55]/15 bg-[#F7F6F0]/95 px-1 pb-[max(0.5rem,env(safe-area-inset-bottom))] pt-2 backdrop-blur md:hidden"
+        className={`fixed inset-x-0 bottom-0 z-50 grid ${isAdmin ? 'grid-cols-7' : 'grid-cols-6'} border-t border-[#617A55]/15 bg-[#F7F6F0]/95 px-1 pb-[max(0.5rem,env(safe-area-inset-bottom))] pt-2 backdrop-blur md:hidden`}
         aria-label="تنقل الجوال"
       >
         {navItems.map((item) => (
@@ -125,6 +133,7 @@ export default async function MemberLayout({
             mobile
           />
         ))}
+        {isAdmin && <MemberNavLink {...adminNavItem} label="الإدارة" mobile />}
       </nav>
       <CartBottomBar member />
       <FloatingWhatsApp href={WHATSAPP_URL} member />

@@ -1,6 +1,6 @@
 import { getAdminNotificationCounts } from '@/components/admin/notifications/notification-data'
 import AdminSidebar from '@/components/admin/sidebar/admin-sidebar'
-import { getAdminSession } from '@/components/admin/admin-session'
+import { hasPrimaryAdminAccess } from '@/components/admin/admin-session'
 import { getLocale } from '@/i18n/get-locale'
 
 export default async function AdminLayout({
@@ -8,9 +8,9 @@ export default async function AdminLayout({
 }: {
   children: React.ReactNode
 }) {
-  await getAdminSession()
+  const isPrimaryAdmin = await hasPrimaryAdminAccess()
   const locale = await getLocale()
   const { counts } = await getAdminNotificationCounts()
 
-  return <AdminSidebar locale={locale} notificationCounts={counts}>{children}</AdminSidebar>
+  return <AdminSidebar locale={locale} notificationCounts={counts} isPrimaryAdmin={isPrimaryAdmin}>{children}</AdminSidebar>
 }

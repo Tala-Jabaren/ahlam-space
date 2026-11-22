@@ -10,7 +10,7 @@ export const adminNavGroups = [
 ] as const
 
 export type AdminNavGroup = (typeof adminNavGroups)[number]['id']
-export type AdminNavIcon = 'home' | 'calendar' | 'flower' | 'book' | 'compass' | 'shop' | 'package' | 'wallet' | 'users' | 'reviews'
+export type AdminNavIcon = 'home' | 'calendar' | 'flower' | 'book' | 'compass' | 'shop' | 'package' | 'wallet' | 'users' | 'reviews' | 'shield'
 export type AdminNavItem = {
   label: Record<Locale, string>
   href: string
@@ -18,10 +18,12 @@ export type AdminNavItem = {
   group: AdminNavGroup
   mobilePrimary?: boolean
   notificationKind?: AdminNotificationKind
+  primaryAdminOnly?: boolean
 }
 
 export const adminNavItems: readonly AdminNavItem[] = [
   { href: '/admin', label: { ar: 'الرئيسية', en: 'Home' }, icon: 'home', group: 'overview', mobilePrimary: true },
+  { href: '/admin/administrators', label: { ar: 'إدارة المدراء', en: 'Manage admins' }, icon: 'shield', group: 'overview', primaryAdminOnly: true },
   { href: '/admin/classes', label: { ar: 'الحصص', en: 'Classes' }, icon: 'calendar', group: 'programs', mobilePrimary: true, notificationKind: 'booking' },
   { href: '/admin/requests', label: { ar: 'الجلسات الفردية', en: 'Private sessions' }, icon: 'flower', group: 'programs', notificationKind: 'session_request' },
   { href: '/admin/courses', label: { ar: 'المحاضرات والتأملات', en: 'Lectures & meditations' }, icon: 'book', group: 'programs', notificationKind: 'course_purchase' },

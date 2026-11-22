@@ -17,3 +17,9 @@ export const getAdminSession = cache(async () => {
   if (profileError || profile?.role !== 'admin') redirect('/login')
   return supabase
 })
+
+export const hasPrimaryAdminAccess = cache(async () => {
+  const supabase = await getAdminSession()
+  const { data, error } = await supabase.rpc('is_primary_admin')
+  return !error && data === true
+})

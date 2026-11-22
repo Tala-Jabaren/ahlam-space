@@ -31,8 +31,8 @@ function Status({ value }: { value: string }) {
   return <span className={`inline-block rounded-full px-3 py-1 text-xs font-medium text-[#617A55] ${paid ? 'bg-[#D6E2B6]' : 'bg-[#C7D6E8]/40'}`}>{labels[value] ?? 'حالة غير معروفة'}</span>
 }
 
-function Info({ label, children }: { label: string; children: ReactNode }) {
-  return <div className="min-w-0"><dt className="text-xs text-[#617A55]">{label}</dt><dd className="mt-1 break-words text-sm"><bdi>{children || '-'}</bdi></dd></div>
+function Info({ label, children, className = '' }: { label: string; children: ReactNode; className?: string }) {
+  return <div className={`min-w-0 ${className}`}><dt className="text-xs text-[#617A55]">{label}</dt><dd className="mt-1 text-sm [overflow-wrap:anywhere]"><bdi>{children || '-'}</bdi></dd></div>
 }
 
 function Section({ title, empty, children }: { title: string; empty: boolean; children: ReactNode }) {
@@ -42,9 +42,10 @@ function Section({ title, empty, children }: { title: string; empty: boolean; ch
   </section>
 }
 
-export default function CustomerDetailView({ detail, backHref }: {
+export default function CustomerDetailView({ detail, backHref, accountControls }: {
   detail: CustomerDetail | GuestDetail
   backHref: string
+  accountControls?: ReactNode
 }) {
   const profile = 'profile' in detail ? detail.profile : null
   const guest = 'guest' in detail ? detail.guest : null
@@ -63,11 +64,16 @@ export default function CustomerDetailView({ detail, backHref }: {
     <header className="rounded-lg border border-[#617A55]/15 bg-white p-5 sm:p-6">
       <p className="mb-2 text-xs text-[#617A55]">{profile ? 'زبون مسجّل' : 'زبون بدون حساب'}</p>
       <h1 className="break-words text-2xl font-medium text-[#617A55] sm:text-3xl">{name}</h1>
-      <dl className="mt-6 grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4">
-        <Info label="البريد الإلكتروني">{profile?.email ?? guest?.guest_email}</Info>
+      <dl className={`mt-6 grid gap-5 ${profile ? 'grid-cols-2 lg:grid-cols-3 xl:grid-cols-5' : 'sm:grid-cols-2'}`}>
+        <Info label="البريد الإلكتروني" className={profile ? 'col-span-2 lg:col-span-1' : ''}>{profile?.email ?? guest?.guest_email}</Info>
         <Info label="رقم الهاتف">{profile?.phone ?? guest?.guest_phone}</Info>
-        {profile && <><Info label="المدينة">{profile.city}</Info><Info label="تاريخ التسجيل">{date(profile.registered_at)}</Info></>}
+        {profile && <>
+          <Info label="تاريخ التسجيل">{date(profile.registered_at)}</Info>
+          <Info label="المدينة">{profile.city}</Info>
+          <Info label="آخر طلب">{date(profile.last_order_at)}</Info>
+        </>}
       </dl>
+      {accountControls && <div className="mt-5 border-t border-[#617A55]/15 pt-4">{accountControls}</div>}
     </header>
     <dl className={`mt-6 grid grid-cols-2 gap-4 ${profile ? 'lg:grid-cols-4' : ''}`}>
       {stats.map(([label, value]) => <div key={label} className="min-w-0 border-b-2 border-[#D6E2B6] px-1 py-4">

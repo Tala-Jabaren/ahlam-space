@@ -5,6 +5,8 @@ import AdminDeleteButton from '@/components/admin/admin-delete-button'
 import { getAdminSession } from '@/components/admin/admin-session'
 import RequestStatusSelect from '@/components/admin/request-status-select'
 import { formatPreferredSlot } from '@/lib/private-session-preferences'
+import type { PrivateSessionService } from '@/lib/private-session-services'
+import ServiceEditor from './service-editor'
 
 type SessionRequest = {
   id: string
@@ -31,11 +33,44 @@ function contactNumbers(phone: string) {
   return { dial: normalized.trim().startsWith('+') ? `+${digits}` : digits, international }
 }
 
-export default async function AdminRequestsPage({ searchParams }: { searchParams: Promise<{ item?: string; status?: string }> }) {
-  const { item: selectedId, status } = await searchParams
+const tabStyle = 'inline-flex min-h-11 items-center rounded-full px-4 text-sm font-semibold focus-visible:outline-2 focus-visible:outline-[#617A55]'
+
+export default async function AdminRequestsPage({ searchParams }: { searchParams: Promise<{ item?: string; status?: string; tab?: string }> }) {
+  const { item: selectedId, status, tab } = await searchParams
+  const manageServices = tab === 'services'
+  const supabase = await getAdminSession()
+  const tabs = (
+    <nav aria-label="أقسام الجلسات الفردية" className="mt-4 flex flex-wrap gap-2">
+      <Link href="/admin/requests" aria-current={!manageServices ? 'page' : undefined} className={`${tabStyle} ${!manageServices ? 'bg-[#617A55] text-white' : 'bg-[#D6E2B6]/40 text-[#465d3d]'}`}>طلبات الحجز</Link>
+      <Link href="/admin/requests?tab=services" aria-current={manageServices ? 'page' : undefined} className={`${tabStyle} ${manageServices ? 'bg-[#617A55] text-white' : 'bg-[#D6E2B6]/40 text-[#465d3d]'}`}>إدارة الجلسات</Link>
+    </nav>
+  )
+  const heading = (
+    <header className="border-b border-[#617A55]/15 pb-5">
+      <h1 className="font-serif text-3xl text-[#617A55] sm:text-4xl">الجلسات الفردية</h1>
+      {tabs}
+    </header>
+  )
+
+  if (manageServices) {
+    const { data, error } = await supabase
+      .from('private_session_services')
+      .select('*')
+      .order('id')
+      .returns<PrivateSessionService[]>()
+
+    return (
+      <main className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
+        {heading}
+        {error ? (
+          <p role="alert" className="mt-6 rounded-lg bg-[#C7D6E8]/50 p-5 text-[#465d3d]">تعذّر تحميل الجلسات. حاولي مرة أخرى.</p>
+        ) : <ServiceEditor services={data ?? []} />}
+      </main>
+    )
+  }
+
   const onlyPending = status === 'pending'
   const { available } = await getAdminNotificationCounts()
-  const supabase = await getAdminSession()
   const { data, error } = await supabase
     .from('session_requests')
     .select('id, full_name, phone, email, message, session_type, created_at, status, preferred_slots')
@@ -45,10 +80,7 @@ export default async function AdminRequestsPage({ searchParams }: { searchParams
 
   return (
     <main className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
-      <header className="border-b border-[#617A55]/15 pb-6">
-        <h1 className="font-serif text-3xl text-[#617A55] sm:text-4xl">طلبات الجلسات الفردية</h1>
-        <p className="mt-3 leading-7 text-[#617A55]">متابعة الطلبات والتواصل مع العميلات وتحديث الحالة.</p>
-      </header>
+      {heading}
       {(selectedId || onlyPending) && <Link href="/admin/requests" className="mt-4 inline-flex min-h-11 items-center text-sm text-[#617A55] underline underline-offset-4">عرض القائمة كاملة</Link>}
       {error && <p role="alert" className="mt-6 rounded-lg bg-[#C7D6E8]/50 p-5 text-[#617A55]">تعذر تحميل طلبات الجلسات. تحققي من الاتصال وصلاحيات عرض الطلبات.</p>}
       {!error && !data?.length && <p className="mt-6 bg-[#D6E2B6]/40 p-6 text-[#617A55]">{onlyPending ? 'كل شي تمام، لا توجد طلبات جديدة.' : 'لا توجد طلبات جلسات بعد.'}</p>}

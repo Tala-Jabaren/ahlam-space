@@ -138,6 +138,7 @@ export const checkoutEn: CheckoutCopy = {
     changeEmail: 'Change email',
   },
   authErrors: {
+    accountDisabled: 'This account is disabled.',
     credentials: 'The email or password is incorrect.',
     unconfirmed: 'Confirm your email address before signing in.',
     exists: 'An account with this email already exists. Try logging in.',

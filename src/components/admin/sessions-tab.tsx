@@ -1,10 +1,10 @@
-'use client'
-
-import { useState } from 'react'
 import Link from 'next/link'
+import { ChevronLeft, ChevronRight } from 'lucide-react'
 import AdminDeleteButton from './admin-delete-button'
 import { SessionControls, type BookingContact } from './session-controls'
 import type { ClassRecord } from './catalog-editor'
+import { classCalendarHref, classCalendarMonth, type SessionFilter } from '@/lib/admin-class-calendar'
+import CalendarAddClass from './calendar-add-class'
 
 export type SessionRow = {
   id: string
@@ -25,92 +25,124 @@ const statusBadgeStyle: Record<string, string> = {
   cancelled: 'bg-[#E8C7C7]/70 text-[#8a4a4a]',
 }
 
-function weekStartOf(dateStr: string) {
-  const date = new Date(`${dateStr}T00:00:00Z`)
-  date.setUTCDate(date.getUTCDate() - date.getUTCDay())
-  return date.toISOString().slice(0, 10)
-}
 
-function weekLabel(weekStart: string, todayWeekStart: string) {
-  if (weekStart === todayWeekStart) return 'هذا الأسبوع'
-  const diffDays = Math.round((Date.parse(weekStart) - Date.parse(todayWeekStart)) / 86_400_000)
-  if (diffDays === 7) return 'الأسبوع القادم'
-  if (diffDays === -7) return 'الأسبوع الماضي'
-  const dateLabel = new Intl.DateTimeFormat('ar', { day: 'numeric', month: 'long', timeZone: 'UTC' }).format(new Date(`${weekStart}T00:00:00Z`))
-  return `أسبوع ${dateLabel}`
-}
+const weekdays = ['أحد', 'اثنين', 'ثلاثاء', 'أربعاء', 'خميس', 'جمعة', 'سبت']
+const monthFormat = new Intl.DateTimeFormat('ar', { year: 'numeric', month: 'long', timeZone: 'UTC' })
+const dayFormat = new Intl.DateTimeFormat('ar', { dateStyle: 'full', timeZone: 'UTC' })
+const number = new Intl.NumberFormat('ar')
+const monthNavStyle = 'grid size-11 flex-none place-items-center rounded-full border border-[#617A55]/25 text-[#465d3d] hover:bg-[#D6E2B6]/45 focus-visible:outline-2'
 
 function chipStyle(active: boolean) {
-  return `inline-flex min-h-11 shrink-0 items-center justify-center rounded-full px-4 text-sm font-medium transition focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#617A55] ${active ? 'bg-[#617A55] text-[#F7F6F0]' : 'border border-[#617A55]/25 text-[#617A55] hover:bg-[#D6E2B6]/50'}`
-}
-
-function toggleStyle(active: boolean) {
-  return `inline-flex min-h-9 items-center justify-center rounded-full px-4 text-sm font-semibold transition focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#617A55] ${active ? 'bg-[#617A55] text-[#F7F6F0]' : 'text-[#617A55] hover:bg-white/60'}`
+  return `inline-flex min-h-10 items-center justify-center rounded-full px-4 text-sm font-medium transition focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#617A55] ${active ? 'bg-[#617A55] text-white' : 'border border-[#617A55]/25 text-[#465d3d] hover:bg-[#D6E2B6]/50'}`
 }
 
 export default function SessionsTab({
   sessions,
+  sessionCounts,
   classes,
   attendeeCounts,
   contactsBySession,
   contactsError,
   today,
+  selectedDate,
   loadError,
-  initialClassId,
+  classId,
+  status,
+  packagesEnabled,
 }: {
   sessions: SessionRow[]
+  sessionCounts: Record<string, number>
   classes: ClassRecord[]
   attendeeCounts: Record<string, number>
   contactsBySession: Record<string, BookingContact[]>
   contactsError: boolean
   today: string
+  selectedDate: string
   loadError: boolean
-  initialClassId: string
+  classId: string
+  status: SessionFilter
+  packagesEnabled: boolean
 }) {
-  const [classId, setClassId] = useState(initialClassId)
-  const [status, setStatus] = useState<'scheduled' | 'cancelled'>('scheduled')
-
-  const filtered = sessions.filter(
-    (session) =>
-      (classId === 'all' || session.class_id === classId) &&
-      (status === 'cancelled' ? session.status === 'cancelled' : session.status !== 'cancelled')
-  )
-
-  const todayWeekStart = weekStartOf(today)
-  const groups = new Map<string, SessionRow[]>()
-  for (const session of filtered) {
-    const key = weekStartOf(session.session_date)
-    const list = groups.get(key) ?? []
-    list.push(session)
-    groups.set(key, list)
-  }
+  const month = classCalendarMonth(selectedDate)
+  const dateHref = (date: string) => classCalendarHref(date, classId, status)
+  const filterHref = (filterClassId: string, filterStatus: SessionFilter) => classCalendarHref(selectedDate, filterClassId, filterStatus)
+  const statusOptions = [
+    ['all', 'كل الحالات'],
+    ['active', 'مجدولة ومكتملة'],
+    ['cancelled', 'ملغاة'],
+  ] as const
 
   return (
-    <div className="mt-6">
-
-      <div className="mt-2 flex flex-wrap items-center justify-between gap-4">
+    <div>
+      <div className="flex flex-wrap items-start justify-between gap-4">
         <div className="flex flex-wrap gap-2" role="group" aria-label="تصفية حسب الحصة">
-          <button type="button" onClick={() => setClassId('all')} className={chipStyle(classId === 'all')}>كل الحصص</button>
+          <Link href={filterHref('all', status)} prefetch={false} scroll={false} aria-current={classId === 'all' ? 'true' : undefined} className={chipStyle(classId === 'all')}>كل الحصص</Link>
           {classes.map((item) => (
-            <button key={item.id} type="button" onClick={() => setClassId(item.id)} className={chipStyle(classId === item.id)}>{item.name}</button>
+            <Link key={item.id} href={filterHref(item.id, status)} prefetch={false} scroll={false} aria-current={classId === item.id ? 'true' : undefined} className={chipStyle(classId === item.id)}>{item.name}</Link>
           ))}
         </div>
-        <div className="inline-flex shrink-0 rounded-full bg-[#D6E2B6]/40 p-1" role="group" aria-label="حالة المواعيد">
-          <button type="button" onClick={() => setStatus('scheduled')} className={toggleStyle(status === 'scheduled')}>مجدولة</button>
-          <button type="button" onClick={() => setStatus('cancelled')} className={toggleStyle(status === 'cancelled')}>ملغاة</button>
+        <div className="flex flex-wrap gap-2" role="group" aria-label="حالة المواعيد">
+          {statusOptions.map(([value, label]) => (
+            <Link key={value} href={filterHref(classId, value)} prefetch={false} scroll={false} aria-current={status === value ? 'true' : undefined} className={chipStyle(status === value)}>{label}</Link>
+          ))}
         </div>
       </div>
 
-      {loadError ? (
-        <p role="alert" className="mt-6 rounded-lg bg-[#C7D6E8]/50 p-5">تعذر تحميل المواعيد. تحققي من الاتصال وصلاحيات العرض.</p>
-      ) : groups.size === 0 ? (
-        <p className="mt-6 rounded-lg bg-[#D6E2B6]/40 p-5">{status === 'cancelled' ? 'لا توجد مواعيد ملغاة.' : 'لا توجد مواعيد ضمن هذه الفترة.'}</p>
-      ) : (
-        [...groups.entries()].map(([weekStart, items]) => (
-          <section key={weekStart} className="mt-8">
-            <h2 className="mb-3 text-xs font-semibold uppercase tracking-wide text-[#617A55]/70">{weekLabel(weekStart, todayWeekStart)}</h2>
-            <div className="grid gap-4 lg:grid-cols-2">
-              {items.map((session) => (
+      <div className="mt-5 grid items-start gap-6 xl:grid-cols-[minmax(19rem,1fr)_minmax(0,1.35fr)]">
+        <section aria-label="تقويم الحصص" className="min-w-0 rounded-xl border border-[#617A55]/15 bg-white p-3 sm:p-5">
+          <div className="mb-3 flex items-center justify-between gap-2">
+            {month.previous ? (
+              <Link aria-label="الشهر السابق" href={dateHref(month.previous)} prefetch={false} scroll={false} className={monthNavStyle}>
+                <ChevronRight size={18} aria-hidden="true" className="ltr:rotate-180" />
+              </Link>
+            ) : <span className="size-11" aria-hidden="true" />}
+            <h2 className="text-center text-lg text-[#465d3d]">{monthFormat.format(new Date(`${month.start}T00:00:00Z`))}</h2>
+            {month.next ? (
+              <Link aria-label="الشهر التالي" href={dateHref(month.next)} prefetch={false} scroll={false} className={monthNavStyle}>
+                <ChevronLeft size={18} aria-hidden="true" className="ltr:rotate-180" />
+              </Link>
+            ) : <span className="size-11" aria-hidden="true" />}
+          </div>
+          <div className="grid grid-cols-7 gap-0.5 text-center sm:gap-1">
+            {weekdays.map((day) => <span key={day} className="py-2 text-[10px] font-semibold text-[#465d3d] sm:text-xs">{day}</span>)}
+            {Array.from({ length: month.firstWeekday }, (_, index) => <span key={`blank-${index}`} aria-hidden="true" />)}
+            {Array.from({ length: Number(month.end.slice(8)) }, (_, index) => {
+              const day = index + 1
+              const date = `${month.start.slice(0, 7)}-${String(day).padStart(2, '0')}`
+              const count = sessionCounts[date] ?? 0
+              const selected = date === selectedDate
+              const label = dayFormat.format(new Date(`${date}T00:00:00Z`))
+              const style = selected ? 'bg-[#465d3d] text-white' : count ? 'bg-[#D6E2B6]/50 text-[#25311f] hover:bg-[#D6E2B6]' : 'text-[#465d3d] hover:bg-[#F7F6F0]'
+              return (
+                <Link
+                  key={date}
+                  href={dateHref(date) + '#calendar-day'}
+                  prefetch={false}
+                  aria-current={selected ? 'date' : undefined}
+                  aria-label={`${label}${count ? `، عدد الحصص ${number.format(count)}` : ''}`}
+                  className={`flex min-h-11 min-w-0 flex-col items-center justify-center rounded-lg text-sm font-semibold focus-visible:outline-2 ${style} ${date === today && !selected ? 'ring-1 ring-inset ring-[#617A55]' : ''}`}
+                >
+                  {number.format(day)}
+                  {count > 0 && <span aria-hidden="true" className={`rounded-full px-1 text-[10px] leading-4 ${selected ? 'bg-white/20' : 'bg-[#D6E2B6]'}`}>{number.format(count)}</span>}
+                </Link>
+              )
+            })}
+          </div>
+          <div className="mt-3 border-t border-[#617A55]/15 pt-2">
+            <Link href={dateHref(today)} prefetch={false} scroll={false} className="inline-flex min-h-10 items-center rounded-lg px-2 text-sm font-semibold text-[#465d3d] hover:bg-[#D6E2B6]/40 focus-visible:outline-2">العودة إلى اليوم</Link>
+          </div>
+        </section>
+
+        <section id="calendar-day" className="min-w-0 scroll-mt-24">
+          <h2 className="mb-3 text-lg text-[#465d3d]">{dayFormat.format(new Date(`${selectedDate}T00:00:00Z`))}</h2>
+          <CalendarAddClass key={`${selectedDate}-${classId}`} date={selectedDate} today={today} classes={classes} classId={classId} packagesEnabled={packagesEnabled} />
+          {loadError ? (
+            <p role="alert" className="rounded-lg bg-[#C7D6E8]/50 p-5">تعذر تحميل المواعيد. تحققي من الاتصال وصلاحيات العرض.</p>
+          ) : sessions.length === 0 ? (
+            <p className="rounded-lg bg-[#D6E2B6]/40 p-5 text-sm">لا توجد حصص مطابقة في هذا اليوم.</p>
+          ) : (
+            <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-1 2xl:grid-cols-2">
+              {sessions.map((session) => (
                 <SessionCard
                   key={session.id}
                   session={session}
@@ -120,9 +152,9 @@ export default function SessionsTab({
                 />
               ))}
             </div>
-          </section>
-        ))
-      )}
+          )}
+        </section>
+      </div>
     </div>
   )
 }
@@ -167,7 +199,7 @@ function SessionCard({
         href={`/admin/classes/${session.class_id}/sessions/${session.id}/attendees`}
         className="mt-4 inline-flex min-h-11 shrink-0 items-center justify-center rounded-full bg-[#617A55] px-4 text-sm font-semibold text-white transition hover:bg-[#617A55]/85"
       >
-        المسجلات ({attendeeCount ?? '—'})
+        التفاصيل والمسجّلات ({attendeeCount ?? '—'})
       </Link>
 
       <SessionControls session={session} contacts={contacts} contactsError={contactsError} />

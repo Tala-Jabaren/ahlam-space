@@ -9,6 +9,7 @@ import {
   type AttendeeRow,
   type AttendeeState,
 } from '@/lib/admin-session-attendees'
+import AdminCancelBookingButton from '@/components/admin/admin-cancel-booking-button'
 
 const STATE_LABELS: Record<AttendeeState, string> = {
   paid: 'مدفوع',
@@ -21,6 +22,14 @@ const STATE_BADGE_STYLE: Record<AttendeeState, string> = {
   pending: 'bg-[#C7D6E8]/70 text-[#3a5068]',
   cancelled: 'bg-[#E8C7C7]/70 text-[#8a4a4a]',
   expired: 'bg-[#617A55]/15 text-[#617A55]/80',
+}
+
+// A cancelled booking that was also paid (regular, never refunded
+// automatically) gets a compound label so Ahlam can spot it needs a
+// refund conversation - STATE_LABELS alone can't say "both".
+function stateLabel(row: AttendeeRow, state: AttendeeState) {
+  if (state === 'cancelled' && row.payment_status === 'paid') return 'ملغى · مدفوع'
+  return STATE_LABELS[state]
 }
 
 // mailto: URLs get silently truncated or rejected by some mail clients
@@ -164,6 +173,7 @@ export default function AttendeesClient({
                   <th className="px-4 py-3 text-start font-semibold">الحالة</th>
                   <th className="px-4 py-3 text-start font-semibold">تاريخ التسجيل</th>
                   <th className="px-4 py-3 text-start font-semibold">تواصل</th>
+                  <th className="px-4 py-3 text-start font-semibold">إجراءات</th>
                 </tr>
               </thead>
               <tbody>
@@ -224,11 +234,20 @@ function AttendeeRowCells({ row }: { row: AttendeeRow }) {
       <td className="px-4 py-3 font-mono text-xs" dir="ltr">{row.reference ?? '-'}</td>
       <td className="px-4 py-3">
         <span className={`inline-flex items-center rounded-full px-2.5 py-1 text-xs font-semibold ${STATE_BADGE_STYLE[state]}`}>
-          {STATE_LABELS[state]}
+          {stateLabel(row, state)}
         </span>
       </td>
       <td className="px-4 py-3 text-xs text-[#617A55]/80">{formatDateTime(row.created_at)}</td>
       <td className="px-4 py-3"><ContactActions row={row} /></td>
+      <td className="px-4 py-3">
+        {state !== 'cancelled' && (
+          <AdminCancelBookingButton
+            bookingId={row.booking_id}
+            isPackageBooking={Boolean(row.package_purchase_id)}
+            isPaidRegular={!row.package_purchase_id && row.payment_status === 'paid'}
+          />
+        )}
+      </td>
     </tr>
   )
 }
@@ -240,7 +259,7 @@ function AttendeeCard({ row }: { row: AttendeeRow }) {
       <div className="flex items-center justify-between gap-2">
         <p className="font-semibold">{row.full_name ?? 'بدون اسم'}</p>
         <span className={`inline-flex items-center rounded-full px-2.5 py-1 text-xs font-semibold ${STATE_BADGE_STYLE[state]}`}>
-          {STATE_LABELS[state]}
+          {stateLabel(row, state)}
         </span>
       </div>
       <dl className="mt-2 space-y-1 text-sm text-[#617A55]/85">
@@ -250,6 +269,15 @@ function AttendeeCard({ row }: { row: AttendeeRow }) {
         <div><dt className="sr-only">تاريخ التسجيل</dt><dd className="text-xs">{formatDateTime(row.created_at)}</dd></div>
       </dl>
       <div className="mt-4"><ContactActions row={row} primary /></div>
+      {state !== 'cancelled' && (
+        <div className="mt-3 border-t border-[#617A55]/10 pt-3">
+          <AdminCancelBookingButton
+            bookingId={row.booking_id}
+            isPackageBooking={Boolean(row.package_purchase_id)}
+            isPaidRegular={!row.package_purchase_id && row.payment_status === 'paid'}
+          />
+        </div>
+      )}
     </li>
   )
 }
