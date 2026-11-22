@@ -6,7 +6,7 @@ import { formatPreferredSlot } from './private-session-preferences'
 
 export type NotificationQueueRow = {
   id: string
-  kind: 'booking' | 'session_request' | 'order' | 'course_purchase' | 'trip_application'
+  kind: 'booking' | 'session_request' | 'order' | 'course_purchase' | 'trip_application' | 'package_purchase'
   ref_id: string
 }
 
@@ -166,6 +166,38 @@ export async function loadNotificationEvent(
       customerPhone: profile?.phone ?? null,
       details: course?.title ?? 'محاضرة',
       amount: course?.price ?? null,
+      reference: purchase.reference,
+      status: purchase.status,
+    }
+  }
+
+  if (row.kind === 'package_purchase') {
+    const { data: purchase } = await supabase
+      .from('package_purchases')
+      .select('user_id, status, reference, price_snapshot, package_id')
+      .eq('id', row.ref_id)
+      .maybeSingle()
+    if (!purchase) return null
+
+    const { data: pkg } = await supabase
+      .from('class_packages')
+      .select('name')
+      .eq('id', purchase.package_id)
+      .maybeSingle()
+
+    const { data: profile } = await supabase
+      .from('profiles')
+      .select('full_name, phone')
+      .eq('id', purchase.user_id)
+      .maybeSingle()
+
+    return {
+      kind: 'package_purchase',
+      refId: row.ref_id,
+      customerName: profile?.full_name ?? null,
+      customerPhone: profile?.phone ?? null,
+      details: pkg?.name ?? 'باقة',
+      amount: purchase.price_snapshot,
       reference: purchase.reference,
       status: purchase.status,
     }

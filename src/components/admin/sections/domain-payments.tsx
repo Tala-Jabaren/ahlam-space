@@ -1,5 +1,6 @@
 import NotificationItem from '@/components/admin/notifications/notification-item'
-import { getAdminNotificationCounts } from '@/components/admin/notifications/notification-data'
+import NotificationBadge from '@/components/admin/notifications/notification-badge'
+import { getAdminNotificationCounts, getUnseenNotificationCount } from '@/components/admin/notifications/notification-data'
 import { getAdminSession } from '@/components/admin/admin-session'
 import AdminDeleteButton from '@/components/admin/admin-delete-button'
 import Link from 'next/link'
@@ -112,8 +113,13 @@ function statusLabel(status: string, isPaid: boolean) {
   return 'بانتظار الدفع'
 }
 
-export default async function DomainPayments({ kind, filter, selectedId, includePackageInfo = false }: {
+export default async function DomainPayments({ kind, filter, selectedId, heading, showOwnBadge = false, includePackageInfo = false }: {
   kind: PaymentKind; filter?: string; selectedId?: string
+  // Both optional and unused by the course/shop call sites, which keep
+  // their exact current output - only /admin/classes passes these, where
+  // this block now shares its tab with PackagePayments and needs its own
+  // label/count to tell the two apart.
+  heading?: string; showOwnBadge?: boolean
   // Only /admin/classes passes this, and only once PACKAGES_ENABLED is on -
   // gates whether the booking query's column list includes status/
   // package_purchase_id at all (see BookingRow's own note). course/shop
@@ -122,6 +128,7 @@ export default async function DomainPayments({ kind, filter, selectedId, include
 }) {
   await getAdminSession()
   const { available } = await getAdminNotificationCounts()
+  const ownUnseenCount = showOwnBadge ? await getUnseenNotificationCount(kind === 'course' ? 'course_purchase' : kind) : 0
   const activeTab = kind
   const activeFilter: PaymentFilter = filter === 'paid' || filter === 'all' ? filter : 'unpaid'
   const sectionHref = kind === 'booking' ? '/admin/classes' : kind === 'course' ? '/admin/courses' : '/admin/products'
@@ -274,8 +281,9 @@ export default async function DomainPayments({ kind, filter, selectedId, include
   return (
     <section>
       <header className="border-b border-[#617A55]/15 pb-5">
-        <h2 className="mt-2 font-serif text-xl text-[#617A55] sm:text-2xl">
-          المدفوعات
+        <h2 className="mt-2 flex items-center gap-2 font-serif text-xl text-[#617A55] sm:text-2xl">
+          {heading ?? 'المدفوعات'}
+          {showOwnBadge && <NotificationBadge count={ownUnseenCount} />}
         </h2>
         <p className="mt-3 max-w-2xl leading-7 text-[#617A55]/80">
           راجعي الدفعات المعلّقة وأكديها بعد التحقق من التحويل أو الاستلام.

@@ -1,7 +1,7 @@
 import { adminNotificationHref } from '@/lib/admin-notification-links'
 import { escapeHtml, wrapEmailHtml } from './html'
 
-export type OwnerNotificationEventKind = 'booking' | 'session_request' | 'order' | 'course_purchase' | 'trip_application'
+export type OwnerNotificationEventKind = 'booking' | 'session_request' | 'order' | 'course_purchase' | 'trip_application' | 'package_purchase'
 
 export type OwnerNotificationEvent = {
   kind: OwnerNotificationEventKind
@@ -24,6 +24,7 @@ const SUBJECT_LABELS: Record<OwnerNotificationEventKind, string> = {
   order: 'طلب جديد من المتجر',
   course_purchase: 'شراء كورس',
   trip_application: 'طلب مشوار جديد',
+  package_purchase: 'شراء باقة',
 }
 
 const KIND_LABELS: Record<OwnerNotificationEventKind, string> = {
@@ -32,6 +33,7 @@ const KIND_LABELS: Record<OwnerNotificationEventKind, string> = {
   order: 'طلب من المتجر',
   course_purchase: 'شراء محاضرة',
   trip_application: 'طلب مشاركة بمشوار',
+  package_purchase: 'شراء باقة حصص',
 }
 
 // "pending" means two different things depending on the event kind, so the
