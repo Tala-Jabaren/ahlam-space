@@ -76,8 +76,16 @@ export default async function AboutPage() {
 
     <section id="my-story" aria-labelledby="story-title" className={`${styles.container} ${styles.section} ${styles.story}`}>
       <div className={styles.storyMarker}>
+        <div className={styles.storyImage}>
+          <Image
+            src="/images/story-waterfall.png"
+            alt=""
+            fill
+            sizes="(min-width: 1240px) 420px, (min-width: 768px) 36vw, calc(100vw - 40px)"
+          />
+        </div>
         <Leaf aria-hidden="true" size={40} strokeWidth={1} />
-        <div><p className={styles.eyebrow}>{copy.storyEyebrow}</p><h2 id="story-title" className={styles.heading}>{t.about.myStoryHeading}</h2></div>
+        <div className={styles.storyLabel}><p className={styles.eyebrow}>{copy.storyEyebrow}</p><h2 id="story-title" className={styles.heading}>{t.about.myStoryHeading}</h2></div>
       </div>
       <div className={styles.storyCopy}>
         <h3>{t.about.heading}</h3>

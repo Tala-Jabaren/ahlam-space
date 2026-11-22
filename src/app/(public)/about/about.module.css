@@ -59,8 +59,12 @@
 .floatingNote h3 { margin: 0; font-size: 22px; font-weight: 500; line-height: 1.5; }
 .floatingNote p { margin: 8px 0 0; font-size: 15px; line-height: 1.8; color: var(--about-muted); }
 .story { display: grid; align-items: start; gap: 32px; }
-.storyMarker { position: relative; min-block-size: 230px; display: flex; flex-direction: column; justify-content: space-between; padding: 32px; border-radius: 32px 96px 32px 32px; background: var(--blue-mist); }
-.storyMarker > svg { color: #617A55; }
+.storyMarker { position: relative; isolation: isolate; overflow: hidden; min-block-size: 230px; display: flex; flex-direction: column; justify-content: space-between; padding: 32px; border-radius: 32px 96px 32px 32px; background: #34472b; color: #fff; }
+.storyImage { position: absolute; inset: 0; }
+.storyImage img { object-fit: cover; object-position: center 45%; }
+.storyMarker::after { content: ""; position: absolute; inset: 0; background: linear-gradient(180deg, rgb(27 37 23 / 60%), transparent 43%, rgb(27 37 23 / 78%) 62%, rgb(27 37 23 / 90%)); }
+.storyMarker > svg, .storyLabel { position: relative; z-index: 1; }
+.storyLabel .eyebrow { color: #fff; text-shadow: 0 1px 6px #1b2517; }
 .storyMarker h2 { margin-block-start: 30px; }
 .storyCopy h3 { margin: 0 0 16px; font-size: 22px; font-weight: 500; line-height: 1.5; }
 .storyParagraph { margin: 0 0 24px; font-size: 22px; line-height: 1.9; }
