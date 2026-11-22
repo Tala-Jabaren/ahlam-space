@@ -17,13 +17,6 @@ export default async function AuthLayout({
   return (
     <I18nProvider locale={locale} dictionary={t}>
       <div dir={dir} className={`relative ${rhythm.authEntry}`}>
-        <Link
-          href="/"
-          className="absolute start-5 top-5 z-10 inline-flex min-h-11 items-center gap-2 rounded-full border border-[#617A55]/25 bg-[#FCFBF6] px-3 text-sm font-semibold text-[#465d3d] hover:bg-[#D6E2B6]/50 focus-visible:outline-2 focus-visible:outline-offset-2 md:hidden"
-        >
-          <ArrowLeft aria-hidden="true" size={16} className="rtl:rotate-180" />
-          {auth.backToSite}
-        </Link>
         <div className="absolute end-5 top-5 z-10">
           <LanguageSwitcher />
         </div>
@@ -34,6 +27,13 @@ export default async function AuthLayout({
                 <Link href="/" className={styles.brand} lang="en" dir="ltr">
                   <span><Leaf aria-hidden="true" size={17} strokeWidth={1.6} /></span>
                   Ahlam Space
+                </Link>
+                <Link
+                  href="/"
+                  className="mx-auto mb-4 flex min-h-11 w-fit items-center gap-2 rounded-full border border-[#617A55]/30 bg-[#D6E2B6]/35 px-4 text-sm font-semibold text-[#34472B] hover:bg-[#D6E2B6]/65"
+                >
+                  <ArrowLeft aria-hidden="true" size={16} className="rtl:rotate-180" />
+                  {auth.backToSite}
                 </Link>
                 {children}
               </div>
