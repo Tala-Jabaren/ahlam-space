@@ -115,29 +115,30 @@ export default async function ClassesPage({ searchParams }: {
     <div className="px-5 py-16 sm:px-8 lg:px-10">
       <section className="mx-auto max-w-7xl">
         {PACKAGES_ENABLED && (
-          <nav className="mb-8 inline-flex rounded-full bg-[#D6E2B6]/40 p-1" aria-label={t.classes.viewToggleLabel}>
+          <nav className="mb-8 inline-flex rounded-[14px] bg-[#ECE7DE] p-1" aria-label={t.classes.viewToggleLabel}>
             <Link
               href="/classes"
               aria-current={!showPackagesView ? 'page' : undefined}
-              className={`inline-flex min-h-11 items-center justify-center rounded-full px-5 text-sm font-semibold transition motion-reduce:transition-none ${!showPackagesView ? 'bg-[#617A55] text-[#F7F6F0]' : 'text-[#617A55] hover:bg-white/60'}`}
+              className={`inline-flex min-h-11 items-center justify-center rounded-[10px] px-5 text-sm font-semibold transition motion-reduce:transition-none ${!showPackagesView ? 'bg-white text-[#25402F]' : 'text-[#5C574F] hover:text-[#25402F]'}`}
             >
               {t.classes.singleSessionView}
             </Link>
             <Link
               href="/classes?view=packages"
               aria-current={showPackagesView ? 'page' : undefined}
-              className={`inline-flex min-h-11 items-center justify-center rounded-full px-5 text-sm font-semibold transition motion-reduce:transition-none ${showPackagesView ? 'bg-[#617A55] text-[#F7F6F0]' : 'text-[#617A55] hover:bg-white/60'}`}
+              className={`inline-flex min-h-11 items-center justify-center rounded-[10px] px-5 text-sm font-semibold transition motion-reduce:transition-none ${showPackagesView ? 'bg-white text-[#25402F]' : 'text-[#5C574F] hover:text-[#25402F]'}`}
             >
               {t.classes.packagesView}
             </Link>
           </nav>
         )}
 
-        {packageSummary?.active && <BalanceBar purchase={packageSummary.active} locale={locale} t={t} />}
+        {!showPackagesView && packageSummary?.active && <BalanceBar purchase={packageSummary.active} locale={locale} t={t} />}
 
         {showPackagesView ? (
           <>
             {packageSummary && <MyPackagesPanel summary={packageSummary} locale={locale} t={t} />}
+            <p className="mb-6 text-[15px] leading-7 text-[#5C574F]">{t.classes.packages.introLine}</p>
             <PackagesGrid
               packages={packages}
               locale={locale}
@@ -151,8 +152,12 @@ export default async function ClassesPage({ searchParams }: {
                 validity: t.classes.packages.validity,
                 buy: t.classes.packages.buy,
                 loginToBuy: t.classes.packages.loginToBuy,
+                perSessionPriceLine: t.classes.packages.perSessionPriceLine,
+                sessionsFreelyChosen: t.classes.packages.sessionsFreelyChosen,
+                validMonthFromConfirm: t.classes.packages.validMonthFromConfirm,
               }}
             />
+            <p className="mt-6 text-[14px] leading-6 text-[#5C574F]">{t.classes.packages.footerNote}</p>
           </>
         ) : (
           <div id="sessions-list">
