@@ -319,9 +319,6 @@ export const en: typeof ar = {
     bookingLoading: 'Booking...',
   },
   memberSchedule: {
-    eyebrow: 'Classes for the next two weeks',
-    heading: 'Class Schedule',
-    sessionsAvailable: 'classes available',
     loadError: 'Unable to load classes right now.',
     empty: 'No upcoming classes available in the next two weeks.',
     timeLabel: 'Time',

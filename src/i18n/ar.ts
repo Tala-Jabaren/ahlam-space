@@ -315,9 +315,6 @@ export const ar = {
     bookingLoading: 'جارٍ الحجز...',
   },
   memberSchedule: {
-    eyebrow: 'حصص الأسبوعين القادمين',
-    heading: 'جدول الحصص',
-    sessionsAvailable: 'حصة متاحة',
     loadError: 'تعذر تحميل الحصص الآن.',
     empty: 'لا توجد حصص قادمة متاحة خلال هذين الأسبوعين.',
     timeLabel: 'الوقت',

@@ -36,17 +36,13 @@ export default async function MemberSchedulePage() {
     <div dir={dir}>
       <ClassesBanner />
       <main className="px-4 py-8 sm:px-6 lg:px-8">
-        <section className="mx-auto max-w-7xl">
-          <div className="flex flex-col gap-5 sm:flex-row sm:items-end sm:justify-between">
-            <div>
-              <p className="text-sm font-semibold text-[#617A55]/70">{t.memberSchedule.eyebrow}</p>
-              <h1 className="mt-2 font-serif text-4xl text-[#617A55] sm:text-5xl">{t.memberSchedule.heading}</h1>
-            </div>
-            <p className="text-sm font-medium text-[#617A55]/75">{upcomingSessions.length} {t.memberSchedule.sessionsAvailable}</p>
-          </div>
-          {error && <div className="mt-8 rounded-lg bg-[#C7D6E8]/55 p-6">{t.memberSchedule.loadError}</div>}
-          {!error && <div className="mt-8"><ClassWeekSections weeks={weeks} labels={t.classes.weekGroups} /></div>}
-        </section>
+        <div className="mx-auto max-w-7xl">
+          {error ? (
+            <div className="rounded-lg bg-[#C7D6E8]/55 p-6">{t.memberSchedule.loadError}</div>
+          ) : (
+            <ClassWeekSections weeks={weeks} labels={t.classes.weekGroups} />
+          )}
+        </div>
       </main>
     </div>
   </I18nProvider>
