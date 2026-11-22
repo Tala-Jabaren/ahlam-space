@@ -1,6 +1,7 @@
 'use client'
 
 import Link from 'next/link'
+import Image from 'next/image'
 import { useId, useRef, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { CalendarDays, Clock, Leaf, Wallet } from 'lucide-react'
@@ -80,7 +81,9 @@ export default function ClassCard({ session, headingLevel = 2 }: { session: Clas
           )}
         </dl>
         <div className={styles.instructor}>
-          <span className={styles.avatar} aria-hidden="true">{t.memberSchedule.instructorName.charAt(0)}</span>
+          <span className={styles.avatar}>
+            <Image src="/images/mainaboutpic.png" alt="" width={85} height={85} />
+          </span>
           <span><span className={styles.instructorLabel}>{t.memberSchedule.instructorLabel}</span> {t.memberSchedule.instructorName}</span>
         </div>
         <div className={styles.footer}>
