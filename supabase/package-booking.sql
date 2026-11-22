@@ -62,6 +62,10 @@
 -- drop trigger if exists return_package_credits_on_session_cancel on public.class_sessions;
 -- drop function if exists public.return_package_credits_for_session(uuid);
 -- alter table public.bookings drop column if exists package_purchase_id;
+-- -- bookings_payment_method_check: restore the 3-value version:
+-- alter table public.bookings drop constraint if exists bookings_payment_method_check;
+-- alter table public.bookings add constraint bookings_payment_method_check
+--   check (payment_method in ('card_gateway', 'bank_transfer', 'cash_at_studio'));
 -- -- cancel_booking: restore the pre-this-file version from admin-payments.sql
 -- -- section 10 by re-running that file's "create or replace function
 -- -- public.cancel_booking(...)" block on its own.
@@ -85,6 +89,11 @@
 -- different definition (should return no rows on a first run):
 -- select column_name from information_schema.columns
 -- where table_schema = 'public' and table_name = 'bookings' and column_name = 'package_purchase_id';
+--
+-- (d) Print the live payment_method constraint before widening it in
+-- section 2 below - confirm it's the 3-value version this file expects:
+-- select pg_get_constraintdef(oid) from pg_constraint
+-- where conname = 'bookings_payment_method_check';
 
 begin;
 
@@ -96,7 +105,26 @@ alter table public.bookings
   add column if not exists package_purchase_id uuid null references public.package_purchases(id);
 
 -- =============================================================================
--- 2. book_class_session_with_package(p_session_id, p_user_id)
+-- 2. bookings.payment_method - widen the CHECK constraint to allow 'package'
+-- =============================================================================
+--
+-- The live constraint (confirmed via pre-flight query (d) above) is
+-- bookings_payment_method_check, allowing only 'card_gateway',
+-- 'bank_transfer', 'cash_at_studio'. Section 3 below inserts
+-- payment_method = 'package', which would violate it as written - this
+-- must run before that function exists so its very first real insert
+-- doesn't fail. bookings_status_check and bookings_payment_status_check
+-- are untouched - the values this file uses ('confirmed'/'paid') are
+-- already allowed by both.
+
+alter table public.bookings
+  drop constraint if exists bookings_payment_method_check;
+alter table public.bookings
+  add constraint bookings_payment_method_check
+  check (payment_method in ('card_gateway', 'bank_transfer', 'cash_at_studio', 'package'));
+
+-- =============================================================================
+-- 3. book_class_session_with_package(p_session_id, p_user_id)
 -- =============================================================================
 --
 -- Mirrors book_class_session's own structure (lock the session, release
@@ -125,6 +153,9 @@ as $$
 declare
   v_booking_id uuid;
   v_class_id uuid;
+  v_session_date date;
+  v_start_time time;
+  v_session_start timestamptz;
   v_package_eligible boolean;
   v_purchase_id uuid;
 begin
@@ -139,12 +170,17 @@ begin
   -- a package booking either.
   perform public.expire_stale_bookings_for_session(p_session_id);
 
-  select class_id into v_class_id
+  select class_id, session_date, start_time into v_class_id, v_session_date, v_start_time
   from public.class_sessions
   where id = p_session_id;
 
   if not found then
     raise exception 'SESSION_FULL';
+  end if;
+
+  v_session_start := (v_session_date + v_start_time) at time zone 'Asia/Jerusalem';
+  if v_session_start <= now() then
+    raise exception 'SESSION_STARTED';
   end if;
 
   select package_eligible into v_package_eligible
@@ -222,10 +258,13 @@ grant execute on function public.book_class_session_with_package(uuid, uuid) to 
 --   capacity update must run - and fail - before the credit is spent).
 -- Test (caller has two active purchases, one expiring sooner): expect the
 --   sooner-expiring one's sessions_remaining to be the one decremented.
+-- Test (session already started, or already finished): expect
+--   SESSION_STARTED - checked before capacity/eligibility/credit, so none
+--   of those are touched.
 -- Test (p_user_id not the caller's own id): expect FORBIDDEN.
 
 -- =============================================================================
--- 3. cancel_booking(p_booking_id, p_user_id) - one 12h rule, paid regular
+-- 4. cancel_booking(p_booking_id, p_user_id) - one 12h rule, paid regular
 --    bookings excluded entirely
 -- =============================================================================
 --
@@ -235,8 +274,13 @@ grant execute on function public.book_class_session_with_package(uuid, uuid) to 
 -- up-front block on self-cancelling a PAID regular booking, and reading
 -- bookings.package_purchase_id to return credit when it's set. Credit is
 -- only ever returned inside the existing "v_booking_status <> 'cancelled'"
--- guard, so a repeated cancel on an already-cancelled booking can never
--- mint credit twice.
+-- guard AND a second guard reading class_sessions.status - the booking's
+-- own status never changes when an admin cancels the whole session (see
+-- section 5 below), so the booking-status guard alone can't tell "this
+-- credit was already returned by the trigger" from "this credit was never
+-- returned". Together, a repeated cancel - whether called twice directly,
+-- or once by an admin session-cancel and once by the member herself -
+-- can never mint credit twice.
 --
 -- Checked which column actually means "paid" before writing this (same
 -- pattern reviews.sql's admin_delete_record already uses for the same
@@ -250,7 +294,7 @@ grant execute on function public.book_class_session_with_package(uuid, uuid) to 
 --
 -- Package bookings are exempt from this block entirely: they're created
 -- already payment_status = 'paid' (book_class_session_with_package, part
--- 2 above) since "payment" is the package credit spent at booking time,
+-- 3 above) since "payment" is the package credit spent at booking time,
 -- not a separate pending charge - they always follow the plain 12h rule.
 
 create or replace function public.cancel_booking(
@@ -270,6 +314,7 @@ declare
   v_package_purchase_id uuid;
   v_session_date date;
   v_start_time time;
+  v_session_status text;
   v_session_start timestamptz;
   v_sessions_total integer;
 begin
@@ -308,10 +353,12 @@ begin
 
   select
     class_sessions.session_date,
-    class_sessions.start_time
+    class_sessions.start_time,
+    class_sessions.status
   into
     v_session_date,
-    v_start_time
+    v_start_time,
+    v_session_status
   from public.class_sessions
   where class_sessions.id = v_session_id
   for update;
@@ -338,7 +385,13 @@ begin
     set booked_count = greatest(booked_count - 1, 0)
     where id = v_session_id;
 
-    if v_package_purchase_id is not null then
+    -- Also skip the return if the SESSION itself is already cancelled -
+    -- return_package_credits_for_session (section 5 below) already
+    -- returned this exact credit when the admin cancelled the whole
+    -- session; the booking row's own status never got touched by that
+    -- (by design), so without this check this branch would mint a second
+    -- credit for the same booking on the member's own later cancel.
+    if v_package_purchase_id is not null and v_session_status <> 'cancelled' then
       -- Credit goes back even if the purchase has since expired - it's
       -- simply unusable from then on (no extension), per spec.
       select sessions_total into v_sessions_total
@@ -376,11 +429,17 @@ grant execute on function public.cancel_booking(uuid, uuid) to authenticated;
 -- Test (same booking, cancel it twice): expect true both times, but
 --   booked_count/sessions_remaining must NOT change a second time (status
 --   was already 'cancelled' going into the second call).
+-- Test (admin cancels the whole session, then the member cancels her
+--   package booking on it herself): expect true, her booking ->
+--   'cancelled', booked_count -1 again (admin's own session cancel never
+--   touches booked_count) - but sessions_remaining must NOT increment a
+--   second time, since return_package_credits_for_session already
+--   returned that credit when the session was cancelled.
 -- Test (someone else's booking id): expect NOT_YOUR_BOOKING.
 -- Test (p_user_id not the caller's own id): expect FORBIDDEN.
 
 -- =============================================================================
--- 4. Admin cancelling a whole session returns package credit too
+-- 5. Admin cancelling a whole session returns package credit too
 -- =============================================================================
 --
 -- The admin "cancel this session" action (src/components/admin/session-
