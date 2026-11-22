@@ -7,8 +7,7 @@ import { createClient } from '@/lib/supabase/client'
 
 // Separate from AdminDeleteButton on purpose: that component always calls
 // admin_delete_record, and trips deliberately use their own
-// admin_delete_trip / admin_delete_trip_photo functions instead (see the
-// note in supabase/trips.sql) rather than adding a case to that shared
+// admin_delete_trip / admin_delete_trip_gallery_photo functions rather than adding a case to that shared
 // RPC. Same confirm/busy/error UX, different RPC name.
 const messages: Record<string, string> = {
   FORBIDDEN: 'ليست لديك صلاحية الحذف.',
@@ -20,7 +19,7 @@ export default function TripDeleteButton({
   id,
   label,
 }: {
-  rpc: 'admin_delete_trip' | 'admin_delete_trip_photo'
+  rpc: 'admin_delete_trip' | 'admin_delete_trip_gallery_photo'
   id: string
   label: string
 }) {

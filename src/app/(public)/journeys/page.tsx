@@ -17,7 +17,7 @@ export async function generateMetadata(): Promise<Metadata> {
 // Public, no-login page: previous-trip photos in a moving strip, and the
 // currently open trip with its own apply CTA. Never queries trip_
 // applications or anything else that could expose a participant's name -
-// getPublishedTripPhotos/getOpenTrip only ever read is_published photos of
+// getPublishedTripPhotos only reads published gallery photos; getOpenTrip reads
 // non-draft trips and the trips table's own public columns. Rendering
 // itself lives in JourneysContent (pure presentational, data passed in)
 // so it can also be exercised with fabricated data without touching

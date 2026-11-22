@@ -7,10 +7,7 @@ import { handleSignedUploadRequest } from '@/lib/admin-upload-request'
 // reviews/ - no new bucket or storage policy needed. trip_id is generated
 // client-side before the trip row itself exists yet on create (same
 // pattern course/review/product creation already uses), so this upload
-// can happen before the insert. Uploaded photos start unpublished
-// (trip_photos.is_published defaults to false) - admin publishes them
-// explicitly from the trip photos tab. Hands back a signed upload token
-// instead of receiving the image itself - see src/lib/admin-upload.ts.
+// can happen before the insert. Shared gallery images use their own route.
 export async function POST(request: Request) {
   return handleSignedUploadRequest(request, {
     ownerField: 'trip_id',

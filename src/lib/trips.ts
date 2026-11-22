@@ -33,14 +33,9 @@ export type TripRow = {
 export const TRIP_COLUMNS =
   'id, title, description, location, starts_on, ends_on, application_deadline, capacity, cover_image_url, status, created_at, meeting_time, meeting_point'
 
-export type TripPhotoRow = {
-  id: string
-  trip_id: string
-  photo_url: string
-  caption: string | null
+export type TripGalleryPhoto = TripPhoto & {
   display_order: number
   is_published: boolean
-  created_at: string
 }
 
 export type TripApplicationStatus = 'pending' | 'approved' | 'waitlisted' | 'declined' | 'withdrawn'
@@ -118,24 +113,17 @@ export async function getPublishedTripPhotos(
   supabase: SupabaseClient
 ): Promise<{ photos: TripPhoto[]; error: boolean }> {
   const { data, error } = await supabase
-    .from('trip_photos')
-    .select('id, photo_url, caption, display_order, trips!inner(starts_on)')
+    .from('trip_gallery_photos')
+    .select('id, photo_url, caption')
     .eq('is_published', true)
-    .order('starts_on', { ascending: false, referencedTable: 'trips' })
     .order('display_order', { ascending: true })
+    .order('id')
     .limit(16)
-    .returns<(TripPhoto & { display_order: number; trips: { starts_on: string } | null })[]>()
+    .returns<TripPhoto[]>()
 
   if (error) return { photos: [], error: true }
 
-  return {
-    photos: (data ?? []).map((photo) => ({
-      id: photo.id,
-      photo_url: photo.photo_url,
-      caption: photo.caption,
-    })),
-    error: false,
-  }
+  return { photos: data ?? [], error: false }
 }
 
 // Shared by the public home section, /trips, and /journeys - the nearest
