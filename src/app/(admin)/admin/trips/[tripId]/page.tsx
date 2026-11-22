@@ -2,9 +2,8 @@ import { getAdminNotificationCounts } from '@/components/admin/notifications/not
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
 import { getAdminSession } from '@/components/admin/admin-session'
-import TripPhotoManager from '@/components/admin/trip-photo-manager'
 import TripApplicationsList from '@/components/admin/trip-applications-list'
-import { TRIP_COLUMNS, getTripApplications, tripStatusLabels, type TripPhotoRow, type TripRow } from '@/lib/trips'
+import { TRIP_COLUMNS, getTripApplications, tripStatusLabels, type TripRow } from '@/lib/trips'
 import TripMessageForm from '@/components/admin/trip-message-form'
 
 export default async function AdminTripDetailPage({
@@ -28,12 +27,6 @@ export default async function AdminTripDetailPage({
 
   if (!trip) notFound()
 
-  const { data: photos, error: photosError } = await supabase
-    .from('trip_photos')
-    .select('id, trip_id, photo_url, caption, display_order, is_published, created_at')
-    .eq('trip_id', tripId)
-    .returns<TripPhotoRow[]>()
-
   let applications: Awaited<ReturnType<typeof getTripApplications>> = []
   let applicationsError = false
   try {
@@ -55,12 +48,6 @@ export default async function AdminTripDetailPage({
         <h1 className="font-serif text-3xl text-[#617A55]">{trip.title}</h1>
         <p className="mt-2 text-sm text-[#617A55]/80">{trip.location} · {tripStatusLabels[trip.status]}</p>
       </header>
-
-      {photosError ? (
-        <p role="alert" className="mt-6 rounded-lg bg-[#C7D6E8]/50 p-5">تعذر تحميل صور المشوار.</p>
-      ) : (
-        <TripPhotoManager tripId={trip.id} photos={photos ?? []} />
-      )}
 
       {applicationsError ? (
         <p role="alert" className="mt-10 rounded-lg bg-[#C7D6E8]/50 p-5">تعذر تحميل طلبات المشاركة. تحققي من صلاحيات العرض والاتصال.</p>

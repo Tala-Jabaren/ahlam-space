@@ -9,7 +9,7 @@ import { handleSignedUploadRequest } from '@/lib/admin-upload-request'
 // pattern course/review/product creation already uses), so this upload
 // can happen before the insert. Uploaded photos start unpublished
 // (trip_photos.is_published defaults to false) - admin publishes them
-// explicitly from the trip detail page. Hands back a signed upload token
+// explicitly from the trip photos tab. Hands back a signed upload token
 // instead of receiving the image itself - see src/lib/admin-upload.ts.
 export async function POST(request: Request) {
   return handleSignedUploadRequest(request, {

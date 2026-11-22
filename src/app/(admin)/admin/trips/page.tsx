@@ -2,13 +2,18 @@ import PendingTripRequests from '@/components/admin/home/pending-trip-requests'
 import { redirect } from 'next/navigation'
 import { resolveTripNotification } from '@/components/admin/notifications/notification-data'
 import Link from 'next/link'
+import { Images } from 'lucide-react'
 import TripDeleteButton from '@/components/admin/trip-delete-button'
 import TripEditor from '@/components/admin/trip-editor'
+import TripPhotoManager from '@/components/admin/trip-photo-manager'
 import { getAdminSession } from '@/components/admin/admin-session'
-import { TRIP_COLUMNS, tripStatusLabels, type TripRow } from '@/lib/trips'
+import { TRIP_COLUMNS, tripStatusLabels, type TripPhotoRow, type TripRow } from '@/lib/trips'
 
-export default async function AdminTripsPage({ searchParams }: { searchParams: Promise<{ item?: string; review?: string }> }) {
-  const { item, review } = await searchParams
+const tabStyle = 'inline-flex min-h-11 items-center gap-2 rounded-full px-4 text-sm font-semibold focus-visible:outline-2 focus-visible:outline-[#617A55]'
+
+export default async function AdminTripsPage({ searchParams }: { searchParams: Promise<{ item?: string; review?: string; tab?: string; trip?: string }> }) {
+  const { item, review, tab, trip: selectedTripId } = await searchParams
+  const photosTab = tab === 'photos'
   if (item) {
     const tripId = await resolveTripNotification(item)
     if (tripId) redirect(`/admin/trips/${encodeURIComponent(tripId)}?item=${encodeURIComponent(item)}`)
@@ -20,17 +25,43 @@ export default async function AdminTripsPage({ searchParams }: { searchParams: P
     .select(TRIP_COLUMNS)
     .order('starts_on', { ascending: false })
     .returns<TripRow[]>()
+  const selectedTrip = photosTab ? data?.find((trip) => trip.id === selectedTripId) ?? data?.[0] : undefined
+  const photoResult = selectedTrip ? await supabase
+    .from('trip_photos')
+    .select('id, trip_id, photo_url, caption, display_order, is_published, created_at')
+    .eq('trip_id', selectedTrip.id)
+    .returns<TripPhotoRow[]>() : null
 
   return <main className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
-    <h1 className="border-b border-[#617A55]/15 pb-6 font-serif text-3xl text-[#617A55]">المشاوير</h1>
+    <header className="border-b border-[#617A55]/15 pb-5">
+      <h1 className="font-serif text-3xl text-[#617A55]">المشاوير</h1>
+      <nav aria-label="أقسام المشاوير" className="mt-4 flex flex-wrap gap-2">
+        <Link href="/admin/trips" aria-current={!photosTab ? 'page' : undefined} className={`${tabStyle} ${!photosTab ? 'bg-[#617A55] text-white' : 'bg-[#D6E2B6]/40 text-[#465d3d]'}`}>قائمة المشاوير</Link>
+        <Link href="/admin/trips?tab=photos" aria-current={photosTab ? 'page' : undefined} className={`${tabStyle} ${photosTab ? 'bg-[#617A55] text-white' : 'bg-[#D6E2B6]/40 text-[#465d3d]'}`}><Images aria-hidden="true" size={17} /> إدارة الصور</Link>
+      </nav>
+    </header>
 
     {item && <p role="status" className="mt-5 rounded-lg bg-[#C7D6E8]/40 p-4 text-sm">لم نتمكن من فتح هذا الطلب. قد يكون محذوفًا أو غير متاح حاليًا.</p>}
-    <div className="mt-6"><TripEditor /></div>
+    {!photosTab && <div className="mt-6"><TripEditor /></div>}
 
     {error ? (
       <p role="alert" className="mt-6 rounded-lg bg-[#C7D6E8]/50 p-5">تعذر تحميل المشاوير. تحققي من صلاحيات العرض والاتصال.</p>
     ) : !data?.length ? (
       <p className="mt-6 p-5">لا توجد مشاوير بعد.</p>
+    ) : photosTab && selectedTrip ? (
+      <div className="mt-6">
+        <form action="/admin/trips" className="flex flex-wrap items-end gap-3">
+          <input type="hidden" name="tab" value="photos" />
+          <label className="grid w-full min-w-0 gap-2 text-sm font-semibold text-[#465d3d] sm:max-w-sm">
+            اختاري المشوار
+            <select key={selectedTrip.id} name="trip" defaultValue={selectedTrip.id} className="min-h-11 w-full rounded-lg border border-[#617A55]/25 bg-white px-3 font-normal">
+              {data.map((trip) => <option key={trip.id} value={trip.id}>{trip.title} · {trip.starts_on}</option>)}
+            </select>
+          </label>
+          <button className={`${tabStyle} border border-[#617A55]/25 text-[#465d3d] hover:bg-[#D6E2B6]/40`}>عرض الصور</button>
+        </form>
+        <TripPhotoManager key={selectedTrip.id} tripId={selectedTrip.id} coverUrl={selectedTrip.cover_image_url} photos={photoResult?.error ? null : photoResult?.data ?? []} />
+      </div>
     ) : (
       <div className="mt-6 grid gap-5 lg:grid-cols-2">
         {data.map((trip) => (
@@ -56,7 +87,7 @@ export default async function AdminTripsPage({ searchParams }: { searchParams: P
                 href={`/admin/trips/${trip.id}`}
                 className="inline-flex min-h-11 items-center justify-center rounded-full border border-[#617A55]/30 px-4 text-sm font-semibold text-[#617A55] transition hover:bg-[#D6E2B6]/40"
               >
-                الصور والطلبات
+                طلبات المشاركة
               </Link>
             </div>
             <div className="mt-4"><TripEditor record={trip} /></div>

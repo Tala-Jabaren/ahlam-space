@@ -62,11 +62,10 @@ export default function TripEditor({ record }: { record?: TripRow }) {
     setMessage('')
     try {
       const tripId = record?.id ?? crypto.randomUUID()
-      let coverImageUrl = record?.cover_image_url ?? null
       const coverFile = form.get('cover_image')
-      if (coverFile instanceof File && coverFile.size > 0) {
-        coverImageUrl = await uploadCover(tripId, coverFile)
-      }
+      const coverImageUrl = !record && coverFile instanceof File && coverFile.size > 0
+        ? await uploadCover(tripId, coverFile)
+        : null
 
       const values = {
         title,
@@ -76,7 +75,6 @@ export default function TripEditor({ record }: { record?: TripRow }) {
         ends_on: endsOn,
         application_deadline: deadline,
         capacity,
-        cover_image_url: coverImageUrl,
         status,
         meeting_time: meetingTime,
         meeting_point: meetingPoint,
@@ -85,7 +83,7 @@ export default function TripEditor({ record }: { record?: TripRow }) {
       const supabase = createClient()
       const result = record
         ? await supabase.from('trips').update(values).eq('id', record.id).select('id').single()
-        : await supabase.from('trips').insert({ id: tripId, ...values }).select('id').single()
+        : await supabase.from('trips').insert({ id: tripId, ...values, cover_image_url: coverImageUrl }).select('id').single()
       if (result.error) throw result.error
 
       setFailed(false)
@@ -136,15 +134,11 @@ export default function TripEditor({ record }: { record?: TripRow }) {
         <label className="text-sm">الحالة<select name="status" required defaultValue={record?.status ?? 'draft'} className={inputStyle}>
           {(Object.keys(tripStatusLabels) as TripStatus[]).map((value) => <option key={value} value={value}>{tripStatusLabels[value]}</option>)}
         </select></label>
-        <label className="text-sm">
+        {!record && <label className="text-sm">
           صورة الغلاف
-          {record?.cover_image_url && (
-            // eslint-disable-next-line @next/next/no-img-element
-            <img src={record.cover_image_url} alt="" className="mt-2 h-24 w-24 rounded-lg object-cover" />
-          )}
           <input name="cover_image" type="file" accept="image/png,image/jpeg,image/webp" className={inputStyle} />
-          <span className="mt-1 block text-xs text-[#617A55]/70">JPG أو PNG أو WebP، حتى 5 ميغابايت. اتركي الحقل فارغًا للإبقاء على الصورة الحالية.</span>
-        </label>
+          <span className="mt-1 block text-xs text-[#617A55]/70">JPG أو PNG أو WebP، حتى 5 ميغابايت.</span>
+        </label>}
         <div className="flex flex-wrap gap-2 sm:col-span-2">
           <button disabled={busy} className={buttonStyle}>{busy ? 'جارٍ الحفظ…' : 'حفظ'}</button>
           <button type="button" disabled={busy} onClick={() => setEditing(false)} className="inline-flex items-center gap-2 rounded-lg border border-[#617A55]/25 px-4 py-2 text-sm">إلغاء</button>
