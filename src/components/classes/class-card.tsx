@@ -3,7 +3,7 @@
 import Link from 'next/link'
 import { useId, useRef, useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { Leaf } from 'lucide-react'
+import { CalendarDays, Clock, Leaf, Wallet } from 'lucide-react'
 import BookSessionButton from '@/app/(public)/schedule/book-session-button'
 import PaymentConfirmationBlock from '@/components/payment-confirmation-block'
 import { useT } from '@/i18n/i18n-context'
@@ -54,17 +54,34 @@ export default function ClassCard({ session, headingLevel = 2 }: { session: Clas
             {t.classCards.packageIneligible}
           </span>
         )}
+        <dl className={styles.meta}>
+          <div>
+            <dt className="sr-only">{t.classes.dateLabel}</dt>
+            <dd className={styles.metaItem}>
+              <CalendarDays size={16} aria-hidden="true" />
+              <time dateTime={session.startsAt ?? undefined}>{session.dateLabel}</time>
+            </dd>
+          </div>
+          <div>
+            <dt className="sr-only">{t.classes.timeLabel}</dt>
+            <dd className={styles.metaItem}>
+              <Clock size={16} aria-hidden="true" />
+              <bdi dir="ltr">{session.timeLabel}</bdi>
+            </dd>
+          </div>
+          {session.priceLabel !== null && (
+            <div>
+              <dt className="sr-only">{t.home.priceLabel}</dt>
+              <dd className={styles.metaItem}>
+                <Wallet size={16} aria-hidden="true" />
+                <bdi className={styles.price}>{session.priceLabel}</bdi>
+              </dd>
+            </div>
+          )}
+        </dl>
         <div className={styles.instructor}>
           <span className={styles.avatar} aria-hidden="true">{t.memberSchedule.instructorName.charAt(0)}</span>
-          <span><span className="sr-only">{t.memberSchedule.instructorLabel}: </span>{t.memberSchedule.instructorName}</span>
-        </div>
-        <div className={styles.meta}>
-          <span className={styles.metaInfo}>
-            <time dateTime={session.startsAt ?? undefined}>{session.dateLabel}</time>
-            <span aria-hidden="true"> · </span>
-            <bdi dir="ltr">{session.timeLabel}</bdi>
-          </span>
-          {session.priceLabel !== null && <bdi className={styles.price}>{session.priceLabel}</bdi>}
+          <span><span className={styles.instructorLabel}>{t.memberSchedule.instructorLabel}</span> {t.memberSchedule.instructorName}</span>
         </div>
         <div className={styles.footer}>
           {booking ? <>
