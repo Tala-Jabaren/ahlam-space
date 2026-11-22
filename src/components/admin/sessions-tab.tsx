@@ -4,6 +4,7 @@ import AdminDeleteButton from './admin-delete-button'
 import { SessionControls, type BookingContact } from './session-controls'
 import type { ClassRecord } from './catalog-editor'
 import { classCalendarHref, classCalendarMonth, type SessionFilter } from '@/lib/admin-class-calendar'
+import CalendarAddClass from './calendar-add-class'
 
 export type SessionRow = {
   id: string
@@ -47,6 +48,7 @@ export default function SessionsTab({
   loadError,
   classId,
   status,
+  packagesEnabled,
 }: {
   sessions: SessionRow[]
   sessionCounts: Record<string, number>
@@ -59,6 +61,7 @@ export default function SessionsTab({
   loadError: boolean
   classId: string
   status: SessionFilter
+  packagesEnabled: boolean
 }) {
   const month = classCalendarMonth(selectedDate)
   const dateHref = (date: string) => classCalendarHref(date, classId, status)
@@ -132,6 +135,9 @@ export default function SessionsTab({
 
         <section id="calendar-day" className="min-w-0 scroll-mt-24">
           <h2 className="mb-3 text-lg text-[#465d3d]">{dayFormat.format(new Date(`${selectedDate}T00:00:00Z`))}</h2>
+          {selectedDate >= today && (
+            <CalendarAddClass key={`${selectedDate}-${classId}`} date={selectedDate} today={today} classes={classes} classId={classId} packagesEnabled={packagesEnabled} />
+          )}
           {loadError ? (
             <p role="alert" className="rounded-lg bg-[#C7D6E8]/50 p-5">تعذر تحميل المواعيد. تحققي من الاتصال وصلاحيات العرض.</p>
           ) : sessions.length === 0 ? (

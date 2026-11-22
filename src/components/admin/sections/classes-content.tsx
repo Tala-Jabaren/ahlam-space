@@ -125,6 +125,7 @@ export default async function ClassesContent({
         selectedDate={selectedDate}
         classId={classId}
         status={sessionFilter}
+        packagesEnabled={PACKAGES_ENABLED}
         loadError={Boolean(sessionsError)}
       />
     )
@@ -170,7 +171,7 @@ export default async function ClassesContent({
                     عرض مواعيدها
                   </Link>
                 </div>
-                <AddSessionForm classId={item.id} durationMinutes={item.duration_minutes} today={today} />
+                <AddSessionForm classes={[item]} today={today} />
                 <div className="mt-4"><CatalogEditor kind="class" record={item} packagesEnabled={PACKAGES_ENABLED} /></div>
               </article>
             )

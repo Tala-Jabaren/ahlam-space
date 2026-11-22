@@ -15,7 +15,16 @@ const buttonStyle = 'inline-flex items-center justify-center gap-2 rounded-lg bg
 // repeats on the same weekday/time every week afterward via the
 // generate_weekly_class_sessions() cron job reading classes.is_recurring;
 // a non-recurring one is just this single date.
-export default function CreateClassForm({ today, initiallyOpen = false, packagesEnabled = false }: { today: string; initiallyOpen?: boolean; packagesEnabled?: boolean }) {
+export default function CreateClassForm({
+  today, initiallyOpen = false, packagesEnabled = false, fixedDate, returnHref, onCancel,
+}: {
+  today: string
+  initiallyOpen?: boolean
+  packagesEnabled?: boolean
+  fixedDate?: string
+  returnHref?: string
+  onCancel?: () => void
+}) {
   const router = useRouter()
   const [open, setOpen] = useState(initiallyOpen)
   const [busy, setBusy] = useState(false)
@@ -40,7 +49,7 @@ export default function CreateClassForm({ today, initiallyOpen = false, packages
     const durationMinutes = Number(form.get('duration'))
     const capacity = Number(form.get('capacity'))
     const location = String(form.get('location') || '').trim() || null
-    const date = String(form.get('date') || '')
+    const date = fixedDate ?? String(form.get('date') || '')
     const computedEnd = endTime(start, durationMinutes)
 
     if (
@@ -118,6 +127,7 @@ export default function CreateClassForm({ today, initiallyOpen = false, packages
       setMessage(recurring ? 'تم إنشاء الحصة، وستتكرر تلقائيًا كل أسبوع في نفس اليوم والوقت.' : 'تم إنشاء الحصة.')
       setOpen(false)
       reset()
+      if (returnHref) router.replace(returnHref, { scroll: false })
       router.refresh()
     } catch (error) {
       setFailed(true)
@@ -129,7 +139,7 @@ export default function CreateClassForm({ today, initiallyOpen = false, packages
   }
 
   return (
-    <section aria-label="إنشاء حصة جديدة" className="py-6">
+    <section aria-label="إنشاء حصة جديدة" className={fixedDate ? 'mt-4' : 'py-6'}>
       {!open ? (
         <button onClick={() => { setOpen(true); setMessage('') }} className={buttonStyle}>
           + أضيفي حصة جديدة
@@ -155,7 +165,7 @@ export default function CreateClassForm({ today, initiallyOpen = false, packages
             <input required type="number" name="duration" min="1" step="1" value={duration} onChange={e => setDuration(e.target.value)} className={fieldStyle} />
           </label>
           <label className="text-sm">
-            التاريخ<input required type="date" name="date" min={today} className={fieldStyle} />
+            التاريخ<input required type="date" name="date" min={today} defaultValue={fixedDate} readOnly={Boolean(fixedDate)} className={fieldStyle} />
           </label>
           <label className="text-sm">
             وقت البداية<input required type="time" value={start} onChange={e => setStart(e.target.value)} className={fieldStyle} />
@@ -179,7 +189,7 @@ export default function CreateClassForm({ today, initiallyOpen = false, packages
           )}
           <div className="flex gap-2 sm:col-span-2 lg:col-span-3">
             <button disabled={busy} className={buttonStyle}>{busy ? 'جارٍ الحفظ…' : 'حفظ الحصة'}</button>
-            <button type="button" disabled={busy} onClick={() => setOpen(false)} className="rounded-lg border border-[#617A55]/25 px-4 py-2 text-sm">إلغاء</button>
+            <button type="button" disabled={busy} onClick={() => { setOpen(false); onCancel?.() }} className="rounded-lg border border-[#617A55]/25 px-4 py-2 text-sm">إلغاء</button>
           </div>
         </form>
       )}
