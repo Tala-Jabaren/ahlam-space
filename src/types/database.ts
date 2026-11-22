@@ -18,6 +18,9 @@ export type Database = {
         Row: {
           created_at: string | null
           id: string
+          // Only a real column once supabase/package-booking.sql has been
+          // run - see that file's header.
+          package_purchase_id: string | null
           payment_method: string | null
           payment_status: string
           reserved_until: string | null
@@ -28,6 +31,7 @@ export type Database = {
         Insert: {
           created_at?: string | null
           id?: string
+          package_purchase_id?: string | null
           payment_method?: string | null
           payment_status?: string
           reserved_until?: string | null
@@ -38,6 +42,7 @@ export type Database = {
         Update: {
           created_at?: string | null
           id?: string
+          package_purchase_id?: string | null
           payment_method?: string | null
           payment_status?: string
           reserved_until?: string | null
@@ -58,6 +63,13 @@ export type Database = {
             columns: ["user_id"]
             isOneToOne: false
             referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "bookings_package_purchase_id_fkey"
+            columns: ["package_purchase_id"]
+            isOneToOne: false
+            referencedRelation: "package_purchases"
             referencedColumns: ["id"]
           },
         ]
@@ -574,6 +586,14 @@ export type Database = {
       admin_confirm_package_purchase: {
         Args: { p_purchase_id: string; p_payment_method: string }
         Returns: undefined
+      }
+      book_class_session_with_package: {
+        Args: { p_session_id: string; p_user_id: string }
+        Returns: string
+      }
+      cancel_booking: {
+        Args: { p_booking_id: string; p_user_id: string }
+        Returns: boolean
       }
     }
     Enums: {

@@ -18,7 +18,7 @@ export default async function AdminClassesPage({ searchParams }: {
   return <AdminSectionPage section="classes" activeTab={tab} itemOpen={Boolean(params.item)}>
     {tab === 'payments' ? (
       <div className="grid gap-8">
-        <DomainPayments kind="booking" filter={params.filter} selectedId={params.item} />
+        <DomainPayments kind="booking" filter={params.filter} selectedId={params.item} includePackageInfo={PACKAGES_ENABLED} />
         {PACKAGES_ENABLED && <PackagePayments filter={params.pfilter} selectedId={params.item} />}
       </div>
     ) : tab === 'packages' ? (

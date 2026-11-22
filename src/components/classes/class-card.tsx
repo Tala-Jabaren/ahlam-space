@@ -6,10 +6,9 @@ import { useRouter } from 'next/navigation'
 import { Leaf } from 'lucide-react'
 import BookSessionButton from '@/app/(public)/schedule/book-session-button'
 import PaymentConfirmationBlock from '@/components/payment-confirmation-block'
-import { WHATSAPP_URL } from '@/content/site-contact'
 import { useT } from '@/i18n/i18n-context'
-import CancelRegistrationButton from './cancel-registration-button'
-import { CANCEL_ENABLED } from './features'
+import BookingCancelControl from './booking-cancel-control'
+import PackageBookingButton from './package-booking-button'
 import type { BookingReceipt, ClassCardData } from './types'
 import styles from './class-card.module.css'
 
@@ -25,7 +24,7 @@ export default function ClassCard({ session, headingLevel = 2 }: { session: Clas
   const Heading = headingLevel === 3 ? 'h3' : 'h2'
   const name = session.name ?? t.home.sessionNameFallback
   const category = session.category === 'yoga' ? copy.yoga : session.category === 'fitness' ? copy.fitness : session.category === 'dance' ? copy.dance : session.category
-  const booking = session.booking ?? (receipt ? { id: receipt.id, status: 'pending', payment_status: 'unpaid' } : null)
+  const booking = session.booking ?? (receipt ? { id: receipt.id, status: 'pending', payment_status: 'unpaid', package_purchase_id: null } : null)
   const confirmed = booking?.status === 'confirmed' || booking?.payment_status === 'paid'
 
   function booked(value: BookingReceipt) {
@@ -70,20 +69,52 @@ export default function ClassCard({ session, headingLevel = 2 }: { session: Clas
         <div className={styles.footer}>
           {booking ? <>
             <span ref={badge} tabIndex={-1} className={`${styles.badge} ${confirmed ? styles.confirmed : ''}`} role="status">{confirmed ? copy.confirmed : copy.pending}</span>
-            {CANCEL_ENABLED && session.canCancel ? <CancelRegistrationButton bookingId={booking.id} canCancel={session.canCancel} />
-              : <p className={styles.contact}><a href={WHATSAPP_URL}>{copy.cancelContact}</a></p>}
+            <BookingCancelControl
+              bookingId={booking.id}
+              canCancel={session.canCancel}
+              isPackageBooking={Boolean(booking.package_purchase_id)}
+              paymentStatus={booking.payment_status}
+              packagePurchaseId={booking.package_purchase_id}
+            />
           </> : !session.bookingStatusKnown ? <>
             <p role="alert" className={styles.feedback}>{copy.bookingLoadError}</p>
             <button className={styles.button} type="button" onClick={() => router.refresh()}>{copy.retry}</button>
           </> : !session.isFuture ? <button type="button" className={styles.button} disabled>{copy.started}</button>
             : session.remaining <= 0 ? <button type="button" className={styles.button} disabled>{copy.full}</button>
-              : <div className={styles.bookingAction}><BookSessionButton sessionId={session.id} initialRemaining={session.remaining} price={session.price ?? 0} showRemaining={false} autoOpen={session.requested && session.authenticated} isAuthenticated={session.authenticated} buttonLabel={copy.register} buttonClassName={styles.button} onBooked={booked} /></div>}
+              : session.packageEligible !== false && session.packageCredit ? (
+                <PackageBookingButton
+                  sessionId={session.id}
+                  dateLabel={session.dateLabel}
+                  timeLabel={session.timeLabel}
+                  price={session.price ?? 0}
+                  packageCredit={session.packageCredit}
+                  isAuthenticated={session.authenticated}
+                  onBooked={booked}
+                />
+              ) : (
+                <div className={styles.bookingAction}><BookSessionButton sessionId={session.id} initialRemaining={session.remaining} price={session.price ?? 0} showRemaining={false} autoOpen={session.requested && session.authenticated} isAuthenticated={session.authenticated} buttonLabel={copy.register} buttonClassName={styles.button} onBooked={booked} /></div>
+              )}
         </div>
       </div>
     </div>
     <dialog ref={dialog} dir={dir} className={styles.dialog} aria-labelledby={dialogTitle} onCancel={() => { badge.current?.focus(); router.refresh() }}>
-      <h3 id={dialogTitle}>{copy.savedTitle}</h3>
-      {receipt?.reference && session.price !== null ? <PaymentConfirmationBlock amount={session.price} reference={receipt.reference} />
+      <h3 id={dialogTitle}>{receipt?.packageBalance ? copy.bookedTitle : copy.savedTitle}</h3>
+      {receipt?.packageBalance ? (
+        <>
+          <span className="inline-flex items-center rounded-full bg-[#D6E2B6]/70 px-3 py-1 text-xs font-semibold text-[#3f5233]">{copy.paidFromPackageBadge}</span>
+          <p className="mt-3 font-semibold">
+            {t.classes.packages.remainingOf.replace('{remaining}', String(receipt.packageBalance.remaining)).replace('{total}', String(receipt.packageBalance.total))}
+          </p>
+          <div className="mt-2 flex gap-1.5" aria-hidden="true">
+            {Array.from({ length: receipt.packageBalance.total }, (_, index) => (
+              <span key={index} className={`h-2 flex-1 rounded-full ${index < receipt.packageBalance!.remaining ? 'bg-[#617A55]' : 'bg-[#617A55]/15'}`} />
+            ))}
+          </div>
+          <p className="mt-3 text-sm leading-6 text-[#4f5d49]">{copy.cancelCreditNote}</p>
+          <p className="mt-3"><Link href="/bookings">{copy.viewBookings}</Link></p>
+          <Link href="/classes#sessions-list" className="mt-2 inline-block underline">{copy.bookAnotherSession}</Link>
+        </>
+      ) : receipt?.reference && session.price !== null ? <PaymentConfirmationBlock amount={session.price} reference={receipt.reference} />
         : <><p>{copy.savedMessage}</p>{receipt?.reference && <p><bdi dir="ltr">{receipt.reference}</bdi></p>}<Link href="/bookings">{copy.viewBookings}</Link></>}
       <div className={styles.dialogActions}><button className={styles.button} type="button" onClick={closeConfirmation}>{copy.close}</button></div>
     </dialog>

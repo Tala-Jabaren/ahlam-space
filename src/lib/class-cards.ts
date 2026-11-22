@@ -4,7 +4,11 @@ import type { Locale } from '@/i18n/config'
 import type { ClassBooking, ClassCardData, ClassSession } from '@/components/classes/types'
 
 const ZONE = 'Asia/Hebron'
-const TWELVE_HOURS = 12 * 60 * 60 * 1000
+// The one shared cancellation-window constant for the whole app - every
+// booking (regular or package) is cancellable only while its session is
+// still more than this far away. Exported so UI code never hardcodes "12"
+// anywhere of its own.
+export const TWELVE_HOURS = 12 * 60 * 60 * 1000
 const categoryImages: Record<string, string> = {
   yoga: '/member/yoga-class.png', fitness: '/member/fitness-class.png', dance: '/member/dance-class.png',
 }
@@ -38,11 +42,20 @@ export function canCancelSession(date: string, time: string, now: Date): boolean
   return Boolean(start && start.getTime() - now.getTime() > TWELVE_HOURS)
 }
 
-export async function loadClassBookings(supabase: SupabaseClient, userId: string | null, ids: string[], now: Date) {
+export async function loadClassBookings(
+  supabase: SupabaseClient, userId: string | null, ids: string[], now: Date,
+  // Only ever true when the caller has confirmed PACKAGES_ENABLED - the
+  // column may not exist in the database yet otherwise (see
+  // supabase/package-booking.sql's header), so it's left out of the
+  // select entirely rather than requested-and-ignored.
+  options: { includePackageInfo?: boolean } = {},
+) {
   const bookings = new Map<string, ClassBooking>()
   if (!userId || ids.length === 0) return { bookings, known: true }
+  const columns = 'id, session_id, status, payment_status, reserved_until'
+    + (options.includePackageInfo ? ', package_purchase_id' : '')
   const { data, error } = await supabase.from('bookings')
-    .select('id, session_id, status, payment_status, reserved_until')
+    .select(columns)
     .eq('user_id', userId).in('session_id', ids).in('status', ['pending', 'confirmed'])
     .returns<ClassBooking[]>()
   if (error) {
@@ -60,6 +73,7 @@ export async function loadClassBookings(supabase: SupabaseClient, userId: string
 export function classCardData(session: ClassSession, locale: Locale, options: {
   now: Date; booking?: ClassBooking; known: boolean; authenticated: boolean; requested?: boolean
   classInfo?: { name: string; category: string | null; price: number | null; image_url?: string | null; package_eligible?: boolean | null }
+  packageCredit?: { purchaseId: string; remaining: number; total: number } | null
 }): ClassCardData {
   const info = options.classInfo ?? session.classes
   const price = typeof info?.price === 'number' && Number.isFinite(info.price) ? info.price : null
@@ -83,5 +97,8 @@ export function classCardData(session: ClassSession, locale: Locale, options: {
     // undefined here means "don't show the packages badge at all", not
     // "ineligible", so this never renders anything while the flag is off.
     packageEligible: options.classInfo?.package_eligible,
+    // Same "undefined unless the caller opted in" rule as packageEligible
+    // above - only /classes/page.tsx ever passes this.
+    packageCredit: options.packageCredit,
   }
 }

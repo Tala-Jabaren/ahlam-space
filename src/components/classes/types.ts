@@ -16,6 +16,9 @@ export type ClassBooking = {
   status: string
   payment_status: string
   reserved_until: string | null
+  // Set when this booking was paid for with a package credit - drives the
+  // cancellation messaging/balance-return behavior in BookingCancelControl.
+  package_purchase_id?: string | null
 }
 
 export type ClassCardData = {
@@ -38,6 +41,17 @@ export type ClassCardData = {
   // undefined unless the page explicitly opted in (PACKAGES_ENABLED) - see
   // src/lib/class-cards.ts.
   packageEligible?: boolean | null
+  // undefined unless the page explicitly opted in - her active package's
+  // credit, if any, regardless of whether THIS class accepts it (that's
+  // packageEligible's job). Only /classes passes this (see its page.tsx).
+  packageCredit?: { purchaseId: string; remaining: number; total: number } | null
 }
 
-export type BookingReceipt = { id: string; reference: string | null }
+export type BookingReceipt = {
+  id: string
+  reference: string | null
+  // Set only when this booking was paid for with a package credit -
+  // carries the balance after this booking so the success dialog can
+  // show it instead of bank-transfer instructions.
+  packageBalance?: { remaining: number; total: number } | null
+}

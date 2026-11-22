@@ -84,7 +84,7 @@ export default function PackageCard({
 
       <div className="mt-5">
         {isLoggedIn ? (
-          <BuyPackageButton packageId={pkg.id} price={pkg.price} buyLabel={copy.buy} />
+          <BuyPackageButton packageId={pkg.id} packageName={pkg.name} sessionsCount={pkg.sessionsCount} price={pkg.price} buyLabel={copy.buy} />
         ) : (
           <a
             href={loginHref}

@@ -3,13 +3,18 @@ import Link from 'next/link'
 import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
 import PaymentConfirmationBlock from '@/components/payment-confirmation-block'
-import CancelBookingButton from './cancel-booking-button'
+import BookingCancelControl from '@/components/classes/booking-cancel-control'
+import { canCancelSession } from '@/lib/class-cards'
+import { PACKAGES_ENABLED } from '@/lib/feature-flags'
 
 type BookingRow = {
   id: string
   status: string
   payment_status: string
   reference: string | null
+  // Only a real column once supabase/package-booking.sql has been run -
+  // only requested below when PACKAGES_ENABLED is on.
+  package_purchase_id?: string | null
   class_sessions: {
     id: string
     session_date: string
@@ -33,18 +38,14 @@ const categoryImages: Record<string, string> = {
   dance: '/member/dance-class.png',
 }
 
-function canCancelBooking(booking: BookingRow) {
-  const sessionDate = booking.class_sessions?.session_date
+function canCancelBooking(booking: BookingRow, now: Date) {
+  const session = booking.class_sessions
+  if (!session) return false
 
-  if (!sessionDate) {
-    return false
-  }
-
-  const today = new Date().toISOString().slice(0, 10)
   const isCancelableStatus =
     booking.status === 'confirmed' || booking.status === 'pending'
 
-  return isCancelableStatus && sessionDate > today
+  return isCancelableStatus && canCancelSession(session.session_date, session.start_time, now)
 }
 
 function isUpcomingBooking(booking: BookingRow, today: string) {
@@ -104,11 +105,12 @@ export default async function MyBookingsPage({
     redirect('/login?message=session-expired')
   }
 
+  const bookingColumns = 'id, status, payment_status, reference, class_sessions(id, session_date, start_time, end_time, location, classes(name, description, category, price))'
+    + (PACKAGES_ENABLED ? ', package_purchase_id' : '')
+
   const { data: bookings, error } = await supabase
     .from('bookings')
-    .select(
-      'id, status, payment_status, reference, class_sessions(id, session_date, start_time, end_time, location, classes(name, description, category, price))'
-    )
+    .select(bookingColumns)
     .eq('user_id', user.id)
     .order('session_date', {
       ascending: true,
@@ -120,7 +122,8 @@ export default async function MyBookingsPage({
     console.error('Failed to load bookings:', error.message)
   }
 
-  const today = new Date().toISOString().slice(0, 10)
+  const now = new Date()
+  const today = now.toISOString().slice(0, 10)
   const upcomingBookings = (bookings ?? []).filter((booking) =>
     isUpcomingBooking(booking, today)
   )
@@ -293,8 +296,14 @@ export default async function MyBookingsPage({
                           {paymentStatusLabel(booking.payment_status)}
                         </span>
 
-                        {canCancelBooking(booking) && (
-                          <CancelBookingButton bookingId={booking.id} />
+                        {(booking.status === 'confirmed' || booking.status === 'pending') && isUpcomingBooking(booking, today) && (
+                          <BookingCancelControl
+                            bookingId={booking.id}
+                            canCancel={canCancelBooking(booking, now)}
+                            isPackageBooking={Boolean(booking.package_purchase_id)}
+                            paymentStatus={booking.payment_status}
+                            packagePurchaseId={booking.package_purchase_id}
+                          />
                         )}
                       </div>
 
