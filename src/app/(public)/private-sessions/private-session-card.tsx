@@ -5,12 +5,12 @@ import { ChevronDown } from 'lucide-react'
 import { useEffect, useId, useRef, useState } from 'react'
 import { useT } from '@/i18n/i18n-context'
 import { privateSessionDetailsAr } from '@/i18n/private-session-details'
-import { PRIVATE_SESSION_HOURLY_PRICE, SOUND_HEALING_SESSION_PRICE } from '@/lib/private-session-details'
 
 type Props = {
   title: string
-  isPrivateSession: boolean
-  isSoundHealing: boolean
+  price: number | null
+  hourly: boolean
+  duration: string | null
   image: string
   description: string
   requestLabel: string
@@ -19,8 +19,9 @@ type Props = {
 
 export default function PrivateSessionCard({
   title,
-  isPrivateSession,
-  isSoundHealing,
+  price,
+  hourly,
+  duration,
   image,
   description,
   requestLabel,
@@ -43,19 +44,17 @@ export default function PrivateSessionCard({
     }, reducedMotion ? 0 : 250)
     return () => window.clearTimeout(timer)
   }, [expanded])
-  const price = (isSoundHealing ? copy.soundPrice : copy.price).replace(
+  const formattedPrice = price === null ? null : (hourly ? copy.price : copy.soundPrice).replace(
     '{price}',
-    new Intl.NumberFormat(locale === 'ar' ? 'ar' : 'en-US').format(
-      isSoundHealing ? SOUND_HEALING_SESSION_PRICE : PRIVATE_SESSION_HOURLY_PRICE,
-    ),
+    new Intl.NumberFormat(locale === 'ar' ? 'ar' : 'en-US').format(price),
   )
   const focusStyle =
     'focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[#617A55]'
 
   return (
     <section className="w-full max-w-[620px] self-start overflow-hidden rounded-[18px] border border-[#617A55]/[0.12] bg-white text-start transition-transform duration-200 motion-safe:hover:-translate-y-[3px] motion-reduce:transition-none">
-      <div className="flex flex-col sm:h-[190px] sm:flex-row">
-        <div className="relative h-[210px] w-full shrink-0 sm:h-full sm:w-[190px]">
+      <div className="flex flex-col sm:min-h-[190px] sm:flex-row">
+        <div className="relative h-[210px] w-full shrink-0 sm:h-auto sm:w-[190px]">
           <Image
             src={image}
             alt=""
@@ -65,8 +64,8 @@ export default function PrivateSessionCard({
           />
         </div>
         <div className="flex min-w-0 flex-1 flex-col p-5">
-          <h2 className="font-serif text-2xl font-medium leading-tight text-[#25311f]">
-            {isPrivateSession ? copy.title : title}
+          <h2 className="break-words font-serif text-2xl font-medium leading-tight text-[#25311f]">
+            {title}
           </h2>
           <p className="mt-2 line-clamp-2 text-sm leading-6 text-[#4f5d49]">
             {description}
@@ -98,20 +97,20 @@ export default function PrivateSessionCard({
       >
         <div className="min-h-0 overflow-hidden">
           <div className="border-t border-[#617A55]/12 bg-[#F7F6F0] p-5">
-            <p className="text-sm leading-6 text-[#4f5d49]">
+            <p className="whitespace-pre-wrap break-words text-sm leading-6 text-[#4f5d49]">
               {description}
             </p>
-            {(isPrivateSession || isSoundHealing) && <dl className="mt-4 grid gap-4 text-sm sm:grid-cols-2">
-              <div>
+            {(formattedPrice !== null || duration) && <dl className="mt-4 grid gap-4 text-sm sm:grid-cols-2">
+              {formattedPrice !== null && <div>
                 <dt className="text-[#617A55]">{copy.priceLabel}</dt>
-                <dd className="mt-1 font-medium text-[#25311f]">{price}</dd>
-              </div>
-              <div>
+                <dd className="mt-1 font-medium text-[#25311f]">{formattedPrice}</dd>
+              </div>}
+              {duration && <div>
                 <dt className="text-[#617A55]">{copy.durationLabel}</dt>
                 <dd className="mt-1 font-medium text-[#25311f]">
-                  {isSoundHealing ? copy.soundDuration : copy.duration}
+                  {duration}
                 </dd>
-              </div>
+              </div>}
             </dl>}
             <button
               type="button"
