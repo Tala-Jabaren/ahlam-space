@@ -37,7 +37,8 @@ export default function AddSessionForm({
     const form = new FormData(event.currentTarget)
     const capacity = Number(form.get('capacity'))
     const date = fixedDate ?? String(form.get('date') || '')
-    if (!selectedClass || !end || !Number.isInteger(capacity) || capacity < 1 || date < today) {
+    const invalidDate = !date || (!fixedDate && date < today)
+    if (!selectedClass || !end || !Number.isInteger(capacity) || capacity < 1 || invalidDate) {
       setFailed(true)
       setMessage('تحققي من التاريخ والسعة. يجب أن تنتهي الحصة في اليوم نفسه.')
       return
@@ -94,7 +95,7 @@ export default function AddSessionForm({
               </select>
             </label>
           )}
-          <label className="text-sm">التاريخ<input required type="date" name="date" min={today} defaultValue={fixedDate} readOnly={Boolean(fixedDate)} className={fieldStyle} /></label>
+          <label className="text-sm">التاريخ<input required type="date" name="date" min={fixedDate ? undefined : today} defaultValue={fixedDate} readOnly={Boolean(fixedDate)} className={fieldStyle} /></label>
           <label className="text-sm">وقت البداية<input required type="time" value={start} onChange={e => setStart(e.target.value)} className={fieldStyle} /></label>
           <label className="text-sm">السعة<input required type="number" name="capacity" min="1" max="2147483647" step="1" className={fieldStyle} /></label>
           <label className="text-sm">المكان (اختياري)<input name="location" maxLength={500} className={fieldStyle} /></label>

@@ -135,9 +135,7 @@ export default function SessionsTab({
 
         <section id="calendar-day" className="min-w-0 scroll-mt-24">
           <h2 className="mb-3 text-lg text-[#465d3d]">{dayFormat.format(new Date(`${selectedDate}T00:00:00Z`))}</h2>
-          {selectedDate >= today && (
-            <CalendarAddClass key={`${selectedDate}-${classId}`} date={selectedDate} today={today} classes={classes} classId={classId} packagesEnabled={packagesEnabled} />
-          )}
+          <CalendarAddClass key={`${selectedDate}-${classId}`} date={selectedDate} today={today} classes={classes} classId={classId} packagesEnabled={packagesEnabled} />
           {loadError ? (
             <p role="alert" className="rounded-lg bg-[#C7D6E8]/50 p-5">تعذر تحميل المواعيد. تحققي من الاتصال وصلاحيات العرض.</p>
           ) : sessions.length === 0 ? (

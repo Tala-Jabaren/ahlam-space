@@ -50,6 +50,7 @@ export default function CreateClassForm({
     const capacity = Number(form.get('capacity'))
     const location = String(form.get('location') || '').trim() || null
     const date = fixedDate ?? String(form.get('date') || '')
+    const invalidDate = !date || (!fixedDate && date < today)
     const computedEnd = endTime(start, durationMinutes)
 
     if (
@@ -58,7 +59,7 @@ export default function CreateClassForm({
       !Number.isInteger(durationMinutes) || durationMinutes <= 0 ||
       !computedEnd ||
       !Number.isInteger(capacity) || capacity < 1 ||
-      date < today
+      invalidDate
     ) {
       setFailed(true)
       setMessage('تحققي من الاسم والسعر ومدة الحصة والتاريخ والسعة. يجب أن تنتهي الحصة في اليوم نفسه.')
@@ -165,7 +166,7 @@ export default function CreateClassForm({
             <input required type="number" name="duration" min="1" step="1" value={duration} onChange={e => setDuration(e.target.value)} className={fieldStyle} />
           </label>
           <label className="text-sm">
-            التاريخ<input required type="date" name="date" min={today} defaultValue={fixedDate} readOnly={Boolean(fixedDate)} className={fieldStyle} />
+            التاريخ<input required type="date" name="date" min={fixedDate ? undefined : today} defaultValue={fixedDate} readOnly={Boolean(fixedDate)} className={fieldStyle} />
           </label>
           <label className="text-sm">
             وقت البداية<input required type="time" value={start} onChange={e => setStart(e.target.value)} className={fieldStyle} />
