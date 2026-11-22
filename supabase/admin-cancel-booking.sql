@@ -21,7 +21,9 @@
 --   public.is_admin() - defined in admin-payments.sql section 2.
 --   The same row-lock order as public.cancel_booking (booking row, then
 --     its session row) and the same booked_count/package-credit-return
---     shape (package-booking.sql section 3) - not reinvented here.
+--     shape, including the same "don't return credit if the session is
+--     already cancelled" guard (package-booking.sql section 4) - not
+--     reinvented here.
 --
 -- =============================================================================
 -- ROLLBACK (keep this up to date; run manually if this needs to be undone):
@@ -90,6 +92,7 @@ declare
   v_session_id uuid;
   v_booking_status text;
   v_package_purchase_id uuid;
+  v_session_status text;
   v_sessions_total integer;
 begin
   if not coalesce(public.is_admin(), false) then
@@ -116,22 +119,33 @@ begin
     raise exception 'ALREADY_CANCELLED';
   end if;
 
-  perform 1 from public.class_sessions where id = v_session_id for update;
+  select class_sessions.status into v_session_status
+  from public.class_sessions
+  where class_sessions.id = v_session_id
+  for update;
 
   update public.bookings
   set status = 'cancelled',
       cancelled_at = now(),
-      admin_cancel_note = p_note
+      -- Keeps the note from growing unbounded through this column -
+      -- plenty of room for a real explanation, not a place to paste a
+      -- payment thread.
+      admin_cancel_note = left(p_note, 500)
   where id = p_booking_id;
 
   update public.class_sessions
   set booked_count = greatest(booked_count - 1, 0)
   where id = v_session_id;
 
-  if v_package_purchase_id is not null then
+  -- Also skip the return if the session itself is already cancelled -
+  -- return_package_credits_for_session (package-booking.sql section 5)
+  -- already returned this exact credit when the admin cancelled the whole
+  -- session; without this check, cancelling one more booking on an
+  -- already-cancelled session (its row was left untouched by that earlier
+  -- whole-session cancel, by design) would mint a second credit for it.
+  if v_package_purchase_id is not null and v_session_status <> 'cancelled' then
     -- Same credit-return shape as cancel_booking (package-booking.sql
-    -- section 3): capped at sessions_total, unconditional here since the
-    -- 'cancelled' guard above already ruled out a double-return.
+    -- section 4): capped at sessions_total.
     select sessions_total into v_sessions_total
     from public.package_purchases
     where id = v_package_purchase_id
@@ -151,8 +165,9 @@ grant execute on function public.admin_cancel_booking(uuid, text) to authenticat
 -- Test (as admin, any active booking - paid regular, unpaid regular, or
 --   package, at any time before or after the session): expect true,
 --   booking -> 'cancelled', cancelled_at set, admin_cancel_note stored
---   (or null if omitted), booked_count -1; if package, that purchase's
---   sessions_remaining +1 (capped at sessions_total).
+--   (or null if omitted, truncated to 500 chars if longer), booked_count
+--   -1; if package, that purchase's sessions_remaining +1 (capped at
+--   sessions_total).
 -- Test (same booking, cancel it again): expect ALREADY_CANCELLED, nothing
 --   changes a second time.
 -- Test (a booking id that doesn't exist): expect BOOKING_NOT_FOUND.
@@ -161,6 +176,11 @@ grant execute on function public.admin_cancel_booking(uuid, text) to authenticat
 --   though cancel_booking (the member-facing RPC) would have raised
 --   PAID_BOOKING_CONTACT_ADMIN for the same booking - confirms the two
 --   functions are intentionally independent, not one calling the other.
+-- Test (admin cancels the whole session first, then cancels one of its
+--   package bookings individually here): expect true, that booking ->
+--   'cancelled', booked_count -1 again - but sessions_remaining must NOT
+--   increment a second time, since the whole-session cancel's trigger
+--   already returned that credit.
 
 -- =============================================================================
 -- 3. admin_list_session_attendees: surface package/cancel info to the UI
