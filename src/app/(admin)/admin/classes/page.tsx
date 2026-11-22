@@ -6,7 +6,7 @@ import PackagePayments from '@/components/admin/sections/package-payments'
 import { PACKAGES_ENABLED } from '@/lib/feature-flags'
 
 export default async function AdminClassesPage({ searchParams }: {
-  searchParams: Promise<{ tab?: string; classId?: string; new?: string; filter?: string; pfilter?: string; item?: string }>
+  searchParams: Promise<{ tab?: string; classId?: string; new?: string; filter?: string; pfilter?: string; item?: string; date?: string; status?: string }>
 }) {
   const params = await searchParams
   const tab =

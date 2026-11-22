@@ -2,6 +2,7 @@ import Link from 'next/link'
 import { notFound } from 'next/navigation'
 import { getAdminSession } from '@/components/admin/admin-session'
 import { getSessionAttendees } from '@/lib/admin-session-attendees'
+import { classCalendarHref } from '@/lib/admin-class-calendar'
 import AttendeesClient from './attendees-client'
 
 type SessionDetail = {
@@ -49,9 +50,9 @@ export default async function SessionAttendeesPage({
   return (
     <main className="mx-auto max-w-5xl px-4 py-8 sm:px-6 lg:px-8">
       <nav aria-label="مسار التنقل" className="mb-4 flex flex-wrap items-center gap-1.5 text-sm text-[#617A55]/80">
-        <Link href="/admin/classes?tab=sessions" className="underline-offset-4 hover:underline">الحصص والمواعيد</Link>
+        <Link href={classCalendarHref(session.session_date)} className="underline-offset-4 hover:underline">العودة إلى يوم الحصة</Link>
         <span aria-hidden="true">‹</span>
-        <Link href={`/admin/classes?tab=sessions&classId=${classId}`} className="underline-offset-4 hover:underline">{session.classes?.name ?? 'حصة'}</Link>
+        <Link href={classCalendarHref(session.session_date, classId)} className="underline-offset-4 hover:underline">{session.classes?.name ?? 'حصة'}</Link>
         <span aria-hidden="true">‹</span>
         <span>{dateLabel}</span>
         <span aria-hidden="true">‹</span>
