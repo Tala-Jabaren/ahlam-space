@@ -25,6 +25,13 @@ export default function ClassCard({ session, headingLevel = 2 }: { session: Clas
   const name = session.name ?? t.home.sessionNameFallback
   const category = session.category === 'yoga' ? copy.yoga : session.category === 'fitness' ? copy.fitness : session.category === 'dance' ? copy.dance : session.category
   const booking = session.booking ?? (receipt ? { id: receipt.id, status: 'pending', payment_status: 'unpaid', package_purchase_id: null } : null)
+  // Only on a page that opted into package-awareness at all (packageEligible
+  // is otherwise always undefined - see src/lib/class-cards.ts) - keeps
+  // /member-schedule's plain register button unchanged, since it never
+  // passes that field through.
+  const registerLabel = session.packageEligible !== undefined && session.priceLabel
+    ? copy.registerWithPrice.replace('{price}', session.priceLabel)
+    : copy.register
   const confirmed = booking?.status === 'confirmed' || booking?.payment_status === 'paid'
 
   function booked(value: BookingReceipt) {
@@ -84,6 +91,7 @@ export default function ClassCard({ session, headingLevel = 2 }: { session: Clas
               : session.packageEligible !== false && session.packageCredit ? (
                 <PackageBookingButton
                   sessionId={session.id}
+                  sessionName={name}
                   dateLabel={session.dateLabel}
                   timeLabel={session.timeLabel}
                   price={session.price ?? 0}
@@ -92,31 +100,60 @@ export default function ClassCard({ session, headingLevel = 2 }: { session: Clas
                   onBooked={booked}
                 />
               ) : (
-                <div className={styles.bookingAction}><BookSessionButton sessionId={session.id} initialRemaining={session.remaining} price={session.price ?? 0} showRemaining={false} autoOpen={session.requested && session.authenticated} isAuthenticated={session.authenticated} buttonLabel={copy.register} buttonClassName={styles.button} onBooked={booked} /></div>
+                <div className={styles.bookingAction}><BookSessionButton sessionId={session.id} initialRemaining={session.remaining} price={session.price ?? 0} showRemaining={false} autoOpen={session.requested && session.authenticated} isAuthenticated={session.authenticated} buttonLabel={registerLabel} buttonClassName={styles.button} onBooked={booked} /></div>
               )}
         </div>
       </div>
     </div>
-    <dialog ref={dialog} dir={dir} className={styles.dialog} aria-labelledby={dialogTitle} onCancel={() => { badge.current?.focus(); router.refresh() }}>
-      <h3 id={dialogTitle}>{receipt?.packageBalance ? copy.bookedTitle : copy.savedTitle}</h3>
+    <dialog
+      ref={dialog}
+      dir={dir}
+      className={receipt?.packageBalance ? 'm-auto w-[min(26rem,calc(100%-2rem))] rounded-[24px] border-0 bg-white p-6 text-center text-[#2B2A27] backdrop:bg-black/40' : styles.dialog}
+      aria-labelledby={dialogTitle}
+      onCancel={() => { badge.current?.focus(); router.refresh() }}
+    >
       {receipt?.packageBalance ? (
         <>
-          <span className="inline-flex items-center rounded-full bg-[#D6E2B6]/70 px-3 py-1 text-xs font-semibold text-[#3f5233]">{copy.paidFromPackageBadge}</span>
-          <p className="mt-3 font-semibold">
-            {t.classes.packages.remainingOf.replace('{remaining}', String(receipt.packageBalance.remaining)).replace('{total}', String(receipt.packageBalance.total))}
-          </p>
-          <div className="mt-2 flex gap-1.5" aria-hidden="true">
-            {Array.from({ length: receipt.packageBalance.total }, (_, index) => (
-              <span key={index} className={`h-2 flex-1 rounded-full ${index < receipt.packageBalance!.remaining ? 'bg-[#617A55]' : 'bg-[#617A55]/15'}`} />
-            ))}
+          <div className="mx-auto flex size-[84px] items-center justify-center rounded-full bg-[#E1EEE5]" aria-hidden="true">
+            <svg viewBox="0 0 24 24" className="size-10 text-[#25513A]">
+              <path fill="currentColor" d="M9.55 17.6 4 12.05l1.4-1.4 4.15 4.15 9.05-9.05 1.4 1.4Z" />
+            </svg>
           </div>
-          <p className="mt-3 text-sm leading-6 text-[#4f5d49]">{copy.cancelCreditNote}</p>
-          <p className="mt-3"><Link href="/bookings">{copy.viewBookings}</Link></p>
-          <Link href="/classes#sessions-list" className="mt-2 inline-block underline">{copy.bookAnotherSession}</Link>
+          <h3 id={dialogTitle} className="mt-4 text-[28px] font-bold">{copy.bookedTitle}</h3>
+
+          <div className="mt-4 rounded-2xl border border-[#E8E2D8] bg-white p-4 text-start">
+            <p className="text-[18px] font-bold">{name}</p>
+            <p className="mt-1 text-[14px] text-[#5C574F]">{session.dateLabel} · <bdi dir="ltr">{session.timeLabel}</bdi></p>
+            <span className="mt-2 inline-flex items-center rounded-full bg-[#E1EEE5] px-3 py-1 text-xs font-semibold text-[#25513A]">{copy.paidFromPackageBadge}</span>
+          </div>
+
+          <div className="mt-3 rounded-2xl bg-[#3F6350] p-5 text-start text-white">
+            <p className="text-[44px] font-bold leading-none"><bdi>{receipt.packageBalance.remaining}</bdi></p>
+            <p className="mt-1 text-[17px]">{t.classes.packages.successBalanceCaption.replace('{total}', String(receipt.packageBalance.total))}</p>
+            <div className="mt-3 flex gap-1.5" aria-hidden="true">
+              {Array.from({ length: receipt.packageBalance.total }, (_, index) => (
+                <span key={index} className={`h-2.5 flex-1 rounded-full ${index < receipt.packageBalance!.remaining ? 'bg-white' : 'bg-white/30'}`} />
+              ))}
+            </div>
+          </div>
+
+          <p className="mt-4 text-[14px] leading-6 text-[#5C574F]">{t.classes.packages.successCancelNote}</p>
+
+          <Link href="/bookings" className="mt-5 inline-flex min-h-[50px] w-full items-center justify-center rounded-xl bg-[#3F6350] px-6 text-[17px] font-bold text-white transition hover:bg-[#345142]" onClick={closeConfirmation}>
+            {t.classes.packages.myBookingsCta}
+          </Link>
+          <Link href="/classes#sessions-list" className="mt-3 inline-block text-[15px] font-medium text-[#5C574F] underline underline-offset-4" onClick={closeConfirmation}>
+            {copy.bookAnotherSession}
+          </Link>
         </>
-      ) : receipt?.reference && session.price !== null ? <PaymentConfirmationBlock amount={session.price} reference={receipt.reference} />
-        : <><p>{copy.savedMessage}</p>{receipt?.reference && <p><bdi dir="ltr">{receipt.reference}</bdi></p>}<Link href="/bookings">{copy.viewBookings}</Link></>}
-      <div className={styles.dialogActions}><button className={styles.button} type="button" onClick={closeConfirmation}>{copy.close}</button></div>
+      ) : (
+        <>
+          <h3 id={dialogTitle}>{copy.savedTitle}</h3>
+          {receipt?.reference && session.price !== null ? <PaymentConfirmationBlock amount={session.price} reference={receipt.reference} />
+            : <><p>{copy.savedMessage}</p>{receipt?.reference && <p><bdi dir="ltr">{receipt.reference}</bdi></p>}<Link href="/bookings">{copy.viewBookings}</Link></>}
+          <div className={styles.dialogActions}><button className={styles.button} type="button" onClick={closeConfirmation}>{copy.close}</button></div>
+        </>
+      )}
     </dialog>
   </article>
 }
