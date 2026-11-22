@@ -3,14 +3,14 @@
 import { revalidatePath } from 'next/cache'
 import { z } from 'zod'
 import { getAdminSession } from '@/components/admin/admin-session'
-import { privateSessionImages } from '@/lib/private-session-services'
+import { DEFAULT_PRIVATE_SESSION_IMAGE, isUploadedPrivateSessionImage } from '@/lib/private-session-images'
 
 const service = z.object({
   title_ar: z.string().trim().min(1).max(120),
   title_en: z.string().trim().max(120),
   description_ar: z.string().trim().min(1).max(3000),
   description_en: z.string().trim().max(3000),
-  image: z.enum(privateSessionImages.map(({ path }) => path)),
+  image: z.string().refine(isUploadedPrivateSessionImage).optional(),
   price: z.union([z.literal(''), z.string().regex(/^\d{1,8}(\.\d{1,2})?$/)]),
   hourly: z.literal('on').optional(),
   duration_ar: z.string().trim().max(150),
@@ -35,7 +35,9 @@ export async function savePrivateSession(id: number | null, form: FormData) {
     duration_en: input.duration_en || null,
   }
   const table = supabase.from('private_session_services')
-  const query = id === null ? table.insert(row) : table.update(row).eq('id', id)
+  const query = id === null
+    ? table.insert({ ...row, image: input.image ?? DEFAULT_PRIVATE_SESSION_IMAGE })
+    : table.update(row).eq('id', id)
   const { error } = await query.select('id').single()
   if (error) return { error: 'تعذّر حفظ الجلسة. حاولي مرة أخرى.' }
 

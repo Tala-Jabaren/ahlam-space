@@ -1,8 +1,12 @@
 'use client'
 
-import { Pencil, Plus } from 'lucide-react'
-import { useState, useTransition, type FormEvent } from 'react'
-import { privateSessionImages, type PrivateSessionService } from '@/lib/private-session-services'
+import Image from 'next/image'
+import { ImagePlus, Pencil, Plus } from 'lucide-react'
+import { useEffect, useRef, useState, useTransition, type ChangeEvent, type FormEvent } from 'react'
+import { MAX_PRODUCT_IMAGE_BYTES, PRODUCT_IMAGE_TYPES } from '@/components/admin/product-input'
+import { UploadError, uploadFileDirect } from '@/lib/admin-upload'
+import { DEFAULT_PRIVATE_SESSION_IMAGE, privateSessionImageSrc } from '@/lib/private-session-images'
+import type { PrivateSessionService } from '@/lib/private-session-services'
 import { savePrivateSession } from './service-actions'
 
 const field = 'mt-1.5 block w-full min-w-0 rounded-lg border border-[#617A55]/25 bg-[#F7F6F0] px-3 py-2.5 text-[#25311f] focus-visible:outline-2 focus-visible:outline-[#617A55]'
@@ -14,11 +18,30 @@ export default function ServiceEditor({ services }: { services: PrivateSessionSe
   const [notice, setNotice] = useState('')
   const [error, setError] = useState('')
   const [pending, startTransition] = useTransition()
+  const [preview, setPreview] = useState<string | null>(null)
+  const uploadedImage = useRef<string | null>(null)
+
+  useEffect(() => () => {
+    if (preview) URL.revokeObjectURL(preview)
+  }, [preview])
 
   function open(id: typeof editing) {
     setNotice('')
     setError('')
+    setPreview(null)
+    uploadedImage.current = null
     setEditing(id)
+  }
+
+  function chooseImage(event: ChangeEvent<HTMLInputElement>) {
+    const file = event.currentTarget.files?.[0]
+    uploadedImage.current = null
+    setError('')
+    setPreview(file && file.size <= MAX_PRODUCT_IMAGE_BYTES ? URL.createObjectURL(file) : null)
+    if (file && file.size > MAX_PRODUCT_IMAGE_BYTES) {
+      event.currentTarget.value = ''
+      setError('حجم الصورة يجب ألا يتجاوز 5 ميغابايت.')
+    }
   }
 
   function submit(event: FormEvent<HTMLFormElement>) {
@@ -26,18 +49,32 @@ export default function ServiceEditor({ services }: { services: PrivateSessionSe
     if (pending || editing === null) return
     const id = editing === 'new' ? null : editing
     const form = new FormData(event.currentTarget)
+    const file = form.get('image_file')
+    form.delete('image_file')
     setError('')
     startTransition(async () => {
       try {
+        if (file instanceof File && file.size > 0) {
+          if (!uploadedImage.current) {
+            const { path } = await uploadFileDirect('/admin/requests/upload-cover', {
+              upload_id: crypto.randomUUID(),
+              size: String(file.size),
+            }, file, 'PRIVATE_SESSION_IMAGE_UPLOAD')
+            uploadedImage.current = path
+          }
+          form.set('image', uploadedImage.current)
+        }
         const result = await savePrivateSession(id, form)
         if (result.error) {
           setError(result.error)
           return
         }
-        setEditing(null)
+        open(null)
         setNotice(id === null ? 'تمت إضافة الجلسة.' : 'تم حفظ التعديلات.')
-      } catch {
-        setError('تعذّر حفظ الجلسة. حاولي مرة أخرى.')
+      } catch (error) {
+        setError(error instanceof UploadError
+          ? error.serverMessage ?? 'تعذّر رفع الصورة. حاولي مرة أخرى.'
+          : 'تعذّر حفظ الجلسة. حاولي مرة أخرى.')
       }
     })
   }
@@ -50,9 +87,22 @@ export default function ServiceEditor({ services }: { services: PrivateSessionSe
           <label>اسم الجلسة بالإنجليزي (اختياري)<input name="title_en" dir="ltr" maxLength={120} className={field} defaultValue={service?.title_en ?? ''} /></label>
           <label>الوصف بالعربي<textarea name="description_ar" required maxLength={3000} rows={4} className={field} defaultValue={service?.description_ar} /></label>
           <label>الوصف بالإنجليزي (اختياري)<textarea name="description_en" dir="ltr" maxLength={3000} rows={4} className={field} defaultValue={service?.description_en ?? ''} /></label>
-          <label>صورة الجلسة<select name="image" className={field} defaultValue={service?.image ?? privateSessionImages[0].path}>
-            {privateSessionImages.map(({ path, label }) => <option key={path} value={path}>{label}</option>)}
-          </select></label>
+          <div className="min-w-0">
+            <p className="mb-1.5 font-medium">صورة الجلسة</p>
+            <div className="flex flex-wrap items-center gap-3 rounded-lg border border-[#617A55]/25 bg-[#F7F6F0] p-3">
+              <div className="relative h-20 w-24 shrink-0 overflow-hidden rounded-lg bg-[#D6E2B6]/40">
+                <Image src={preview ?? privateSessionImageSrc(service?.image ?? DEFAULT_PRIVATE_SESSION_IMAGE)} alt="معاينة صورة الجلسة" fill unoptimized className="object-cover" />
+              </div>
+              <div className="min-w-0">
+                <label className="inline-flex min-h-11 cursor-pointer items-center gap-2 rounded-full border border-[#617A55]/25 bg-white px-4 font-semibold hover:bg-[#D6E2B6]/40 focus-within:outline-2 focus-within:outline-[#617A55]">
+                  <ImagePlus size={17} aria-hidden="true" />
+                  اختيار صورة من الجهاز
+                  <input type="file" name="image_file" accept={PRODUCT_IMAGE_TYPES.join(',')} className="sr-only" onChange={chooseImage} />
+                </label>
+                <p className="mt-1 text-xs">JPG أو PNG أو WebP، حتى 5 ميغابايت</p>
+              </div>
+            </div>
+          </div>
           <div className="grid min-w-0 gap-2">
             <label>السعر بالشيكل (اختياري)<input name="price" type="number" min="0" max="99999999.99" step="0.01" className={field} defaultValue={service?.price ?? ''} /></label>
             <label className="flex min-h-8 items-center gap-2"><input name="hourly" type="checkbox" defaultChecked={service?.hourly} /> السعر للساعة</label>

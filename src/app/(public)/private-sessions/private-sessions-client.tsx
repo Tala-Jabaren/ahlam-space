@@ -4,6 +4,7 @@ import { useRef, useState } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import { useT } from '@/i18n/i18n-context'
 import type { PrivateSessionService } from '@/lib/private-session-services'
+import { privateSessionImageSrc } from '@/lib/private-session-images'
 import ClassesBanner from '@/components/classes/classes-banner'
 import { studioMinute } from '@/lib/private-session-preferences'
 import PrivateSessionCard from './private-session-card'
@@ -83,7 +84,7 @@ export default function PrivateSessionsClient({ catalog }: { catalog: PrivateSes
               price={service.price}
               hourly={service.hourly}
               duration={service.duration}
-              image={service.image}
+              image={privateSessionImageSrc(service.image)}
               description={service.description}
               requestLabel={t.privateSessions.requestButton}
               onRequest={() => handleRequestClick(service.id)}
