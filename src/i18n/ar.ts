@@ -304,6 +304,7 @@ export const ar = {
     notEligibleError: 'هذه الحصة لا تشمل الباقات.',
     noCreditError: 'لا يوجد رصيد كافٍ في باقتك.',
     tooLateError: 'تعذّر إتمام الحجز عبر تحويل بنكي لقرب موعد الحصة. تواصلي مع أحلام.',
+    sessionStartedError: 'بدأت هذه الحصة بالفعل.',
     bookingGenericError: 'تعذّر إتمام الحجز. حاولي مرة أخرى.',
     bookingLoading: 'جارٍ الحجز...',
   },

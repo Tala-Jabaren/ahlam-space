@@ -308,6 +308,7 @@ export const en: typeof ar = {
     notEligibleError: "This class doesn't accept packages.",
     noCreditError: "There isn't enough balance left in your package.",
     tooLateError: 'This class starts too soon for a bank transfer. Please contact Ahlam.',
+    sessionStartedError: 'This class has already started.',
     bookingGenericError: 'Could not complete the booking. Please try again.',
     bookingLoading: 'Booking...',
   },

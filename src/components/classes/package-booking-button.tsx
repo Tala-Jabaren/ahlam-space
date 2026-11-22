@@ -22,7 +22,7 @@ type Props = {
 type Method = 'package' | 'cash'
 type State = 'idle' | 'booking' | 'error'
 
-const ERROR_KEYS: Record<string, 'forbiddenError' | 'sessionFullError' | 'alreadyBookedError' | 'notEligibleError' | 'noCreditError' | 'tooLateError'> = {
+const ERROR_KEYS: Record<string, 'forbiddenError' | 'sessionFullError' | 'alreadyBookedError' | 'notEligibleError' | 'noCreditError' | 'tooLateError' | 'sessionStartedError'> = {
   FORBIDDEN: 'forbiddenError',
   SESSION_FULL: 'sessionFullError',
   SESSION_FULL_OR_UNAVAILABLE: 'sessionFullError',
@@ -30,6 +30,7 @@ const ERROR_KEYS: Record<string, 'forbiddenError' | 'sessionFullError' | 'alread
   NOT_PACKAGE_ELIGIBLE: 'notEligibleError',
   NO_PACKAGE_CREDIT: 'noCreditError',
   TOO_LATE_FOR_BANK_TRANSFER: 'tooLateError',
+  SESSION_STARTED: 'sessionStartedError',
 }
 
 // Shown instead of the plain BookSessionButton when a session is both
