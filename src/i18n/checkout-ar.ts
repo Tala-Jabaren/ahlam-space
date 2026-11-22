@@ -88,6 +88,7 @@ export const checkoutAr = {
     invalid: 'راجعي القيمة المدخلة في هذا الحقل.',
   },
   auth: {
+    backToSite: 'العودة للموقع',
     memberAccess: 'دخول العضوات',
     login: 'تسجيل الدخول',
     welcome: 'أهلًا بعودتك إلى مساحة أحلام.',

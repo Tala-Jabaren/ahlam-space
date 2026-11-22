@@ -95,6 +95,7 @@ export const checkoutEn: CheckoutCopy = {
     invalid: 'Please check the value in this field.',
   },
   auth: {
+    backToSite: 'Back to website',
     memberAccess: 'Member access',
     login: 'Login',
     welcome: 'Welcome back to Ahlam Space.',

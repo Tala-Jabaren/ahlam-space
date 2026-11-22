@@ -2,12 +2,13 @@ import Link from 'next/link'
 import FloatingWhatsApp from '@/components/contact/floating-whatsapp'
 import { WHATSAPP_URL } from '@/content/site-contact'
 import { redirect } from 'next/navigation'
-import { ArrowUpRight, BookOpen, CalendarDays, Compass, ShieldCheck, ShoppingBag, Ticket, UserRound } from 'lucide-react'
+import { ArrowUpRight, BookOpen, CalendarDays, Compass, House, ShieldCheck, ShoppingBag, Ticket, UserRound } from 'lucide-react'
 import { createClient } from '@/lib/supabase/server'
 import LogoutButton from './dashboard/logout-button'
 import MemberNavLink from './member-nav-link'
 import { getT } from '@/i18n/get-t'
 import { I18nProvider } from '@/i18n/i18n-context'
+import { checkoutAr } from '@/i18n/checkout-ar'
 import { ExperienceProvider } from '@/components/commerce/experience-provider'
 import MemberCartLink from '@/components/commerce/member-cart-link'
 import CartBottomBar from '@/app/(public)/cart-bottom-bar'
@@ -62,6 +63,7 @@ export default async function MemberLayout({
   const fullName = profile?.full_name?.trim() || user.email || 'عضوة'
   const isAdmin = profile?.role === 'admin'
   const { t, locale } = await getT()
+  const backToSite = (t.checkout ?? checkoutAr).auth.backToSite
 
   return (
     <I18nProvider locale={locale} dictionary={t}>
@@ -96,7 +98,7 @@ export default async function MemberLayout({
             className="mb-2 inline-flex min-h-11 items-center gap-2 px-4 text-sm font-medium text-[#617A55]/75 transition hover:text-[#617A55]"
           >
             <ArrowUpRight aria-hidden="true" className="size-5 shrink-0" strokeWidth={1.5} />
-            العودة للموقع
+            {backToSite}
           </Link>
           <LogoutButton variant="sidebar" />
         </div>
@@ -116,6 +118,13 @@ export default async function MemberLayout({
               <bdi className="truncate">{fullName}</bdi>
             </Link>
             <MemberCartLink />
+            <Link
+              href="/"
+              className="ms-auto inline-flex min-h-11 shrink-0 items-center gap-1.5 rounded-full border border-[#617A55]/25 px-2.5 text-xs font-semibold text-[#465d3d] hover:bg-[#D6E2B6]/50 focus-visible:outline-2 focus-visible:outline-offset-2 sm:px-3 md:hidden"
+            >
+              <House aria-hidden="true" size={16} />
+              {backToSite}
+            </Link>
           </div>
         </header>
 

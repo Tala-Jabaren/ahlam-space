@@ -1,5 +1,5 @@
 import Link from 'next/link'
-import { Leaf } from 'lucide-react'
+import { ArrowLeft, Leaf } from 'lucide-react'
 import { getT } from '@/i18n/get-t'
 import { I18nProvider } from '@/i18n/i18n-context'
 import { LanguageSwitcher } from '@/i18n/language-switcher'
@@ -17,6 +17,13 @@ export default async function AuthLayout({
   return (
     <I18nProvider locale={locale} dictionary={t}>
       <div dir={dir} className={`relative ${rhythm.authEntry}`}>
+        <Link
+          href="/"
+          className="absolute start-5 top-5 z-10 inline-flex min-h-11 items-center gap-2 rounded-full border border-[#617A55]/25 bg-[#FCFBF6] px-3 text-sm font-semibold text-[#465d3d] hover:bg-[#D6E2B6]/50 focus-visible:outline-2 focus-visible:outline-offset-2 md:hidden"
+        >
+          <ArrowLeft aria-hidden="true" size={16} className="rtl:rotate-180" />
+          {auth.backToSite}
+        </Link>
         <div className="absolute end-5 top-5 z-10">
           <LanguageSwitcher />
         </div>
