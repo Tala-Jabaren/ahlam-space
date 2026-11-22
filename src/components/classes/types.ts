@@ -16,6 +16,9 @@ export type ClassBooking = {
   status: string
   payment_status: string
   reserved_until: string | null
+  // Set when this booking was paid for with a package credit - drives the
+  // cancellation messaging/balance-return behavior in BookingCancelControl.
+  package_purchase_id?: string | null
 }
 
 export type ClassCardData = {

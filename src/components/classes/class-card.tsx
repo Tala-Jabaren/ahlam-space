@@ -6,11 +6,9 @@ import { useRouter } from 'next/navigation'
 import { Leaf } from 'lucide-react'
 import BookSessionButton from '@/app/(public)/schedule/book-session-button'
 import PaymentConfirmationBlock from '@/components/payment-confirmation-block'
-import { WHATSAPP_URL } from '@/content/site-contact'
 import { useT } from '@/i18n/i18n-context'
-import CancelRegistrationButton from './cancel-registration-button'
+import BookingCancelControl from './booking-cancel-control'
 import PackageBookingButton from './package-booking-button'
-import { CANCEL_ENABLED } from './features'
 import type { BookingReceipt, ClassCardData } from './types'
 import styles from './class-card.module.css'
 
@@ -26,7 +24,7 @@ export default function ClassCard({ session, headingLevel = 2 }: { session: Clas
   const Heading = headingLevel === 3 ? 'h3' : 'h2'
   const name = session.name ?? t.home.sessionNameFallback
   const category = session.category === 'yoga' ? copy.yoga : session.category === 'fitness' ? copy.fitness : session.category === 'dance' ? copy.dance : session.category
-  const booking = session.booking ?? (receipt ? { id: receipt.id, status: 'pending', payment_status: 'unpaid' } : null)
+  const booking = session.booking ?? (receipt ? { id: receipt.id, status: 'pending', payment_status: 'unpaid', package_purchase_id: null } : null)
   const confirmed = booking?.status === 'confirmed' || booking?.payment_status === 'paid'
 
   function booked(value: BookingReceipt) {
@@ -71,8 +69,13 @@ export default function ClassCard({ session, headingLevel = 2 }: { session: Clas
         <div className={styles.footer}>
           {booking ? <>
             <span ref={badge} tabIndex={-1} className={`${styles.badge} ${confirmed ? styles.confirmed : ''}`} role="status">{confirmed ? copy.confirmed : copy.pending}</span>
-            {CANCEL_ENABLED && session.canCancel ? <CancelRegistrationButton bookingId={booking.id} canCancel={session.canCancel} />
-              : <p className={styles.contact}><a href={WHATSAPP_URL}>{copy.cancelContact}</a></p>}
+            <BookingCancelControl
+              bookingId={booking.id}
+              canCancel={session.canCancel}
+              isPackageBooking={Boolean(booking.package_purchase_id)}
+              paymentStatus={booking.payment_status}
+              packagePurchaseId={booking.package_purchase_id}
+            />
           </> : !session.bookingStatusKnown ? <>
             <p role="alert" className={styles.feedback}>{copy.bookingLoadError}</p>
             <button className={styles.button} type="button" onClick={() => router.refresh()}>{copy.retry}</button>

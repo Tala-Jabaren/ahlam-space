@@ -58,7 +58,7 @@ export default async function ClassesPage({ searchParams }: {
   const classesById = new Map((classes ?? []).map(classItem => [classItem.id, classItem]))
   const upcoming = (sessions ?? []).filter(isUpcoming)
   const now = new Date()
-  const current = await loadClassBookings(supabase, user?.id ?? null, upcoming.map(session => session.id), now)
+  const current = await loadClassBookings(supabase, user?.id ?? null, upcoming.map(session => session.id), now, { includePackageInfo: PACKAGES_ENABLED })
 
   // Computed before `cards` below (not just the balance bar/packages tab
   // further down) so each session card can also offer "book with package"
