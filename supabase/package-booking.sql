@@ -4,12 +4,18 @@
 -- on cancellation - by the member herself (more than 12h before the
 -- session) or by an admin cancelling the whole session.
 --
--- ONE 12-HOUR CANCELLATION RULE FOR EVERY BOOKING: an earlier version of
--- this file gave package bookings a 12h cutoff while leaving the existing
--- cancel_booking's 24h cutoff for everything else, flagging that mismatch
--- for a human decision. That decision is now made - every booking,
--- package or regular, is cancellable only while its session starts more
--- than 12 hours from now. The 24h branch is gone.
+-- ONE 12-HOUR CANCELLATION RULE FOR EVERY BOOKING, PAID REGULAR BOOKINGS
+-- EXCLUDED ENTIRELY: an earlier version of this file gave package
+-- bookings a 12h cutoff while leaving the existing cancel_booking's 24h
+-- cutoff for everything else, flagging that mismatch for a human
+-- decision. That decision is now made - every unpaid regular or package
+-- booking is cancellable only while its session starts more than 12 hours
+-- from now (the 24h branch is gone). A PAID regular booking can never be
+-- self-cancelled at all, not even outside the 12h window - she has to
+-- contact Ahlam. Package bookings are never affected by that last rule:
+-- they're always already paid by construction (the "payment" is the
+-- package credit spent at booking time), so they always just follow the
+-- plain 12h rule.
 --
 -- REVIEW AND RUN MANUALLY in the Supabase SQL editor as postgres, AFTER
 -- supabase/class-packages.sql. Written to run once; re-running is safe
@@ -219,16 +225,33 @@ grant execute on function public.book_class_session_with_package(uuid, uuid) to 
 -- Test (p_user_id not the caller's own id): expect FORBIDDEN.
 
 -- =============================================================================
--- 3. cancel_booking(p_booking_id, p_user_id) - one 12h rule for all bookings
+-- 3. cancel_booking(p_booking_id, p_user_id) - one 12h rule, paid regular
+--    bookings excluded entirely
 -- =============================================================================
 --
 -- Same FORBIDDEN check, same row locks, same idempotency via the captured
 -- pre-update status as the existing function (admin-payments.sql section
--- 10) - the only changes are the cutoff (12h, not 24h, for every booking)
--- and reading bookings.package_purchase_id to return credit when it's set.
--- Credit is only ever returned inside the existing "v_booking_status <>
--- 'cancelled'" guard, so a repeated cancel on an already-cancelled booking
--- can never mint credit twice.
+-- 10) - changes are the cutoff (12h, not 24h, for every booking), a new
+-- up-front block on self-cancelling a PAID regular booking, and reading
+-- bookings.package_purchase_id to return credit when it's set. Credit is
+-- only ever returned inside the existing "v_booking_status <> 'cancelled'"
+-- guard, so a repeated cancel on an already-cancelled booking can never
+-- mint credit twice.
+--
+-- Checked which column actually means "paid" before writing this (same
+-- pattern reviews.sql's admin_delete_record already uses for the same
+-- question on this same table): bookings.status tracks the booking's own
+-- lifecycle (pending/confirmed/cancelled - set by book_class_session on
+-- insert and admin_confirm_payment on confirm), bookings.payment_status
+-- is the actual payment flag (defaults unpaid, admin_confirm_payment sets
+-- it to 'paid' alongside paid_at). "Paid" below means payment_status =
+-- 'paid' OR paid_at is not null, matching reviews.sql's own defensive
+-- either/or rather than trusting a single column.
+--
+-- Package bookings are exempt from this block entirely: they're created
+-- already payment_status = 'paid' (book_class_session_with_package, part
+-- 2 above) since "payment" is the package credit spent at booking time,
+-- not a separate pending charge - they always follow the plain 12h rule.
 
 create or replace function public.cancel_booking(
   p_booking_id uuid,
@@ -242,6 +265,8 @@ as $$
 declare
   v_session_id uuid;
   v_booking_status text;
+  v_payment_status text;
+  v_paid_at timestamptz;
   v_package_purchase_id uuid;
   v_session_date date;
   v_start_time time;
@@ -255,10 +280,14 @@ begin
   select
     bookings.session_id,
     bookings.status,
+    bookings.payment_status,
+    bookings.paid_at,
     bookings.package_purchase_id
   into
     v_session_id,
     v_booking_status,
+    v_payment_status,
+    v_paid_at,
     v_package_purchase_id
   from public.bookings
   where bookings.id = p_booking_id
@@ -267,6 +296,14 @@ begin
 
   if not found then
     raise exception 'NOT_YOUR_BOOKING';
+  end if;
+
+  -- Before anything else changes: a paid regular booking can never be
+  -- self-cancelled, full stop - not "12h or less", not at all.
+  if v_package_purchase_id is null
+    and (v_payment_status = 'paid' or v_paid_at is not null)
+  then
+    raise exception 'PAID_BOOKING_CONTACT_ADMIN';
   end if;
 
   select
@@ -285,8 +322,9 @@ begin
 
   v_session_start := (v_session_date + v_start_time) at time zone 'Asia/Jerusalem';
 
-  -- One rule for every booking, regular or package: cancellable only while
-  -- the session starts more than 12 hours from now.
+  -- Remaining case (unpaid regular, or package - both still reachable
+  -- here): cancellable only while the session starts more than 12 hours
+  -- from now.
   if v_session_start <= now() + interval '12 hours' then
     raise exception 'CANCELLATION_WINDOW_PASSED';
   end if;
@@ -320,12 +358,17 @@ $$;
 
 revoke all on function public.cancel_booking(uuid, uuid) from public, anon;
 grant execute on function public.cancel_booking(uuid, uuid) to authenticated;
--- Test (any booking, package or regular, session more than 12h away):
---   expect true, booking -> 'cancelled', booked_count -1; if it was a
---   package booking, that purchase's sessions_remaining +1 (capped at
---   sessions_total).
--- Test (any booking, session 12h away or less): expect
---   CANCELLATION_WINDOW_PASSED, nothing changes.
+-- Test (paid regular booking, payment_status = 'paid' or paid_at set, any
+--   time before the session): expect PAID_BOOKING_CONTACT_ADMIN, nothing
+--   changes - not even checked against the 12h window.
+-- Test (unpaid regular booking, session more than 12h away): expect true,
+--   booking -> 'cancelled', booked_count -1.
+-- Test (package booking - always payment_status = 'paid' by construction -
+--   session more than 12h away): expect true, booking -> 'cancelled',
+--   booked_count -1, that purchase's sessions_remaining +1 (capped at
+--   sessions_total). Confirms the paid-block above does NOT apply to it.
+-- Test (unpaid regular or package booking, session 12h away or less):
+--   expect CANCELLATION_WINDOW_PASSED, nothing changes.
 -- Test (package booking whose purchase has since expired, session still
 --   more than 12h away): expect true and sessions_remaining +1 same as
 --   above - the credit is NOT usable afterward since expires_at has
@@ -416,11 +459,15 @@ commit;
 --   Reachable only once PACKAGES_ENABLED is on.
 --
 -- cancel_booking's call shape is unchanged - supabase.rpc('cancel_booking',
---   { p_booking_id: uuid, p_user_id: uuid }) - package vs non-package is
---   decided server-side from the booking row itself, nothing new for the
---   client to pass in. Called from the new, shared
---   src/components/classes/booking-cancel-control.tsx, used everywhere a
---   member's own booking is shown (/classes, /member-schedule, /bookings) -
---   this is now a live feature regardless of PACKAGES_ENABLED; the old
---   CANCEL_ENABLED=false stub and its NOT_IMPLEMENTED-only server action
---   are both deleted.
+--   { p_booking_id: uuid, p_user_id: uuid }) -> returns true, or throws one
+--   of: FORBIDDEN, NOT_YOUR_BOOKING, SESSION_NOT_FOUND,
+--   PAID_BOOKING_CONTACT_ADMIN (regular booking, already paid - no cancel
+--   button shown for this case at all, but the client still handles it as
+--   a race, see below), CANCELLATION_WINDOW_PASSED. Package vs non-package
+--   and paid vs unpaid are both decided server-side from the booking row
+--   itself, nothing new for the client to pass in. Called from the new,
+--   shared src/components/classes/booking-cancel-control.tsx, used
+--   everywhere a member's own booking is shown (/classes,
+--   /member-schedule, /bookings) - this is now a live feature regardless
+--   of PACKAGES_ENABLED; the old CANCEL_ENABLED=false stub and its
+--   NOT_IMPLEMENTED-only server action are both deleted.

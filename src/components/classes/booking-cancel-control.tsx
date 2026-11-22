@@ -14,25 +14,31 @@ type Props = {
   packagePurchaseId?: string | null
 }
 
-type State = 'idle' | 'cancelling' | 'windowPassed' | 'error' | { done: string }
+type State = 'idle' | 'cancelling' | 'windowPassed' | 'paidBlocked' | 'error' | { done: 'package' | 'regular' }
 
 const contactLinkStyle = 'inline-flex min-h-11 items-center justify-center gap-2 rounded-lg border border-[#617A55]/30 px-4 text-sm font-semibold text-[#617A55] transition hover:bg-[#617A55]/10'
 const buttonStyle = 'inline-flex min-h-11 w-full items-center justify-center rounded-lg border border-[#617A55]/35 px-6 text-sm font-semibold text-[#617A55] transition hover:bg-[#D6E2B6]/70 disabled:cursor-not-allowed disabled:opacity-60 sm:w-auto'
 
 // One shared control for every place a member's booking is shown
 // (/classes, /member-schedule via class-card.tsx, and /bookings) - the
-// 12-hour rule, the package/regular wording split, and the "too late"
-// contact fallback all live here once instead of being reimplemented per
-// page. Not gated behind PACKAGES_ENABLED: regular-booking cancellation is
-// a live feature regardless of that flag, it's only the package-specific
-// wording/balance-return that depends on isPackageBooking actually being
-// true, which itself can only happen once packages are live.
+// 12-hour rule, the paid-regular-booking block, the package/regular
+// wording split, and the contact fallbacks all live here once instead of
+// being reimplemented per page. Not gated behind PACKAGES_ENABLED:
+// regular-booking cancellation is a live feature regardless of that flag,
+// it's only the package-specific wording/balance-return that depends on
+// isPackageBooking actually being true, which itself can only happen once
+// packages are live.
 export default function BookingCancelControl({ bookingId, canCancel, isPackageBooking, paymentStatus, packagePurchaseId }: Props) {
   const router = useRouter()
   const { t, dir } = useT()
   const copy = t.classCards
   const dialog = useRef<HTMLDialogElement>(null)
   const titleId = useId()
+  // A paid regular booking can never be self-cancelled, full stop - not
+  // even outside the 12h window. Package bookings are always already
+  // "paid" (the credit spent at booking time) but are never blocked by
+  // this, only by the 12h rule below.
+  const isPaidRegular = !isPackageBooking && paymentStatus === 'paid'
   const [state, setState] = useState<State>('idle')
   const [balanceLabel, setBalanceLabel] = useState<string | null>(null)
 
@@ -58,10 +64,10 @@ export default function BookingCancelControl({ bookingId, canCancel, isPackageBo
     })
 
     if (error) {
-      if (error.message.includes('CANCELLATION_WINDOW_PASSED')) {
+      if (error.message.includes('PAID_BOOKING_CONTACT_ADMIN')) {
+        setState('paidBlocked')
+      } else if (error.message.includes('CANCELLATION_WINDOW_PASSED')) {
         setState('windowPassed')
-      } else if (error.message.includes('FORBIDDEN') || error.message.includes('NOT_YOUR_BOOKING')) {
-        setState('error')
       } else {
         setState('error')
       }
@@ -83,8 +89,20 @@ export default function BookingCancelControl({ bookingId, canCancel, isPackageBo
       )
     }
 
-    setState({ done: isPackageBooking ? 'package' : paymentStatus === 'paid' ? 'paidRegular' : 'regular' })
+    setState({ done: isPackageBooking ? 'package' : 'regular' })
     router.refresh()
+  }
+
+  if (isPaidRegular || state === 'paidBlocked') {
+    return (
+      <div dir={dir} className="w-full space-y-2 sm:w-auto">
+        <p className="text-sm leading-6 text-[#617A55]/85">{copy.cancelPaidBlockedMessage}</p>
+        <div className="flex flex-wrap gap-2">
+          <a href={WHATSAPP_URL} target="_blank" rel="noopener noreferrer" className={contactLinkStyle}>{copy.contactWhatsapp}</a>
+          <a href={`tel:${PHONE_E164}`} className={contactLinkStyle}>{copy.contactCall} ({PHONE_DISPLAY})</a>
+        </div>
+      </div>
+    )
   }
 
   if (!canCancel || state === 'windowPassed') {
@@ -100,10 +118,7 @@ export default function BookingCancelControl({ bookingId, canCancel, isPackageBo
   }
 
   if (typeof state === 'object') {
-    const message =
-      state.done === 'package' ? balanceLabel ?? copy.cancelSuccess
-        : state.done === 'paidRegular' ? copy.cancelledPaidRegular
-          : copy.cancelSuccess
+    const message = state.done === 'package' ? balanceLabel ?? copy.cancelSuccess : copy.cancelSuccess
     return <p role="status" className="text-sm leading-6 text-[#617A55]">{message}</p>
   }
 

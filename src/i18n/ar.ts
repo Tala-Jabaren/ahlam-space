@@ -277,7 +277,7 @@ export const ar = {
     cancelPackageBody: 'ترجع الحصة إلى رصيدك.',
     cancelRegularBody: 'سيتم إلغاء حجزك.',
     cancelConfirm: 'تأكيد الإلغاء', cancelLoading: 'جارٍ الإلغاء…', cancelSuccess: 'تم إلغاء الحجز.',
-    cancelledPaidRegular: 'تم إلغاء الحجز. إذا كنتِ قد دفعتِ، ستتواصل أحلام معك بخصوص ذلك.',
+    cancelPaidBlockedMessage: 'لإلغاء حجز مدفوع تواصلي مع أحلام:',
     cancelWindowPassedMessage: 'لا يمكن الإلغاء قبل أقل من 12 ساعة من الحصة. للإلغاء تواصلي مع أحلام:',
     contactWhatsapp: 'واتساب', contactCall: 'اتصال',
     cancelForbidden: 'تعذّر التحقق من صلاحيتك لإلغاء هذا الحجز.',

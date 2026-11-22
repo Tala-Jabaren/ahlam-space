@@ -281,7 +281,7 @@ export const en: typeof ar = {
     cancelPackageBody: 'The session goes back to your balance.',
     cancelRegularBody: 'Your booking will be cancelled.',
     cancelConfirm: 'Confirm cancellation', cancelLoading: 'Cancelling…', cancelSuccess: 'Booking cancelled.',
-    cancelledPaidRegular: "Booking cancelled. If you'd already paid, Ahlam will be in touch about that.",
+    cancelPaidBlockedMessage: 'To cancel a paid booking, contact Ahlam:',
     cancelWindowPassedMessage: "Cancellation isn't possible less than 12 hours before the class. To cancel, contact Ahlam:",
     contactWhatsapp: 'WhatsApp', contactCall: 'Call',
     cancelForbidden: 'We could not verify permission to cancel this booking.',
