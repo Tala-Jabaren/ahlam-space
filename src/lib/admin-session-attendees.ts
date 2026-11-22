@@ -11,6 +11,12 @@ export type AttendeeRow = {
   full_name: string | null
   phone: string | null
   email: string | null
+  // Only populated once supabase/admin-cancel-booking.sql has been run -
+  // admin_list_session_attendees returns these as null until then, which
+  // the UI already treats as "not a package booking" / "no note yet".
+  package_purchase_id: string | null
+  cancelled_at: string | null
+  admin_cancel_note: string | null
 }
 
 export type AttendeeState = 'paid' | 'pending' | 'cancelled' | 'expired'
