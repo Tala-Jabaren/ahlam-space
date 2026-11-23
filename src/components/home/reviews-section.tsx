@@ -150,6 +150,7 @@ export default function ReviewsSection({ reviews }: { reviews: ReviewRow[] }) {
   const [hovering, setHovering] = useState(false)
   const [focusWithin, setFocusWithin] = useState(false)
   const [touching, setTouching] = useState(false)
+  const [inView, setInView] = useState(false)
   const [dialogOpen, setDialogOpen] = useState(false)
   const [openReview, setOpenReview] = useState<ReviewRow | null>(null)
   const openTriggerRef = useRef<HTMLButtonElement | null>(null)
@@ -219,7 +220,23 @@ export default function ReviewsSection({ reviews }: { reviews: ReviewRow[] }) {
     }
   }, [cardsPerView, pageCount, dir])
 
-  const isPaused = hovering || focusWithin || touching || dialogOpen || reducedMotion || pageCount <= 1
+  // Autoplay must never fire while this carousel is off-screen: goNext()'s
+  // scrollIntoView({ block: 'nearest' }) only avoids moving the page
+  // vertically when the target is ALREADY at least partly in view along
+  // that axis - with the whole section scrolled out of view (e.g. a
+  // visitor still reading the hero), "nearest" has no in-view position to
+  // anchor to, so the browser scrolls the entire page down to it. Gating
+  // on visibility stops the interval from ever queuing that scroll in the
+  // first place, rather than trying to suppress its side effect after.
+  useEffect(() => {
+    const el = trackRef.current
+    if (!el) return
+    const observer = new IntersectionObserver((entries) => setInView(Boolean(entries[0]?.isIntersecting)), { threshold: 0.4 })
+    observer.observe(el)
+    return () => observer.disconnect()
+  }, [])
+
+  const isPaused = hovering || focusWithin || touching || dialogOpen || reducedMotion || pageCount <= 1 || !inView
   useEffect(() => {
     if (isPaused) return
     const id = setInterval(goNext, 6000)
