@@ -61,6 +61,8 @@ export const en: typeof ar = {
     tagline: 'Yoga, fitness, dance, and mindful daily rituals.',
     phoneLabel: 'Phone',
     whatsappLink: 'WhatsApp',
+    emailLabel: 'Email',
+    instagramLink: 'Instagram',
     policiesAriaLabel: 'Policies and terms',
     termsLink: 'Terms of Use',
     privacyLink: 'Privacy Policy',

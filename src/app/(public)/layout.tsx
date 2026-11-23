@@ -4,7 +4,7 @@ import { createClient } from '@/lib/supabase/server'
 import { getT } from '@/i18n/get-t'
 import { I18nProvider } from '@/i18n/i18n-context'
 import { LanguageSwitcher } from '@/i18n/language-switcher'
-import { PHONE_DISPLAY, PHONE_E164, WHATSAPP_URL } from '@/content/site-contact'
+import { PHONE_DISPLAY, PHONE_E164, WHATSAPP_URL, CONTACT_EMAIL, INSTAGRAM_URL } from '@/content/site-contact'
 import CartBottomBar from './cart-bottom-bar'
 import SiteHeader from './site-header'
 import headerStyles from './site-header.module.css'
@@ -51,6 +51,16 @@ export default async function PublicLayout({
             <span aria-hidden="true">·</span>
             <a href={WHATSAPP_URL} target="_blank" rel="noreferrer" className="underline-offset-4 hover:underline">
               {t.footer.whatsappLink}
+            </a>
+            <span aria-hidden="true">·</span>
+            <bdi dir="ltr">
+              <a href={`mailto:${CONTACT_EMAIL}`} className="underline-offset-4 hover:underline">
+                {CONTACT_EMAIL}
+              </a>
+            </bdi>
+            <span aria-hidden="true">·</span>
+            <a href={INSTAGRAM_URL} target="_blank" rel="noreferrer" className="underline-offset-4 hover:underline">
+              {t.footer.instagramLink}
             </a>
           </p>
           <div className="mx-auto mt-6 flex max-w-7xl flex-wrap items-center justify-between gap-4 border-t border-[#E4ECD6]/15 pt-4">

@@ -59,6 +59,8 @@ export const ar = {
     tagline: 'يوغا، تمارين رياضية، رقص، وطقوس يومية واعية.',
     phoneLabel: 'الهاتف',
     whatsappLink: 'واتساب',
+    emailLabel: 'البريد الإلكتروني',
+    instagramLink: 'انستغرام',
     policiesAriaLabel: 'السياسات والشروط',
     termsLink: 'شروط الاستخدام',
     privacyLink: 'سياسة الخصوصية',

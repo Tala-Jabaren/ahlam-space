@@ -16,6 +16,12 @@ export const WHATSAPP_URL = 'https://wa.me/972566993658'
 // Public-facing support address for legal pages and customer emails.
 export const SUPPORT_EMAIL = 'ahlamspace@ahlamspace.com'
 
+// Ahlam's own contact details, shown in the site footer - distinct from
+// SUPPORT_EMAIL above, which stays the address used for legal pages and
+// automated customer emails.
+export const CONTACT_EMAIL = 'nmi.ahlam@gmail.com'
+export const INSTAGRAM_URL = 'https://www.instagram.com/ahlam_space_/'
+
 // bankName/accountHolder/iban come from src/lib/bank-details.ts (the
 // existing, already-reviewed source of truth - including its exact
 // "احلام حسين محمد حامد" spelling, left as-is pending the owner confirming
