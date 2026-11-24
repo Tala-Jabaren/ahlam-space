@@ -99,7 +99,7 @@ export default function BookingCancelControl({ bookingId, canCancel, isPackageBo
         <p className="text-sm leading-6 text-[#617A55]/85">{copy.cancelPaidBlockedMessage}</p>
         <div className="flex flex-wrap gap-2">
           <a href={WHATSAPP_URL} target="_blank" rel="noopener noreferrer" className={contactLinkStyle}>{copy.contactWhatsapp}</a>
-          <a href={`tel:${PHONE_E164}`} className={contactLinkStyle}>{copy.contactCall} ({PHONE_DISPLAY})</a>
+          <a href={`tel:${PHONE_E164}`} className={contactLinkStyle}>{copy.contactCall} (<bdi dir="ltr">{PHONE_DISPLAY}</bdi>)</a>
         </div>
       </div>
     )
@@ -111,7 +111,7 @@ export default function BookingCancelControl({ bookingId, canCancel, isPackageBo
         <p className="text-sm leading-6 text-[#617A55]/85">{copy.cancelWindowPassedMessage}</p>
         <div className="flex flex-wrap gap-2">
           <a href={WHATSAPP_URL} target="_blank" rel="noopener noreferrer" className={contactLinkStyle}>{copy.contactWhatsapp}</a>
-          <a href={`tel:${PHONE_E164}`} className={contactLinkStyle}>{copy.contactCall} ({PHONE_DISPLAY})</a>
+          <a href={`tel:${PHONE_E164}`} className={contactLinkStyle}>{copy.contactCall} (<bdi dir="ltr">{PHONE_DISPLAY}</bdi>)</a>
         </div>
       </div>
     )
