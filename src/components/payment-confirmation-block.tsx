@@ -3,7 +3,7 @@
 import { useState } from 'react'
 import { useT } from '@/i18n/i18n-context'
 import { checkoutAr } from '@/i18n/checkout-ar'
-import { BANK, bankDetailsArePlaceholders } from '@/content/site-contact'
+import { BANK, bankDetailsArePlaceholders, PHONE_DISPLAY } from '@/content/site-contact'
 
 type Props = {
   amount: number
@@ -32,6 +32,11 @@ export default function PaymentConfirmationBlock({
   // Grouped in 4s for readability only - the raw, unspaced value is what
   // gets copied and what's stored in BANK.iban.
   const groupedAccountNumber = BANK.iban.replace(/(.{4})/g, '$1 ').trim()
+  // BANK.note is one Arabic sentence with the phone number embedded in it -
+  // split on it so the number can be isolated in its own <bdi dir="ltr">
+  // below, instead of sitting unisolated inside RTL text where the browser
+  // can visually reverse its digits/symbols.
+  const [notePrefix, noteSuffix] = BANK.note.split(PHONE_DISPLAY)
 
   async function copyReference() {
     if (!reference) return
@@ -124,7 +129,11 @@ export default function PaymentConfirmationBlock({
         {canTransfer && (
           <>
             <p className="mt-2 font-semibold">{c.bank.transferNote}</p>
-            <p className="mt-1 text-[#4f5d49]">{BANK.note}</p>
+            <p className="mt-1 text-[#4f5d49]">
+              {notePrefix}
+              <bdi dir="ltr">{PHONE_DISPLAY}</bdi>
+              {noteSuffix}
+            </p>
           </>
         )}
       </div>

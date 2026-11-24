@@ -32,7 +32,11 @@ export const BANK = {
   bankName: bankDetails.bankName,
   accountHolder: bankDetails.accountHolder,
   iban: bankDetails.accountNumber,
-  note: 'التحويل ممكن كمان على رقم الجوال +972 56-699-3658 (عبر تطبيق البنك)',
+  // Built from PHONE_DISPLAY (not re-typed) so a JSX renderer can split on
+  // that exact substring and wrap just the number in <bdi dir="ltr"> -
+  // left unwrapped, the digits/symbols sit inside Arabic text with no bidi
+  // isolation and the browser can visually reverse them.
+  note: `التحويل ممكن كمان على رقم الجوال ${PHONE_DISPLAY} (عبر تطبيق البنك)`,
 }
 
 export { bankDetailsArePlaceholders }
