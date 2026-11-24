@@ -4,7 +4,7 @@ import { createAdminClient } from '@/lib/supabase/admin'
 import ConfirmPackagePayment from '@/components/admin/confirm-package-payment'
 import NotificationItem from '@/components/admin/notifications/notification-item'
 import NotificationBadge from '@/components/admin/notifications/notification-badge'
-import { getAdminNotificationCounts, getUnseenNotificationCount } from '@/components/admin/notifications/notification-data'
+import { getAdminNotificationCounts } from '@/components/admin/notifications/notification-data'
 
 type PurchaseRow = {
   id: string
@@ -13,6 +13,7 @@ type PurchaseRow = {
   reference: string
   price_snapshot: number
   sessions_total: number
+  sessions_remaining: number
   created_at: string | null
   class_packages: { name: string } | null
 }
@@ -45,13 +46,13 @@ function formatDate(value: string | null) {
 export default async function PackagePayments({ filter, selectedId }: { filter?: string; selectedId?: string }) {
   const activeFilter: PackageFilter = filter === 'paid' || filter === 'all' ? filter : 'unpaid'
   await getAdminSession()
-  const { available } = await getAdminNotificationCounts()
-  const unseenCount = await getUnseenNotificationCount('package_purchase')
+  const { counts, available } = await getAdminNotificationCounts()
+  const unseenCount = counts.package_purchase
   const admin = createAdminClient()
 
   const { data: purchases, error } = await admin
     .from('package_purchases')
-    .select('id, user_id, status, reference, price_snapshot, sessions_total, created_at, class_packages(name)')
+    .select('id, user_id, status, reference, price_snapshot, sessions_total, sessions_remaining, created_at, class_packages(name)')
     .order('created_at', { ascending: false })
     .returns<PurchaseRow[]>()
 
@@ -89,7 +90,7 @@ export default async function PackagePayments({ filter, selectedId }: { filter?:
         {filterOptions.map(option => (
           <Link
             key={option.value}
-            href={`/admin/classes?tab=payments&pfilter=${option.value}`}
+            href={`/admin/classes?tab=packages&pfilter=${option.value}`}
             aria-current={activeFilter === option.value ? 'page' : undefined}
             className={`inline-flex min-h-11 items-center rounded-lg px-4 py-2 text-sm font-medium transition ${
               activeFilter === option.value ? 'bg-[#617A55] text-[#F7F6F0]' : 'text-[#617A55] hover:bg-[#C7D6E8]/35'
@@ -137,6 +138,7 @@ export default async function PackagePayments({ filter, selectedId }: { filter?:
                         <Info label="الاسم" value={customerName} />
                         <Info label="الهاتف" value={profile?.phone?.trim() || '-'} ltr />
                         <Info label="عدد الحصص" value={String(purchase.sessions_total)} />
+                        <Info label="الحصص المتبقية" value={`${purchase.sessions_remaining} من ${purchase.sessions_total}`} />
                         <Info label="المبلغ" value={formatAmount(purchase.price_snapshot)} />
                         <Info label="تاريخ الإنشاء" value={formatDate(purchase.created_at)} />
                         <Info label="المرجع" value={purchase.reference} ltr />

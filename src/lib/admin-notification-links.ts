@@ -9,10 +9,10 @@ export const notificationDestinations: Record<AdminNotificationKind, { section: 
   course_purchase: { section: '/admin/courses', tab: 'payments' },
   order: { section: '/admin/products', tab: 'orders' },
   trip_application: { section: '/admin/trips' },
-  // Same screen bookings already route to - package payments render there
-  // too (src/components/admin/sections/package-payments.tsx), and there's
-  // no separate nav item for packages to route to instead.
-  package_purchase: { section: '/admin/classes', tab: 'payments' },
+  // Rendered inside the "الباقات" tab, alongside the package catalog
+  // (src/components/admin/sections/package-payments.tsx) - not the
+  // booking "الدفعات" tab, which only ever lists booking payments.
+  package_purchase: { section: '/admin/classes', tab: 'packages' },
 }
 
 export function adminNotificationHref(kind: AdminNotificationKind, id: string) {
@@ -20,6 +20,10 @@ export function adminNotificationHref(kind: AdminNotificationKind, id: string) {
   const params = new URLSearchParams()
   if (tab) params.set('tab', tab)
   if (tab === 'payments') params.set('filter', 'all')
+  // PackagePayments defaults to its "unpaid" filter - force "all" so a
+  // notification for an already-paid purchase doesn't land on a filtered
+  // view that hides the very item it's pointing at.
+  if (kind === 'package_purchase') params.set('pfilter', 'all')
   params.set('item', id)
   return `${section}?${params}`
 }

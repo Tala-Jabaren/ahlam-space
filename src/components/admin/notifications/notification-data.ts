@@ -17,14 +17,6 @@ export const getAdminNotificationCounts = cache(async () => {
       .eq('kind', kind).is('seen_at', null)))
     if (results.some(result => result.error)) return { counts, available: false }
     results.forEach((result, index) => { counts[notificationKinds[index]] = result.count ?? 0 })
-    // Packages have no sidebar nav item or tab of their own - their unseen
-    // count folds into "booking"'s, the one number the sidebar's /admin/classes
-    // item and its "الدفعات" tab already read (both via AdminNavItem/the tabs
-    // config, neither of which this is meant to touch). The pure, unfolded
-    // per-kind counts a reviewer might still want (e.g. to tell "دفعات
-    // الحجوزات" and "دفعات الباقات" apart inside that tab) come from
-    // getUnseenNotificationCount below instead, not from this object.
-    counts.booking += counts.package_purchase
     return { counts, available: true }
   } catch {
     return { counts, available: false }

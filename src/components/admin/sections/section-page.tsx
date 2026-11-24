@@ -9,7 +9,7 @@ export type AdminSection = 'classes' | 'courses' | 'shop'
 const sections: Record<AdminSection, { title: string; href: string; tabs: { id: string; label: string; kind?: AdminNotificationKind }[] }> = {
   classes: { title: 'الحصص', href: '/admin/classes', tabs: [
     { id: 'sessions', label: 'المواعيد' }, { id: 'types', label: 'أنواع الحصص' },
-    ...(PACKAGES_ENABLED ? [{ id: 'packages', label: 'الباقات' }] : []),
+    ...(PACKAGES_ENABLED ? [{ id: 'packages', label: 'الباقات', kind: 'package_purchase' as const }] : []),
     { id: 'payments', label: 'الدفعات', kind: 'booking' },
   ] },
   courses: { title: 'المحاضرات والتأملات', href: '/admin/courses', tabs: [
