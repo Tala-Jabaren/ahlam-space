@@ -3,15 +3,11 @@ import PackageCard, { type PackageCardCopy, type PackageCardData } from './packa
 export default function PackagesGrid({
   packages,
   locale,
-  isLoggedIn,
-  loginHref,
   copy,
   emptyLabel,
 }: {
   packages: PackageCardData[]
   locale: string
-  isLoggedIn: boolean
-  loginHref: string
   copy: PackageCardCopy
   emptyLabel: string
 }) {
@@ -22,7 +18,7 @@ export default function PackagesGrid({
   return (
     <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
       {packages.map(pkg => (
-        <PackageCard key={pkg.id} pkg={pkg} locale={locale} isLoggedIn={isLoggedIn} loginHref={loginHref} copy={copy} />
+        <PackageCard key={pkg.id} pkg={pkg} locale={locale} copy={copy} />
       ))}
     </div>
   )

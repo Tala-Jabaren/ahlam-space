@@ -93,12 +93,13 @@ export function classCardData(session: ClassSession, locale: Locale, options: {
     booking: options.booking ?? null, bookingStatusKnown: options.known,
     authenticated: options.authenticated, requested: options.requested ?? false,
     // Only ever non-undefined when the caller explicitly passed it (gated
-    // behind PACKAGES_ENABLED at the call site - see src/app/(public)/classes/page.tsx) -
+    // behind PACKAGES_ENABLED at the call site - see
+    // src/app/(member)/member-schedule/page.tsx, the only caller) -
     // undefined here means "don't show the packages badge at all", not
     // "ineligible", so this never renders anything while the flag is off.
     packageEligible: options.classInfo?.package_eligible,
     // Same "undefined unless the caller opted in" rule as packageEligible
-    // above - only /classes/page.tsx ever passes this.
+    // above - only /member-schedule/page.tsx ever passes this.
     packageCredit: options.packageCredit,
   }
 }

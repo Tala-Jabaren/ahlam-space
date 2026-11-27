@@ -21,7 +21,7 @@ export default function BalanceBar({ purchase, locale, t }: { purchase: PackageP
 
   return (
     <Link
-      href="/classes?view=packages"
+      href="/member-schedule?view=packages"
       className="mb-6 flex items-center justify-between gap-3 rounded-2xl bg-[#E4ECE6] p-3 sm:p-3.5"
     >
       <span className="min-w-0">

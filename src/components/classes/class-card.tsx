@@ -27,9 +27,10 @@ export default function ClassCard({ session, headingLevel = 2 }: { session: Clas
   const category = session.category === 'yoga' ? copy.yoga : session.category === 'fitness' ? copy.fitness : session.category === 'dance' ? copy.dance : session.category
   const booking = session.booking ?? (receipt ? { id: receipt.id, status: 'pending', payment_status: 'unpaid', package_purchase_id: null } : null)
   // Only on a page that opted into package-awareness at all (packageEligible
-  // is otherwise always undefined - see src/lib/class-cards.ts) - keeps
-  // /member-schedule's plain register button unchanged, since it never
-  // passes that field through.
+  // is otherwise always undefined - see src/lib/class-cards.ts) - only
+  // /member-schedule ever passes that field through now; the public
+  // /classes page explicitly forces it out, keeping its plain register
+  // button unchanged.
   const registerLabel = session.packageEligible !== undefined && session.priceLabel
     ? copy.registerWithPrice.replace('{price}', session.priceLabel)
     : copy.register
@@ -162,7 +163,7 @@ export default function ClassCard({ session, headingLevel = 2 }: { session: Clas
           <Link href="/bookings" className="mt-5 inline-flex min-h-[50px] w-full items-center justify-center rounded-xl bg-[#3F6350] px-6 text-[17px] font-bold text-white transition hover:bg-[#345142]" onClick={closeConfirmation}>
             {t.classes.packages.myBookingsCta}
           </Link>
-          <Link href="/classes#sessions-list" className="mt-3 inline-block text-[15px] font-medium text-[#5C574F] underline underline-offset-4" onClick={closeConfirmation}>
+          <Link href="/member-schedule#sessions-list" className="mt-3 inline-block text-[15px] font-medium text-[#5C574F] underline underline-offset-4" onClick={closeConfirmation}>
             {copy.bookAnotherSession}
           </Link>
         </>

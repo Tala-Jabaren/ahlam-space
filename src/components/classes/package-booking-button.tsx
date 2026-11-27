@@ -62,7 +62,7 @@ export default function PackageBookingButton({ sessionId, sessionName, dateLabel
 
   async function confirm() {
     if (!isAuthenticated) {
-      const returnTo = `/classes?book=${encodeURIComponent(sessionId)}`
+      const returnTo = `/member-schedule?book=${encodeURIComponent(sessionId)}`
       router.push(`/login?returnTo=${encodeURIComponent(returnTo)}`)
       return
     }

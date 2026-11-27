@@ -16,7 +16,6 @@ export type PackageCardCopy = {
   savings: string
   validity: string
   buy: string
-  loginToBuy: string
   perSessionPriceLine: string
   sessionsFreelyChosen: string
   validMonthFromConfirm: string
@@ -36,17 +35,15 @@ function isAboutAMonth(days: number) {
 
 // Exact design match: name + savings chip, big price + per-session line,
 // two check-marked lines, full-width button - replaces the previous
-// dt/dl-based layout entirely.
+// dt/dl-based layout entirely. Member-only (see the packages tab inside
+// /member-schedule) - always authenticated, so there's no logged-out
+// variant to render here.
 export default function PackageCard({
   pkg,
-  isLoggedIn,
-  loginHref,
   copy,
 }: {
   pkg: PackageCardData
   locale: string
-  isLoggedIn: boolean
-  loginHref: string
   copy: PackageCardCopy
 }) {
   const perSession = perSessionPrice(pkg.price, pkg.sessionsCount)
@@ -85,16 +82,7 @@ export default function PackageCard({
         </li>
       </ul>
 
-      {isLoggedIn ? (
-        <BuyPackageButton packageId={pkg.id} packageName={pkg.name} sessionsCount={pkg.sessionsCount} price={pkg.price} buyLabel={copy.buy} />
-      ) : (
-        <a
-          href={loginHref}
-          className="inline-flex min-h-[50px] w-full items-center justify-center rounded-xl bg-[#3F6350] px-6 text-[17px] font-bold text-white transition hover:bg-[#345142]"
-        >
-          {copy.loginToBuy}
-        </a>
-      )}
+      <BuyPackageButton packageId={pkg.id} packageName={pkg.name} sessionsCount={pkg.sessionsCount} price={pkg.price} buyLabel={copy.buy} />
     </article>
   )
 }

@@ -39,7 +39,7 @@ function ActivePackageCard({ purchase, locale, t }: { purchase: PackagePurchaseR
       </div>
       {expiresLabel && <p className="mt-3 text-[15px]">{copy.expiresOnPackage.replace('{date}', expiresLabel)}</p>}
       <Link
-        href="/classes#sessions-list"
+        href="/member-schedule#sessions-list"
         className="mt-5 inline-flex min-h-[50px] w-full items-center justify-center rounded-xl bg-white px-6 text-[17px] font-bold text-[#25402F] transition hover:bg-white/90"
       >
         {copy.bookWithPackage}

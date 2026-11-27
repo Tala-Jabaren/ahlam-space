@@ -43,7 +43,7 @@ export type ClassCardData = {
   packageEligible?: boolean | null
   // undefined unless the page explicitly opted in - her active package's
   // credit, if any, regardless of whether THIS class accepts it (that's
-  // packageEligible's job). Only /classes passes this (see its page.tsx).
+  // packageEligible's job). Only /member-schedule passes this (see its page.tsx).
   packageCredit?: { purchaseId: string; remaining: number; total: number } | null
 }
 
