@@ -1,9 +1,10 @@
-import { ChevronDown } from 'lucide-react'
+import { CalendarDays, CalendarClock, ChevronDown, Clock, MapPin, Navigation, UsersRound } from 'lucide-react'
 import type { TripRow } from '@/lib/trips'
 import TripImageCarousel from './trip-image-carousel'
 
-export function formatTripDate(date: string, locale: string = 'ar') {
+export function formatTripDate(date: string, locale: string = 'ar', withWeekday = false) {
   return new Intl.DateTimeFormat(locale === 'ar' ? 'ar' : 'en-US', {
+    weekday: withWeekday ? 'long' : undefined,
     day: 'numeric',
     month: 'long',
     timeZone: 'UTC',
@@ -45,6 +46,26 @@ export default function TripCard({
   const slides = images ?? (trip.cover_image_url ? [trip.cover_image_url] : [])
   const hasImages = slides.length > 0
   const arabic = locale === 'ar'
+  const dateRange = (
+    <>
+      <time dateTime={trip.starts_on}>{formatTripDate(trip.starts_on, locale, true)}</time>
+      {trip.ends_on !== trip.starts_on && (
+        <> – <time dateTime={trip.ends_on}>{formatTripDate(trip.ends_on, locale, true)}</time></>
+      )}
+    </>
+  )
+  const deadline = trip.application_deadline && (
+    <time dateTime={trip.application_deadline}>{formatTripDate(trip.application_deadline, locale, true)}</time>
+  )
+  const time = trip.meeting_time && formatMeetingTime(trip.meeting_time)
+  const facts = [
+    { icon: CalendarDays, label: dateLabel, value: dateRange, wide: trip.starts_on !== trip.ends_on },
+    { icon: MapPin, label: locationLabel, value: trip.location },
+    { icon: CalendarClock, label: deadlineLabel, value: deadline },
+    { icon: Clock, label: meetingLabel, value: time && <time dateTime={time}><bdi dir="ltr">{time}</bdi></time> },
+    { icon: Navigation, label: arabic ? 'مكان التجمّع' : 'Meeting point', value: trip.meeting_point },
+    { icon: UsersRound, label: arabic ? 'سعة المشوار' : 'Trip capacity', value: trip.capacity === null ? null : new Intl.NumberFormat(locale).format(trip.capacity) },
+  ]
 
   return (
     <article className={`group/trip-card overflow-hidden rounded-2xl border border-[#617A55]/15 bg-white ${hasImages ? 'sm:grid sm:grid-cols-[minmax(0,1fr)_minmax(0,0.8fr)]' : ''}`}>
@@ -61,18 +82,16 @@ export default function TripCard({
           {badgeLabel}
         </span>
         <Heading className="mt-1 break-words font-serif text-xl leading-snug text-[#25311f] sm:text-2xl">{trip.title}</Heading>
-        <dl className="mt-1.5 flex flex-wrap gap-x-3 gap-y-1 text-sm text-[#4f5d49]">
-          <div className="flex gap-1">
-            <dt className="sr-only">{dateLabel}</dt>
-            <dd>
-              {formatTripDate(trip.starts_on, locale)}
-              {trip.ends_on !== trip.starts_on ? ` - ${formatTripDate(trip.ends_on, locale)}` : ''}
-            </dd>
-          </div>
-          <div className="flex gap-1">
-            <dt className="sr-only">{locationLabel}</dt>
-            <dd>{trip.location}</dd>
-          </div>
+        <dl className="mt-3 grid grid-cols-2 gap-x-3 gap-y-3 rounded-xl border border-[#617A55]/20 bg-[#EAF0E1] p-3">
+          {facts.map(({ icon: Icon, label, value, wide }) => value && (
+            <div key={label} className={`min-w-0 ${wide ? 'col-span-2' : ''}`}>
+              <dt className="flex items-center gap-1.5 text-xs font-semibold text-[#465d3d]">
+                <Icon size={15} aria-hidden="true" className="shrink-0" />
+                {label}
+              </dt>
+              <dd className="mt-1 break-words ps-[21px] text-sm font-medium leading-5 text-[#25311f]">{value}</dd>
+            </div>
+          ))}
         </dl>
         {trip.description && (
           <p className="mt-2 line-clamp-5 whitespace-pre-wrap break-words text-sm leading-6 text-[#4f5d49] group-has-[details[open]]/trip-card:hidden">
@@ -86,25 +105,6 @@ export default function TripCard({
             <ChevronDown aria-hidden="true" size={16} className="group-open:rotate-180" />
           </summary>
           <div className="border-t border-[#617A55]/15 pt-3 text-sm text-[#4f5d49]">
-            {(trip.application_deadline || trip.meeting_time) && (
-              <dl className="grid gap-1.5">
-                {trip.application_deadline && (
-                  <div className="flex flex-wrap gap-x-2">
-                    <dt className="font-semibold">{deadlineLabel}</dt>
-                    <dd>{formatTripDate(trip.application_deadline, locale)}</dd>
-                  </div>
-                )}
-                {trip.meeting_time && (
-                  <div className="flex flex-wrap gap-x-2">
-                    <dt className="font-semibold">{meetingLabel}</dt>
-                    <dd>
-                      <bdi dir="ltr">{formatMeetingTime(trip.meeting_time)}</bdi>
-                      {trip.meeting_point ? ` · ${trip.meeting_point}` : ''}
-                    </dd>
-                  </div>
-                )}
-              </dl>
-            )}
             {trip.description && <p className="mt-2 whitespace-pre-wrap break-words leading-7">{trip.description}</p>}
             {cta && <div className="mt-4">{cta}</div>}
           </div>
