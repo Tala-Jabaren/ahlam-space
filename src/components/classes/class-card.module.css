@@ -13,7 +13,10 @@
 .instructorLabel { margin-inline-end:4px; font-size:12px; color:#55684A; }
 .avatar { flex:none; inline-size:34px; block-size:34px; overflow:hidden; border-radius:50%; background:var(--blue-soft); }
 .avatar img { display:block; inline-size:100%; block-size:100%; object-fit:cover; transform:scale(2.5); transform-origin:37% 0%; }
-.meta { display:flex; flex-wrap:wrap; align-items:center; gap:8px 14px; margin:12px 0 0; padding:10px 12px; border-radius:10px; background:#F7F6F0; font-size:13px; line-height:1.5; color:#4f5d49; }
+.meta { display:grid; grid-template-columns:minmax(0,1fr) max-content; align-items:start; column-gap:10px; margin:12px 0 0; padding:10px 12px; border-radius:10px; background:#F7F6F0; font-size:13px; line-height:1.5; color:#4f5d49; }
+.metaDate { grid-column:1; grid-row:1; min-inline-size:0; overflow-wrap:anywhere; }
+.metaTime { grid-column:2; grid-row:1; white-space:nowrap; }
+.metaPrice { grid-column:1 / -1; grid-row:2; margin-block-start:6px; }
 .metaItem { display:flex; align-items:center; gap:6px; margin:0; }
 .metaItem svg { flex:none; color:#55684A; }
 .price { font-weight:600; color:#25311f; }
@@ -39,6 +42,26 @@
 .dialog a { text-underline-offset:4px; }
 @media(min-width:640px) { .grid { grid-template-columns:repeat(2,minmax(0,1fr)); } }
 @media(min-width:1024px) { .grid { grid-template-columns:repeat(3,minmax(0,1fr)); } }
+/* Share the cover and content rows across neighboring cards, including optional fields. */
+@supports (grid-template-rows:subgrid) {
+  @media(min-width:640px) {
+    .grid { row-gap:0; margin-block-end:-24px; }
+    .card,.surface,.body { display:grid; grid-template-rows:subgrid; row-gap:0; }
+    .card { grid-row:span 10; block-size:auto; margin-block-end:24px; }
+    .surface { grid-row:1 / -1; block-size:auto; }
+    .cover { grid-row:1; }
+    .body { grid-row:2 / -1; }
+    .body > * { grid-column:1; align-self:start; }
+    .notice { grid-row:1; }
+    .eyebrow { grid-row:2; }
+    .title { grid-row:3; }
+    .eligibility { grid-row:4; }
+    .meta { grid-row:5 / span 2; grid-template-rows:subgrid; align-self:stretch; }
+    .details { grid-row:7; }
+    .instructor { grid-row:8; }
+    .footer { grid-row:9; margin-block-start:0; }
+  }
+}
 @keyframes enter { from { opacity:0; transform:translateY(16px); } to { opacity:1; transform:translateY(0); } }
 @media(prefers-reduced-motion:no-preference) {
   .card { animation:enter .5s both; }

@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import { useT } from '@/i18n/i18n-context'
 import type { BookingReceipt } from './types'
+import styles from './class-card.module.css'
 
 type PackageCredit = { purchaseId: string; remaining: number; total: number }
 
@@ -124,18 +125,18 @@ export default function PackageBookingButton({ sessionId, sessionName, dateLabel
   const errorMessage = errorKey ? copy[ERROR_KEYS[errorKey] ?? 'bookingGenericError'] ?? copy.bookingGenericError : null
 
   return (
-    <div className="flex w-full items-center gap-3">
+    <div className="flex w-full flex-col items-start gap-2">
       <button
         type="button"
         onClick={() => openSheet('package')}
-        className="flex min-h-[46px] flex-1 items-center justify-center rounded-xl bg-[#617A55] px-4 text-[15px] font-bold text-white transition hover:bg-[#4F6446]"
+        className={styles.button}
       >
         {copy.bookWithPackageCta}
       </button>
       <button
         type="button"
         onClick={() => openSheet('cash')}
-        className="shrink-0 text-[13px] font-medium text-[#5C574F] underline underline-offset-4"
+        className="min-h-7 text-start text-xs leading-5 font-medium text-[#4f5d49] underline underline-offset-4"
       >
         {copy.payCashCta.replace('{amount}', amountLabel)}
       </button>

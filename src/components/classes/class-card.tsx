@@ -59,19 +59,19 @@ export default function ClassCard({ session, headingLevel = 2 }: { session: Clas
         {category && <p className={styles.eyebrow}>{category}</p>}
         <Heading className={styles.title}>{name}</Heading>
         {session.packageEligible === false && (
-          <span className="mt-1 inline-flex w-fit items-center rounded-full bg-[#C7D6E8]/55 px-2.5 py-0.5 text-xs font-medium text-[#4f5d49]">
+          <span className={`${styles.eligibility} mt-1 inline-flex w-fit items-center rounded-full bg-[#C7D6E8]/55 px-2.5 py-0.5 text-xs font-medium text-[#4f5d49]`}>
             {t.classCards.packageIneligible}
           </span>
         )}
         <dl className={styles.meta}>
-          <div>
+          <div className={styles.metaDate}>
             <dt className="sr-only">{t.classes.dateLabel}</dt>
             <dd className={styles.metaItem}>
               <CalendarDays size={16} aria-hidden="true" />
               <time dateTime={session.startsAt ?? undefined}>{session.dateLabel}</time>
             </dd>
           </div>
-          <div>
+          <div className={styles.metaTime}>
             <dt className="sr-only">{t.classes.timeLabel}</dt>
             <dd className={styles.metaItem}>
               <Clock size={16} aria-hidden="true" />
@@ -79,7 +79,7 @@ export default function ClassCard({ session, headingLevel = 2 }: { session: Clas
             </dd>
           </div>
           {session.priceLabel !== null && (
-            <div>
+            <div className={styles.metaPrice}>
               <dt className="sr-only">{t.home.priceLabel}</dt>
               <dd className={styles.metaItem}>
                 <Wallet size={16} aria-hidden="true" />
@@ -89,7 +89,7 @@ export default function ClassCard({ session, headingLevel = 2 }: { session: Clas
           )}
         </dl>
         {session.description && (
-          <details className="group mt-1">
+          <details className={`${styles.details} group mt-1`}>
             <summary className="inline-flex min-h-11 cursor-pointer list-none items-center gap-2 rounded-lg text-sm font-semibold text-[#465d3d] hover:underline focus-visible:outline-2 [&::-webkit-details-marker]:hidden">
               <span className="group-open:hidden">{copy.learnMore}</span>
               <span className="hidden group-open:inline">{copy.hideDescription}</span>
