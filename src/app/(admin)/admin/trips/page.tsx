@@ -75,7 +75,7 @@ export default async function AdminTripsPage({ searchParams }: { searchParams: P
                 href={`/admin/trips/${trip.id}`}
                 className="inline-flex min-h-11 items-center justify-center rounded-full border border-[#617A55]/30 px-4 text-sm font-semibold text-[#617A55] transition hover:bg-[#D6E2B6]/40"
               >
-                طلبات المشاركة
+                الصور وطلبات المشاركة
               </Link>
             </div>
             <div className="mt-4"><TripEditor record={trip} /></div>

@@ -126,6 +126,23 @@ export async function getPublishedTripPhotos(
   return { photos: data ?? [], error: false }
 }
 
+export function getTripAttachments(supabase: SupabaseClient, tripId: string, publishedOnly = false) {
+  const query = supabase.from('trip_photos')
+    .select('id, photo_url, caption, display_order, is_published')
+    .eq('trip_id', tripId)
+    .eq('is_trip_attachment', true)
+  if (publishedOnly) query.eq('is_published', true)
+  return query.order('display_order')
+    .order('id')
+    .returns<TripGalleryPhoto[]>()
+}
+
+export async function getTripSlideImages(supabase: SupabaseClient, trip: TripRow) {
+  const { data } = await getTripAttachments(supabase, trip.id, true)
+  return [...new Set([trip.cover_image_url, ...(data ?? []).map(photo => photo.photo_url)])]
+    .filter((url): url is string => Boolean(url))
+}
+
 // Shared by the public home section, /trips, and /journeys - the nearest
 // trip with status = 'open', skipping past one whose ends_on has already
 // passed in case the owner forgot to flip its status (a trip that's open

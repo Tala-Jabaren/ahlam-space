@@ -6,7 +6,7 @@ import { getDictionary } from '@/i18n/dictionaries'
 import { pageMetadata } from '@/lib/seo'
 import { getSafeReturnTo } from '@/lib/safe-return-to'
 import JourneysContent from '@/components/trips/journeys-content'
-import { getOpenTrip, getPublishedTripPhotos, isTripAcceptingApplications } from '@/lib/trips'
+import { getOpenTrip, getPublishedTripPhotos, getTripSlideImages, isTripAcceptingApplications } from '@/lib/trips'
 
 export async function generateMetadata(): Promise<Metadata> {
   const locale = await getLocale()
@@ -43,6 +43,7 @@ export default async function JourneysPage() {
   if (photosError) console.error('Failed to load trip photos for /journeys.')
 
   const accepting = openTrip ? isTripAcceptingApplications(openTrip) : false
+  const tripImages = openTrip ? await getTripSlideImages(supabase, openTrip) : []
   // openTrip.id is our own database uuid, never user input, so this is
   // already a safe path by construction - still run through the shared
   // sanitizer as the single source of truth for "what's a safe returnTo",
@@ -59,6 +60,7 @@ export default async function JourneysPage() {
       accepting={accepting}
       applyPath={applyPath}
       photos={photos}
+      tripImages={tripImages}
     />
   )
 }

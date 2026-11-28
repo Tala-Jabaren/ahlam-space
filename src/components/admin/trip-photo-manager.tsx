@@ -6,60 +6,67 @@ import { createClient } from '@/lib/supabase/client'
 import { UploadError, publicUrlFor, uploadFileDirect } from '@/lib/admin-upload'
 import TripDeleteButton from './trip-delete-button'
 import type { TripGalleryPhoto } from '@/lib/trips'
+import { MAX_PRODUCT_IMAGE_BYTES, PRODUCT_IMAGE_TYPES } from './product-input'
 
 const inputStyle = 'mt-2 w-full min-w-0 rounded-lg border border-[#617A55]/25 bg-[#F7F6F0] px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#617A55]'
 const buttonStyle = 'inline-flex items-center justify-center gap-2 rounded-lg bg-[#617A55] px-4 py-2 text-sm text-white disabled:opacity-50'
 
-export default function TripPhotoManager({ photos }: { photos: TripGalleryPhoto[] }) {
+export default function TripPhotoManager({ photos, tripId }: { photos: TripGalleryPhoto[]; tripId?: string }) {
   const router = useRouter()
   const [busy, setBusy] = useState(false)
   const [message, setMessage] = useState('')
   const [failed, setFailed] = useState(false)
+  const table = tripId ? 'trip_photos' : 'trip_gallery_photos'
 
   async function upload(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()
     if (busy) return
     const target = event.currentTarget
     const form = new FormData(target)
-    const file = form.get('image')
-    if (!(file instanceof File) || file.size === 0) {
+    const files = form.getAll('image').filter((file): file is File => file instanceof File && file.size > 0)
+    if (!files.length) {
       setFailed(true)
       setMessage('اختاري صورة.')
+      return
+    }
+    if (files.some(file => file.size > MAX_PRODUCT_IMAGE_BYTES)) {
+      setFailed(true)
+      setMessage('حجم كل صورة يجب ألا يتجاوز 5 ميغابايت.')
       return
     }
     setBusy(true)
     setMessage('')
     try {
-      // Relays the upload route's own Arabic error (invalid file type, too
-      // large, not an admin, storage failure, etc.) via UploadError instead
-      // of a single generic message that was hiding which of those
-      // actually happened.
-      const uploaded = await uploadFileDirect('/admin/trips/upload-gallery-photo', {
-        upload_id: crypto.randomUUID(),
-        size: String(file.size),
-      }, file, 'PHOTO_UPLOAD')
-      const url = publicUrlFor(uploaded.bucket, uploaded.path)
-
       const caption = String(form.get('caption') || '').trim() || null
       const nextOrder = photos.length ? Math.max(...photos.map((item) => item.display_order)) + 1 : 0
-      const { error } = await createClient().from('trip_gallery_photos').insert({
-        photo_url: url,
-        caption,
-        display_order: nextOrder,
-        is_published: false,
-      })
+      const rows = []
+      for (const file of files) {
+        const fields: Record<string, string> = tripId ? { trip_id: tripId } : { upload_id: crypto.randomUUID() }
+        const uploaded = await uploadFileDirect(tripId ? '/admin/trips/upload-photo' : '/admin/trips/upload-gallery-photo', {
+          ...fields,
+          size: String(file.size),
+        }, file, 'PHOTO_UPLOAD')
+        rows.push({
+          ...(tripId ? { trip_id: tripId, is_trip_attachment: true } : {}),
+          photo_url: publicUrlFor(uploaded.bucket, uploaded.path),
+          caption,
+          display_order: nextOrder + rows.length,
+          is_published: Boolean(tripId),
+        })
+      }
+      const { error } = await createClient().from(table).insert(tripId ? rows : rows[0])
       if (error) {
         // The file itself uploaded fine here - this is a separate failure
         // (most likely RLS) saving the gallery row, so it gets its own
         // message rather than being folded into the upload-failed one.
-        console.error('trip_gallery_photos insert failed after a successful upload:', error.message)
+        console.error('Trip photo insert failed after upload:', error.message)
         setFailed(true)
-        setMessage('تم رفع الصورة لكن تعذر حفظها في قائمة الصور. حدّثي الصفحة وحاولي مجددًا.')
+        setMessage('تعذّر حفظ الصور في القائمة. حاولي مجددًا.')
         return
       }
 
       setFailed(false)
-      setMessage('تم رفع الصورة. فعّلي النشر عندما تكونين جاهزة.')
+      setMessage(tripId ? 'تمت إضافة الصور للمشوار.' : 'تم رفع الصورة. فعّلي النشر عندما تكونين جاهزة.')
       target.reset()
       router.refresh()
     } catch (err) {
@@ -73,7 +80,7 @@ export default function TripPhotoManager({ photos }: { photos: TripGalleryPhoto[
 
   async function togglePublished(photo: TripGalleryPhoto) {
     try {
-      const { error } = await createClient().from('trip_gallery_photos').update({ is_published: !photo.is_published }).eq('id', photo.id).select('id').single()
+      const { error } = await createClient().from(table).update({ is_published: !photo.is_published }).eq('id', photo.id).select('id').single()
       if (error) throw error
       router.refresh()
     } catch {
@@ -85,7 +92,7 @@ export default function TripPhotoManager({ photos }: { photos: TripGalleryPhoto[
   async function saveOrder(photo: TripGalleryPhoto, nextOrder: number) {
     if (!Number.isInteger(nextOrder) || nextOrder === photo.display_order) return
     try {
-      const { error } = await createClient().from('trip_gallery_photos').update({ display_order: nextOrder }).eq('id', photo.id).select('id').single()
+      const { error } = await createClient().from(table).update({ display_order: nextOrder }).eq('id', photo.id).select('id').single()
       if (error) throw error
       router.refresh()
     } catch {
@@ -95,12 +102,15 @@ export default function TripPhotoManager({ photos }: { photos: TripGalleryPhoto[
   }
 
   return <section className="mt-6 min-w-0 rounded-xl border border-[#617A55]/15 bg-white p-4 sm:p-6">
-    <h2 className="font-serif text-2xl text-[#617A55]">معرض صفحة المشاوير</h2>
+    <h2 className="font-serif text-2xl text-[#617A55]">{tripId ? 'صور المشوار' : 'معرض صفحة المشاوير'}</h2>
 
     <form onSubmit={upload} className="mt-4 grid gap-4 sm:grid-cols-2">
-      <label className="text-sm">صورة جديدة<input name="image" type="file" accept="image/png,image/jpeg,image/webp" required className={inputStyle} /></label>
-      <label className="text-sm">وصف الصورة (اختياري)<input name="caption" maxLength={300} className={inputStyle} /></label>
-      <div className="sm:col-span-2"><button disabled={busy} className={buttonStyle}>{busy ? 'جارٍ الرفع…' : 'رفع الصورة'}</button></div>
+      <label className={`text-sm ${tripId ? 'sm:col-span-2' : ''}`}>
+        {tripId ? 'اختاري صور المشوار' : 'صورة جديدة'}
+        <input name="image" type="file" accept={PRODUCT_IMAGE_TYPES.join(',')} multiple={Boolean(tripId)} required disabled={busy} className={inputStyle} />
+      </label>
+      {!tripId && <label className="text-sm">وصف الصورة (اختياري)<input name="caption" maxLength={300} className={inputStyle} /></label>}
+      <div className="sm:col-span-2"><button disabled={busy} className={buttonStyle}>{busy ? 'جارٍ الرفع…' : tripId ? 'رفع الصور' : 'رفع الصورة'}</button></div>
     </form>
     {message && <p role={failed ? 'alert' : 'status'} className={`mt-3 rounded-lg p-3 text-sm ${failed ? 'bg-[#C7D6E8]/50' : 'bg-[#D6E2B6]/50'}`}>{message}</p>}
 
@@ -127,7 +137,7 @@ export default function TripPhotoManager({ photos }: { photos: TripGalleryPhoto[
                   className="w-16 rounded-lg border border-[#617A55]/25 bg-[#F7F6F0] px-2 py-1 text-sm"
                 />
               </label>
-              <TripDeleteButton rpc="admin_delete_trip_gallery_photo" id={photo.id} label="صورة المعرض" />
+              <TripDeleteButton rpc={tripId ? 'admin_delete_trip_photo' : 'admin_delete_trip_gallery_photo'} id={photo.id} label={tripId ? 'صورة المشوار' : 'صورة المعرض'} />
             </div>
           </li>
         ))}

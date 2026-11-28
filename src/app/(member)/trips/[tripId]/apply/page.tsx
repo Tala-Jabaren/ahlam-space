@@ -3,7 +3,8 @@ import { redirect, notFound } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
 import ApplicationForm from '@/components/trips/application-form'
 import { formatTripDate } from '@/components/trips/trip-card'
-import { TRIP_COLUMNS, isTripAcceptingApplications, type TripRow } from '@/lib/trips'
+import TripImageCarousel from '@/components/trips/trip-image-carousel'
+import { TRIP_COLUMNS, getTripSlideImages, isTripAcceptingApplications, type TripRow } from '@/lib/trips'
 
 export default async function TripApplyPage({
   params,
@@ -50,6 +51,7 @@ export default async function TripApplyPage({
 
   const alreadyApplied = Boolean(existingApplication && existingApplication.status !== 'withdrawn')
   const accepting = isTripAcceptingApplications(trip)
+  const tripImages = await getTripSlideImages(supabase, trip)
 
   return (
     <main className="mx-auto max-w-3xl px-4 py-8 sm:px-6 lg:px-8">
@@ -63,6 +65,7 @@ export default async function TripApplyPage({
       <p className="mt-2 text-sm text-[#617A55]/80">
         {trip.title} · <bdi>{formatTripDate(trip.starts_on)}</bdi>
       </p>
+      <TripImageCarousel images={tripImages} title={trip.title} className="mt-6 aspect-[16/10] w-full rounded-2xl sm:aspect-[2/1]" />
 
       {alreadyApplied ? (
         <div className="mt-8 rounded-lg bg-[#D6E2B6]/40 p-5 text-sm">

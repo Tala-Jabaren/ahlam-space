@@ -1,4 +1,5 @@
 import type { TripRow } from '@/lib/trips'
+import TripImageCarousel from './trip-image-carousel'
 
 export function formatTripDate(date: string, locale: string = 'ar') {
   return new Intl.DateTimeFormat(locale === 'ar' ? 'ar' : 'en-US', {
@@ -32,6 +33,7 @@ export default function TripCard({
   locale = 'ar',
   cta,
   photoSlot,
+  images,
 }: {
   trip: TripRow
   badgeLabel: string
@@ -42,9 +44,10 @@ export default function TripCard({
   locale?: string
   cta: React.ReactNode
   photoSlot?: React.ReactNode
+  images?: string[]
 }) {
   return (
-    <article className="overflow-hidden rounded-2xl border border-[#617A55]/15 bg-white sm:grid sm:grid-cols-2">
+    <article className="flex flex-col overflow-hidden rounded-2xl border border-[#617A55]/15 bg-white sm:grid sm:grid-cols-2">
       <div className="p-6 sm:p-8">
         <span className="inline-flex rounded-full bg-[#D6E2B6]/60 px-3 py-1 text-xs font-semibold text-[#617A55]">
           {badgeLabel}
@@ -88,7 +91,9 @@ export default function TripCard({
         <p className="mt-4 text-sm leading-7 text-[#4f5d49]">{trip.description}</p>
         <div className="mt-6">{cta}</div>
       </div>
-      {photoSlot ? (
+      {images?.length ? (
+        <TripImageCarousel images={images} title={trip.title} locale={locale} className="order-first h-56 sm:order-none sm:h-auto sm:min-h-[260px]" />
+      ) : photoSlot ? (
         <div className="relative hidden min-h-[260px] sm:block">{photoSlot}</div>
       ) : trip.cover_image_url ? (
         <div className="relative hidden min-h-[260px] sm:block">

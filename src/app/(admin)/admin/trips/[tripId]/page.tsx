@@ -3,8 +3,9 @@ import Link from 'next/link'
 import { notFound } from 'next/navigation'
 import { getAdminSession } from '@/components/admin/admin-session'
 import TripApplicationsList from '@/components/admin/trip-applications-list'
-import { TRIP_COLUMNS, getTripApplications, tripStatusLabels, type TripRow } from '@/lib/trips'
+import { TRIP_COLUMNS, getTripApplications, getTripAttachments, tripStatusLabels, type TripRow } from '@/lib/trips'
 import TripMessageForm from '@/components/admin/trip-message-form'
+import TripPhotoManager from '@/components/admin/trip-photo-manager'
 
 export default async function AdminTripDetailPage({
   params,
@@ -27,6 +28,7 @@ export default async function AdminTripDetailPage({
 
   if (!trip) notFound()
 
+  const photos = getTripAttachments(supabase, trip.id)
   let applications: Awaited<ReturnType<typeof getTripApplications>> = []
   let applicationsError = false
   try {
@@ -37,6 +39,7 @@ export default async function AdminTripDetailPage({
     // admin can retry by refreshing.
     applicationsError = true
   }
+  const { data: attachments, error: photosError } = await photos
 
   return (
     <main className="mx-auto max-w-5xl px-4 py-8 sm:px-6 lg:px-8">
@@ -48,6 +51,11 @@ export default async function AdminTripDetailPage({
         <h1 className="font-serif text-3xl text-[#617A55]">{trip.title}</h1>
         <p className="mt-2 text-sm text-[#617A55]/80">{trip.location} · {tripStatusLabels[trip.status]}</p>
       </header>
+      {photosError ? (
+        <p role="alert" className="mt-6 rounded-lg bg-[#C7D6E8]/50 p-5">تعذر تحميل صور المشوار.</p>
+      ) : (
+        <TripPhotoManager photos={attachments ?? []} tripId={trip.id} />
+      )}
 
       {applicationsError ? (
         <p role="alert" className="mt-10 rounded-lg bg-[#C7D6E8]/50 p-5">تعذر تحميل طلبات المشاركة. تحققي من صلاحيات العرض والاتصال.</p>

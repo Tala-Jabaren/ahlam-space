@@ -1,6 +1,6 @@
-import Image from 'next/image'
 import Link from 'next/link'
 import TripPhotoStrip, { type TripPhoto } from '@/components/trips/trip-photo-strip'
+import TripImageCarousel from '@/components/trips/trip-image-carousel'
 import { formatMeetingTime, formatTripDate } from '@/components/trips/trip-card'
 import type { TripRow } from '@/lib/trips'
 
@@ -39,6 +39,7 @@ export default function JourneysContent({
   accepting,
   applyPath,
   photos,
+  tripImages,
 }: {
   copy: JourneysCopy
   dir: 'rtl' | 'ltr'
@@ -48,6 +49,7 @@ export default function JourneysContent({
   accepting: boolean
   applyPath: string
   photos: TripPhoto[]
+  tripImages?: string[]
 }) {
   return (
     <div dir={dir} className="bg-[#F6F5EE] text-[#34472B]">
@@ -71,18 +73,13 @@ export default function JourneysContent({
             </p>
           ) : (
             <article className="overflow-hidden rounded-2xl border border-[#55684A]/20 bg-white sm:grid sm:grid-cols-2">
-              <div className="relative h-56 sm:order-last sm:h-full sm:min-h-[320px]">
-                {openTrip.cover_image_url ? (
-                  <Image
-                    src={openTrip.cover_image_url}
-                    alt={openTrip.title}
-                    fill
-                    sizes="(min-width: 640px) 50vw, 100vw"
-                    className="object-cover"
-                  />
-                ) : (
-                  <div className="size-full bg-[#E4ECD6]" />
-                )}
+              <div className="relative h-56 bg-[#E4ECD6] sm:order-last sm:h-full sm:min-h-[320px]">
+                <TripImageCarousel
+                  images={tripImages ?? (openTrip.cover_image_url ? [openTrip.cover_image_url] : [])}
+                  title={openTrip.title}
+                  locale={locale}
+                  className="size-full"
+                />
               </div>
               <div className="p-6 sm:p-8">
                 <span className="inline-flex rounded-full bg-[#E4ECD6] px-3 py-1 text-xs font-semibold text-[#34472B]">

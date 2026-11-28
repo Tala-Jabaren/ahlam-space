@@ -4,7 +4,7 @@ import { createClient } from '@/lib/supabase/server'
 import TripPhotoStrip from '@/components/trips/trip-photo-strip'
 import TripCard, { formatMeetingTime, formatTripDate } from '@/components/trips/trip-card'
 import WithdrawApplicationButton from '@/components/trips/withdraw-application-button'
-import { getOpenTrip, getPublishedTripPhotos, isTripAcceptingApplications, todayInHebron } from '@/lib/trips'
+import { getOpenTrip, getPublishedTripPhotos, getTripSlideImages, isTripAcceptingApplications, todayInHebron } from '@/lib/trips'
 
 // Gentler member-facing wording, deliberately not tripApplicationStatusLabels
 // from src/lib/trips.ts (that one's for the admin view).
@@ -73,6 +73,7 @@ export default async function MyTripsPage() {
     openTrip && myApplications.some((application) => application.trip_id === openTrip.id && application.status !== 'withdrawn')
   )
   const openTripAccepting = openTrip ? isTripAcceptingApplications(openTrip, today) : false
+  const tripImages = openTrip ? await getTripSlideImages(supabase, openTrip) : []
 
   return (
     <main className="mx-auto max-w-5xl px-4 py-8 sm:px-6 lg:px-8">
@@ -89,6 +90,7 @@ export default async function MyTripsPage() {
           <h2 className="mb-4 font-serif text-2xl text-[#25311f]">المشوار القادم</h2>
           <TripCard
             trip={openTrip}
+            images={tripImages}
             badgeLabel={openTripAccepting ? 'التسجيل مفتوح' : 'انتهى التقديم'}
             deadlineLabel="آخر موعد للتقديم"
             cta={
