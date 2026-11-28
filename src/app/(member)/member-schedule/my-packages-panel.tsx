@@ -1,51 +1,14 @@
 'use client'
 
 import { useState } from 'react'
-import Link from 'next/link'
 import { ChevronDown } from 'lucide-react'
 import type { PackagePurchaseRow, PackagePurchaseSummary } from '@/lib/package-purchases'
 import type { Dictionary } from '@/i18n/dictionaries'
 import PackagePaymentSheet from './package-payment-sheet'
+import ActivePackageCard from './active-package-card'
 
 function formatAmount(value: number, locale: string) {
   return `${new Intl.NumberFormat(locale).format(value)} ₪`
-}
-
-function formatDate(value: string | null, locale: string) {
-  if (!value) return null
-  return new Intl.DateTimeFormat(locale, { day: 'numeric', month: 'long', year: 'numeric', timeZone: 'Asia/Jerusalem' }).format(new Date(value))
-}
-
-// Screen 3's full block: bg #3F6350, white text - the big remaining
-// number stands alone (not folded into one sentence) so it reads at a
-// glance, matching the approved design exactly.
-function ActivePackageCard({ purchase, locale, t }: { purchase: PackagePurchaseRow; locale: string; t: Dictionary }) {
-  const copy = t.classes.packages
-  const expiresLabel = formatDate(purchase.expires_at, locale)
-  const segments = Array.from({ length: purchase.sessions_total }, (_, index) => index < purchase.sessions_remaining)
-
-  return (
-    <article className="rounded-[20px] bg-[#3F6350] p-5 text-white">
-      <div className="flex flex-wrap items-center justify-between gap-2">
-        <h3 className="text-[18px] font-bold">{purchase.class_packages?.name ?? 'باقة'}</h3>
-        <span className="rounded-full bg-[#E1EEE5] px-3 py-1 text-xs font-semibold text-[#25513A]">{copy.statusActive}</span>
-      </div>
-      <p className="mt-3 text-[56px] font-bold leading-none"><bdi>{purchase.sessions_remaining}</bdi></p>
-      <p className="mt-1 text-[17px]">{copy.balanceCaption.replace('{total}', String(purchase.sessions_total))}</p>
-      <div className="mt-4 flex gap-1.5" aria-hidden="true">
-        {segments.map((filled, index) => (
-          <span key={index} className={`h-2.5 flex-1 rounded-full ${filled ? 'bg-white' : 'bg-white/30'}`} />
-        ))}
-      </div>
-      {expiresLabel && <p className="mt-3 text-[15px]">{copy.expiresOnPackage.replace('{date}', expiresLabel)}</p>}
-      <Link
-        href="/member-schedule#sessions-list"
-        className="mt-5 inline-flex min-h-[50px] w-full items-center justify-center rounded-xl bg-white px-6 text-[17px] font-bold text-[#25402F] transition hover:bg-white/90"
-      >
-        {copy.bookWithPackage}
-      </Link>
-    </article>
-  )
 }
 
 // «تفاصيل الدفع» opens the same payment sheet (Screen 2) the purchase

@@ -12,7 +12,7 @@ import { PACKAGES_ENABLED } from '@/lib/feature-flags'
 import { loadPackagePurchases, type PackagePurchaseSummary } from '@/lib/package-purchases'
 import PackagesGrid from './packages-grid'
 import type { PackageCardData } from './package-card'
-import BalanceBar from './balance-bar'
+import ActivePackageCard from './active-package-card'
 import MyPackagesPanel from './my-packages-panel'
 
 type ScheduleRow = ClassSession
@@ -120,7 +120,9 @@ export default async function MemberSchedulePage({ searchParams }: {
             </nav>
           )}
 
-          {!showPackagesView && packageSummary?.active && <BalanceBar purchase={packageSummary.active} locale={locale} t={t} />}
+          {!showPackagesView && packageSummary?.active && (
+            <div className="mb-6"><ActivePackageCard purchase={packageSummary.active} locale={locale} t={t} /></div>
+          )}
 
           {showPackagesView ? (
             <>
@@ -144,7 +146,7 @@ export default async function MemberSchedulePage({ searchParams }: {
               <p className="mt-6 text-[14px] leading-6 text-[#5C574F]">{t.classes.packages.footerNote}</p>
             </>
           ) : (
-            <div id="sessions-list">
+            <div id="sessions-list" className="scroll-mt-20">
               {sessionsError ? (
                 <div className="rounded-lg bg-[#C7D6E8]/55 p-6">{t.memberSchedule.loadError}</div>
               ) : (
