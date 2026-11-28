@@ -53,7 +53,7 @@ export default function TripCard({
           images={slides}
           title={trip.title}
           locale={locale}
-          className="h-36 group-has-[details[open]]/trip-card:h-56 sm:col-start-2 sm:row-start-1 sm:h-52 sm:group-has-[details[open]]/trip-card:h-auto sm:group-has-[details[open]]/trip-card:min-h-52"
+          className="h-36 group-has-[details[open]]/trip-card:h-56 sm:col-start-2 sm:row-start-1 sm:h-auto sm:min-h-52 sm:group-has-[details[open]]/trip-card:h-auto"
         />
       )}
       <div className="min-w-0 px-4 py-3 sm:col-start-1 sm:row-start-1 sm:px-5 sm:py-4">
@@ -74,9 +74,14 @@ export default function TripCard({
             <dd>{trip.location}</dd>
           </div>
         </dl>
+        {trip.description && (
+          <p className="mt-2 line-clamp-5 whitespace-pre-wrap break-words text-sm leading-6 text-[#4f5d49] group-has-[details[open]]/trip-card:hidden">
+            {trip.description}
+          </p>
+        )}
         <details className="group mt-1">
           <summary className="inline-flex min-h-11 cursor-pointer list-none items-center gap-2 rounded-lg text-sm font-semibold text-[#465d3d] hover:underline focus-visible:outline-2 focus-visible:outline-offset-2 [&::-webkit-details-marker]:hidden">
-            <span className="group-open:hidden">{arabic ? 'المزيد من التفاصيل' : 'More details'}</span>
+            <span className="group-open:hidden">{arabic ? 'اقرئي المزيد' : 'Read more'}</span>
             <span className="hidden group-open:inline">{arabic ? 'إخفاء التفاصيل' : 'Hide details'}</span>
             <ChevronDown aria-hidden="true" size={16} className="group-open:rotate-180" />
           </summary>
@@ -100,7 +105,7 @@ export default function TripCard({
                 )}
               </dl>
             )}
-            <p className="mt-2 whitespace-pre-wrap break-words leading-7">{trip.description}</p>
+            {trip.description && <p className="mt-2 whitespace-pre-wrap break-words leading-7">{trip.description}</p>}
             {cta && <div className="mt-4">{cta}</div>}
           </div>
         </details>
