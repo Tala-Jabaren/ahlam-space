@@ -5,7 +5,13 @@ import { createClient } from '@/lib/supabase/server'
 
 export const getAdminSession = cache(async () => {
   const supabase = await createClient()
-  const { data: { user }, error } = await supabase.auth.getUser()
+  // getSession() reads the already-verified, already-refreshed session from
+  // cookies (local JWT check, no network round trip) instead of getUser()'s
+  // own server round trip - safe here because src/proxy.ts already ran the
+  // authoritative getUser()-and-refresh for this exact request before this
+  // ever runs, on every route its matcher covers (effectively everything).
+  const { data: { session }, error } = await supabase.auth.getSession()
+  const user = session?.user
   if (error || !user) redirect('/login')
 
   const { data: profile, error: profileError } = await supabase
