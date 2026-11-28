@@ -1,7 +1,6 @@
 import Link from 'next/link'
 import TripPhotoStrip, { type TripPhoto } from '@/components/trips/trip-photo-strip'
-import TripImageCarousel from '@/components/trips/trip-image-carousel'
-import { formatMeetingTime, formatTripDate } from '@/components/trips/trip-card'
+import TripCard from '@/components/trips/trip-card'
 import type { TripRow } from '@/lib/trips'
 
 export type JourneysCopy = {
@@ -72,81 +71,39 @@ export default function JourneysContent({
               {copy.noOpenTrip}
             </p>
           ) : (
-            <article className="overflow-hidden rounded-2xl border border-[#55684A]/20 bg-white sm:grid sm:grid-cols-2">
-              <div className="relative h-56 bg-[#E4ECD6] sm:order-last sm:h-full sm:min-h-[320px]">
-                <TripImageCarousel
-                  images={tripImages ?? (openTrip.cover_image_url ? [openTrip.cover_image_url] : [])}
-                  title={openTrip.title}
-                  locale={locale}
-                  className="size-full"
-                />
-              </div>
-              <div className="p-6 sm:p-8">
-                <span className="inline-flex rounded-full bg-[#E4ECD6] px-3 py-1 text-xs font-semibold text-[#34472B]">
-                  {accepting ? copy.registrationOpenBadge : copy.applicationsClosedBadge}
-                </span>
-                <h2 className="mt-4 font-serif text-2xl text-[#34472B] sm:text-3xl">{openTrip.title}</h2>
-                <dl className="mt-3 flex flex-wrap gap-x-2 gap-y-1 text-sm text-[#34472B]/80">
-                  <div className="flex gap-1">
-                    <dt className="sr-only">{copy.dateLabel}</dt>
-                    <dd>
-                      {formatTripDate(openTrip.starts_on, locale)}
-                      {openTrip.ends_on !== openTrip.starts_on ? ` - ${formatTripDate(openTrip.ends_on, locale)}` : ''}
-                    </dd>
-                  </div>
-                  <span aria-hidden="true">·</span>
-                  <div className="flex gap-1">
-                    <dt className="sr-only">{copy.locationLabel}</dt>
-                    <dd>{openTrip.location}</dd>
-                  </div>
-                  {openTrip.application_deadline && (
+            <TripCard
+              trip={openTrip}
+              images={tripImages}
+              headingLevel={2}
+              locale={locale}
+              badgeLabel={accepting ? copy.registrationOpenBadge : copy.applicationsClosedBadge}
+              deadlineLabel={copy.deadlineLabel}
+              dateLabel={copy.dateLabel}
+              locationLabel={copy.locationLabel}
+              meetingLabel={copy.meetingLabel}
+              cta={accepting ? (
+                <div className="space-y-3">
+                  <p className="text-sm text-[#34472B]/80">{copy.applyNote}</p>
+                  {isAuthenticated ? (
+                    <Link href={applyPath} className={primaryButton}>
+                      {copy.applyButton}
+                    </Link>
+                  ) : (
                     <>
-                      <span aria-hidden="true">·</span>
-                      <div className="flex gap-1">
-                        <dt>{copy.deadlineLabel}:</dt>
-                        <dd>{formatTripDate(openTrip.application_deadline, locale)}</dd>
+                      <div className="flex flex-wrap gap-3">
+                        <Link href={`/login?returnTo=${encodeURIComponent(applyPath)}`} className={primaryButton}>
+                          {copy.loginToApply}
+                        </Link>
+                        <Link href={`/sign-up?returnTo=${encodeURIComponent(applyPath)}`} className={secondaryButton}>
+                          {copy.createAccount}
+                        </Link>
                       </div>
+                      <p className="text-xs text-[#34472B]/70">{copy.membersOnlyNote}</p>
                     </>
                   )}
-                  {openTrip.meeting_time && (
-                    <>
-                      <span aria-hidden="true">·</span>
-                      <div className="flex gap-1">
-                        <dt>{copy.meetingLabel}:</dt>
-                        <dd>
-                          <bdi dir="ltr">{formatMeetingTime(openTrip.meeting_time)}</bdi>
-                          {openTrip.meeting_point ? ` - ${openTrip.meeting_point}` : ''}
-                        </dd>
-                      </div>
-                    </>
-                  )}
-                </dl>
-                <p className="mt-4 whitespace-pre-wrap break-words text-sm leading-7 text-[#34472B]/80">{openTrip.description}</p>
-
-                {accepting && (
-                  <div className="mt-6">
-                    <p className="mb-4 text-sm text-[#34472B]/80">{copy.applyNote}</p>
-                    {isAuthenticated ? (
-                      <Link href={applyPath} className={primaryButton}>
-                        {copy.applyButton}
-                      </Link>
-                    ) : (
-                      <>
-                        <div className="flex flex-wrap gap-3">
-                          <Link href={`/login?returnTo=${encodeURIComponent(applyPath)}`} className={primaryButton}>
-                            {copy.loginToApply}
-                          </Link>
-                          <Link href={`/sign-up?returnTo=${encodeURIComponent(applyPath)}`} className={secondaryButton}>
-                            {copy.createAccount}
-                          </Link>
-                        </div>
-                        <p className="mt-3 text-xs text-[#34472B]/70">{copy.membersOnlyNote}</p>
-                      </>
-                    )}
-                  </div>
-                )}
-              </div>
-            </article>
+                </div>
+              ) : null}
+            />
           )}
         </div>
       </section>
