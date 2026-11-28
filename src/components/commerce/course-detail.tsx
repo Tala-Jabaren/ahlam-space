@@ -82,7 +82,12 @@ export default async function CoursePage({ params, routes = publicRoutes }: { pa
     duration = data?.duration_minutes ?? null
   }
   const returnTo = `${routes.courses}/${encodeURIComponent(id)}`
-  if (!audio && !user) redirect(`/login?returnTo=${encodeURIComponent(returnTo)}`)
+  // Requires an account for every content type now, not just video/article -
+  // audio (meditations) used to allow anonymous browsing with an inline
+  // "log in to listen" card (see the now-unreachable 'anonymous' branch of
+  // AudioStateCard below), but guests are sent to log in first regardless
+  // of content type.
+  if (!user) redirect(`/login?returnTo=${encodeURIComponent(returnTo)}&message=login-required`)
 
   let purchases: Purchase[] = []
   let accessFailed = false

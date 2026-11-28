@@ -28,7 +28,7 @@ export default function MobileNavigation({
   const dialog = useRef<HTMLDialogElement>(null)
   const closeButton = useRef<HTMLButtonElement>(null)
   const copy = mobileNavigationCopy(locale)
-  const groups = [
+  const fullGroups = [
     [
       { href: '/', label: t.nav.home, icon: House },
       { href: '/about', label: t.nav.about, icon: Info },
@@ -41,6 +41,12 @@ export default function MobileNavigation({
       { href: '/shop', label: t.nav.shop, icon: ShoppingBag },
     ],
   ]
+  // Guests only ever get Home/About/Shop - everything else now requires an
+  // account (see each of those pages' own login redirect), so there's no
+  // point linking a logged-out visitor somewhere she'll just be bounced
+  // back from.
+  const guestHrefs = new Set(['/', '/about', '/shop'])
+  const groups = user ? fullGroups : fullGroups.map(group => group.filter(item => guestHrefs.has(item.href))).filter(group => group.length > 0)
 
   useEffect(() => {
     if (!open) return

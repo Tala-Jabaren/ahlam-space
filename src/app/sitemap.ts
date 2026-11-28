@@ -2,14 +2,14 @@ import type { MetadataRoute } from 'next'
 import { createClient } from '@/lib/supabase/server'
 import { SITE_URL } from '@/lib/seo'
 
+// /classes, /courses, /private-sessions and /journeys all now require an
+// account (each redirects a guest to /login) - left out of the sitemap for
+// the same reason course pages already were: nothing a crawler without an
+// account could actually reach there.
 const staticPaths = [
   '/',
   '/about',
-  '/classes',
-  '/courses',
   '/shop',
-  '/private-sessions',
-  '/journeys',
   '/legal/terms',
   '/legal/privacy',
   '/legal/cancellation',

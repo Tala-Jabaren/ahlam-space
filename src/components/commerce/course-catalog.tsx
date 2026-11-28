@@ -1,4 +1,5 @@
 import type { Metadata } from 'next'
+import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
 import { getT } from '@/i18n/get-t'
 import { getLocale } from '@/i18n/get-locale'
@@ -13,7 +14,9 @@ import { publicRoutes, type ExperienceRoutes } from '@/lib/experience-routes'
 export async function generateMetadata(): Promise<Metadata> {
   const locale = await getLocale()
   const t = getDictionary(locale)
-  return pageMetadata({ ...t.seo.courses, path: '/courses', locale })
+  // Requires an account now (see the redirect below) - nothing a crawler
+  // without one could actually reach here, same reasoning as course pages.
+  return { ...pageMetadata({ ...t.seo.courses, path: '/courses', locale }), robots: { index: false, follow: false } }
 }
 
 type PurchaseStatus = 'pending' | 'paid'
@@ -44,6 +47,11 @@ export default async function CoursesPage({
   if (userError) {
     console.error('supabase.auth.getUser() failed:', userError.message)
   }
+  // Requires an account - guests are sent to log in first, then land back
+  // here via returnTo. On the member route (routes.courses = '/member/courses')
+  // the layout above already guarantees a user, so this never actually
+  // fires there.
+  if (!user) redirect(`/login?returnTo=${encodeURIComponent(routes.courses)}&message=login-required`)
 
   const { data: courses, error: coursesError } = await supabase
     .from('courses')

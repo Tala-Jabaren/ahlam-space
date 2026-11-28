@@ -101,11 +101,15 @@ export default function SiteHeader({
             >
               <PublicNavLink href="/">{t.nav.home}</PublicNavLink>
               <PublicNavLink href="/about">{t.nav.about}</PublicNavLink>
-              <PublicNavLink href="/classes">{t.nav.classes}</PublicNavLink>
-              <PublicNavLink href="/courses">{t.nav.courses}</PublicNavLink>
-              <PublicNavLink href="/private-sessions">{t.nav.privateSessions}</PublicNavLink>
+              {/* Classes/courses/private sessions/journeys now require an
+                  account (see each page's own login redirect) - hidden for
+                  a logged-out visitor rather than linking somewhere she'll
+                  just be bounced back from. */}
+              {user && <PublicNavLink href="/classes">{t.nav.classes}</PublicNavLink>}
+              {user && <PublicNavLink href="/courses">{t.nav.courses}</PublicNavLink>}
+              {user && <PublicNavLink href="/private-sessions">{t.nav.privateSessions}</PublicNavLink>}
               <PublicNavLink href="/shop">{t.nav.shop}</PublicNavLink>
-              <PublicNavLink href="/journeys">{t.nav.journeys}</PublicNavLink>
+              {user && <PublicNavLink href="/journeys">{t.nav.journeys}</PublicNavLink>}
             </div>
             <div className="flex items-center gap-3">
               <LanguageSwitcher

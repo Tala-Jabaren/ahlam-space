@@ -130,6 +130,7 @@ export const checkoutEn: CheckoutCopy = {
     checkEmail: 'Check your email to confirm your account.',
     checkEmailTitle: 'Confirm your email',
     sessionExpired: 'Your session expired or could not be verified. Please log in again to continue.',
+    loginRequired: 'Log in to see our services and sign up for them.',
     checkEmailFor:
       'We sent a confirmation link to {email}. Open your email and tap the link to activate your account. If you don’t see it, check your spam folder.',
     resend: 'Resend link',

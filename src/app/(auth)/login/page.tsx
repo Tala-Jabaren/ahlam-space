@@ -23,6 +23,7 @@ export default function LoginPage() {
   const message = searchParams.get('message')
   const checkEmail = message === 'check-email' || message === 'Check your email to confirm your account'
   const sessionExpired = message === 'session-expired'
+  const loginRequired = message === 'login-required'
   const returnTo = getSafeReturnTo(searchParams.get('returnTo'))
   const signUpHref = returnTo ? `/sign-up?returnTo=${encodeURIComponent(returnTo)}` : '/sign-up'
   const router = useRouter()
@@ -68,6 +69,7 @@ export default function LoginPage() {
 
       {checkEmail && <p role="status" className={styles.notice}>{c.auth.checkEmail}</p>}
       {sessionExpired && <p role="alert" className={styles.error}>{c.auth.sessionExpired}</p>}
+      {loginRequired && <p role="status" className={styles.notice}>{c.auth.loginRequired}</p>}
 
       <form
         className={styles.form}

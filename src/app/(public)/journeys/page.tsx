@@ -1,4 +1,5 @@
 import type { Metadata } from 'next'
+import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
 import { getT } from '@/i18n/get-t'
 import { getLocale } from '@/i18n/get-locale'
@@ -11,17 +12,18 @@ import { getOpenTrip, getPublishedTripPhotos, getTripSlideImages, isTripAcceptin
 export async function generateMetadata(): Promise<Metadata> {
   const locale = await getLocale()
   const t = getDictionary(locale)
-  return pageMetadata({ ...t.seo.journeys, path: '/journeys', locale })
+  // Requires an account now (see the redirect below) - nothing a crawler
+  // without one could actually reach here, same reasoning as course pages.
+  return { ...pageMetadata({ ...t.seo.journeys, path: '/journeys', locale }), robots: { index: false, follow: false } }
 }
 
-// Public, no-login page: previous-trip photos in a moving strip, and the
-// currently open trip with its own apply CTA. Never queries trip_
-// applications or anything else that could expose a participant's name -
-// getPublishedTripPhotos only reads published gallery photos; getOpenTrip reads
-// non-draft trips and the trips table's own public columns. Rendering
-// itself lives in JourneysContent (pure presentational, data passed in)
-// so it can also be exercised with fabricated data without touching
-// Supabase.
+// Requires an account - guests are sent to log in first, then land back
+// here via returnTo. Never queries trip_applications or anything else
+// that could expose a participant's name - getPublishedTripPhotos only
+// reads published gallery photos; getOpenTrip reads non-draft trips and
+// the trips table's own public columns. Rendering itself lives in
+// JourneysContent (pure presentational, data passed in) so it can also be
+// exercised with fabricated data without touching Supabase.
 export default async function JourneysPage() {
   const supabase = await createClient()
   const { t, locale, dir } = await getT()
@@ -38,6 +40,8 @@ export default async function JourneysPage() {
     getOpenTrip(supabase),
     getPublishedTripPhotos(supabase),
   ])
+
+  if (!user) redirect(`/login?returnTo=${encodeURIComponent('/journeys')}&message=login-required`)
 
   if (openTripError) console.error('Failed to load the open trip for /journeys.')
   if (photosError) console.error('Failed to load trip photos for /journeys.')

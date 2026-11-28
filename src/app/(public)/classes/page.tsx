@@ -1,4 +1,5 @@
 import type { Metadata } from 'next'
+import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
 import type { Tables } from '@/types/database'
 import { getT } from '@/i18n/get-t'
@@ -15,7 +16,9 @@ import { getScheduleWindow, groupClassWeeks, isUpcomingSession } from '@/lib/cla
 export async function generateMetadata(): Promise<Metadata> {
   const locale = await getLocale()
   const t = getDictionary(locale)
-  return pageMetadata({ ...t.seo.classes, path: '/classes', locale })
+  // Requires an account now (see the redirect below) - nothing a crawler
+  // without one could actually reach here, same reasoning as course pages.
+  return { ...pageMetadata({ ...t.seo.classes, path: '/classes', locale }), robots: { index: false, follow: false } }
 }
 
 type ScheduleRow = ClassSession
@@ -27,6 +30,9 @@ export default async function ClassesPage({ searchParams }: {
   const supabase = await createClient()
   const { t, locale, dir } = await getT()
   const { data: { user } } = await supabase.auth.getUser()
+  // Browsing/booking classes now requires an account - guests are sent to
+  // log in first, then land back here via returnTo.
+  if (!user) redirect(`/login?returnTo=${encodeURIComponent('/classes')}&message=login-required`)
   const [
     { data: classes, error: classesError },
     { data: sessions, error: sessionsError },
