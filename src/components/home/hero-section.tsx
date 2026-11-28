@@ -1,5 +1,6 @@
 import Image from 'next/image'
 import Link from 'next/link'
+import { loginHref } from '@/lib/login-redirect'
 import WordRevealText from './word-reveal-text'
 
 export type HeroCopy = {
@@ -88,7 +89,7 @@ export default function HeroSection({
 
             <div className="mt-8 flex flex-wrap gap-3">
               <Link
-                href="/classes"
+                href={isAuthenticated ? '/classes' : loginHref('/classes')}
                 className={`inline-flex min-h-12 items-center justify-center rounded-full bg-blue-soft px-7 py-3 text-sm font-semibold text-blue-deep transition hover:bg-blue-mist ${focusRing}`}
               >
                 {copy.heroCtaBookNow}

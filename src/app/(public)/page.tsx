@@ -4,6 +4,7 @@ import { getT } from '@/i18n/get-t'
 import { getLocale } from '@/i18n/get-locale'
 import { getDictionary } from '@/i18n/dictionaries'
 import { pageMetadata } from '@/lib/seo'
+import { loginHref } from '@/lib/login-redirect'
 import HeroSection from '@/components/home/hero-section'
 import ArcGallerySection from '@/components/home/arc-gallery-section'
 import ServicesSection from '@/components/home/services-section'
@@ -20,7 +21,17 @@ export async function generateMetadata(): Promise<Metadata> {
   return pageMetadata({ ...t.seo.home, path: '/', locale })
 }
 
-const serviceHrefs = ['/private-sessions', '/courses', '/classes', '/shop'] as const
+// Shop stays open to guests; the other three now require an account, so a
+// guest's card goes straight to login instead of bouncing through the
+// gated page first.
+function serviceHrefs(isLoggedIn: boolean) {
+  return [
+    isLoggedIn ? '/private-sessions' : loginHref('/private-sessions'),
+    isLoggedIn ? '/courses' : loginHref('/courses'),
+    isLoggedIn ? '/classes' : loginHref('/classes'),
+    '/shop',
+  ] as const
+}
 
 function isUpcoming(session: UpcomingSession) {
   return session.status === 'scheduled' && new Date(`${session.session_date}T${session.end_time}`) > new Date()
@@ -90,7 +101,8 @@ export default async function HomePage({
   }
   const visibleReviews = reviewRows ?? []
   const upcomingSessions = (sessions ?? []).filter(isUpcoming).slice(0, 3)
-  const services = t.home.services.map((service, index) => ({ ...service, href: serviceHrefs[index] }))
+  const hrefs = serviceHrefs(Boolean(user))
+  const services = t.home.services.map((service, index) => ({ ...service, href: hrefs[index] }))
 
   // home-gallery.ts is the curated source; only published photos of
   // non-draft trips (never anything unapproved) back-fill it when it's

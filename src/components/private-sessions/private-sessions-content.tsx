@@ -1,5 +1,6 @@
 import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
+import { loginHref } from '@/lib/login-redirect'
 import { defaultPrivateSessionServices, type PrivateSessionService } from '@/lib/private-session-services'
 import PrivateSessionsClient from './private-sessions-client'
 
@@ -10,7 +11,7 @@ import PrivateSessionsClient from './private-sessions-client'
 export default async function PrivateSessionsContent({ bookingInDialog = false }: { bookingInDialog?: boolean }) {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
-  if (!user) redirect(`/login?returnTo=${encodeURIComponent('/private-sessions')}&message=login-required`)
+  if (!user) redirect(loginHref('/private-sessions'))
   const { data, error } = await supabase
     .from('private_session_services')
     .select('*')

@@ -6,6 +6,7 @@ import { useRouter } from 'next/navigation'
 import PaymentConfirmationBlock from '@/components/payment-confirmation-block'
 import { WHATSAPP_URL } from '@/content/site-contact'
 import { createClient } from '@/lib/supabase/client'
+import { loginHref } from '@/lib/login-redirect'
 import { useT } from '@/i18n/i18n-context'
 import type { BookingReceipt } from '@/components/classes/types'
 
@@ -43,8 +44,7 @@ export default function BookSessionButton({
 
   async function handleBook() {
     if (!isAuthenticated) {
-      const returnTo = `/classes?book=${encodeURIComponent(sessionId)}`
-      router.push(`/login?returnTo=${encodeURIComponent(returnTo)}`)
+      router.push(loginHref(`/classes?book=${encodeURIComponent(sessionId)}`))
       return
     }
 
@@ -54,8 +54,7 @@ export default function BookSessionButton({
     } = await supabase.auth.getUser()
 
     if (!user) {
-      const returnTo = `/classes?book=${encodeURIComponent(sessionId)}`
-      router.push(`/login?returnTo=${encodeURIComponent(returnTo)}`)
+      router.push(loginHref(`/classes?book=${encodeURIComponent(sessionId)}`))
       return
     }
 

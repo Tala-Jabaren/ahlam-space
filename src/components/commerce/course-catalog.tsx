@@ -5,6 +5,7 @@ import { getT } from '@/i18n/get-t'
 import { getLocale } from '@/i18n/get-locale'
 import { getDictionary } from '@/i18n/dictionaries'
 import { pageMetadata } from '@/lib/seo'
+import { loginHref } from '@/lib/login-redirect'
 import { meditationsAr } from '@/i18n/meditations'
 import type { CourseCardData } from '@/app/(public)/courses/course-card'
 import ClassesBanner from '@/components/classes/classes-banner'
@@ -51,7 +52,7 @@ export default async function CoursesPage({
   // here via returnTo. On the member route (routes.courses = '/member/courses')
   // the layout above already guarantees a user, so this never actually
   // fires there.
-  if (!user) redirect(`/login?returnTo=${encodeURIComponent(routes.courses)}&message=login-required`)
+  if (!user) redirect(loginHref(routes.courses))
 
   const { data: courses, error: coursesError } = await supabase
     .from('courses')

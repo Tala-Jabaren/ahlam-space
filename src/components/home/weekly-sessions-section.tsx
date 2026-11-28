@@ -1,5 +1,6 @@
 import Link from 'next/link'
 import type { Locale } from '@/i18n/config'
+import { loginHref } from '@/lib/login-redirect'
 import BookSessionButton from '@/app/(public)/schedule/book-session-button'
 
 export type UpcomingSession = {
@@ -82,7 +83,7 @@ export default function WeeklySessionsSection({
             <p className="mt-3 text-base leading-8 text-[#34472B]/75">{copy.weekSectionSubtitle}</p>
           </div>
           <Link
-            href="/classes"
+            href={isAuthenticated ? '/classes' : loginHref('/classes')}
             className="text-sm font-semibold text-[#55684A] underline-offset-4 hover:underline"
           >
             {copy.weekSectionViewAll}

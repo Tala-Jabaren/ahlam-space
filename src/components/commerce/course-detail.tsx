@@ -11,6 +11,7 @@ import PaymentConfirmationBlock from '@/components/payment-confirmation-block'
 import PurchaseCourseButton from '@/app/(public)/courses/purchase-course-button'
 import CourseCoverFallback from '@/app/(public)/courses/course-cover-fallback'
 import { publicRoutes, type ExperienceRoutes } from '@/lib/experience-routes'
+import { loginHref } from '@/lib/login-redirect'
 import type { Locale } from '@/i18n/config'
 import type { Dictionary } from '@/i18n/dictionaries'
 
@@ -87,7 +88,7 @@ export default async function CoursePage({ params, routes = publicRoutes }: { pa
   // "log in to listen" card (see the now-unreachable 'anonymous' branch of
   // AudioStateCard below), but guests are sent to log in first regardless
   // of content type.
-  if (!user) redirect(`/login?returnTo=${encodeURIComponent(returnTo)}&message=login-required`)
+  if (!user) redirect(loginHref(returnTo))
 
   let purchases: Purchase[] = []
   let accessFailed = false

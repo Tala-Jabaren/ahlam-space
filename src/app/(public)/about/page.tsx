@@ -8,6 +8,8 @@ import { getT } from '@/i18n/get-t'
 import { getLocale } from '@/i18n/get-locale'
 import { getDictionary } from '@/i18n/dictionaries'
 import { pageMetadata } from '@/lib/seo'
+import { createClient } from '@/lib/supabase/server'
+import { loginHref } from '@/lib/login-redirect'
 import styles from './about.module.css'
 
 export async function generateMetadata(): Promise<Metadata> {
@@ -21,6 +23,8 @@ const valueIcons = [Wind, Heart, Leaf]
 export default async function AboutPage() {
   const { t, dir, locale } = await getT()
   const copy = t.about.editorial
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
   return <div className={styles.page} dir={dir} lang={locale}>
     <section id="about-hero" aria-labelledby="about-title" className={`${styles.container} ${styles.hero}`}>
       <p className={styles.eyebrow}>{copy.eyebrow}</p>
@@ -117,7 +121,7 @@ export default async function AboutPage() {
       <div className={`${styles.closingPanel} ${styles.reveal}`}>
         <h2 id="closing-title">{t.about.finalHeading}</h2><p>{t.about.finalParagraph}</p>
         <div className={styles.actions}>
-          <Link href="/classes" className={styles.primaryAction}>{t.about.ctaExplore}<ArrowUpRight size={18} aria-hidden="true" /></Link>
+          <Link href={user ? '/classes' : loginHref('/classes')} className={styles.primaryAction}>{t.about.ctaExplore}<ArrowUpRight size={18} aria-hidden="true" /></Link>
           <a href={WHATSAPP_URL}>{copy.contact}</a>
         </div>
       </div>

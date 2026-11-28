@@ -6,6 +6,7 @@ import { getLocale } from '@/i18n/get-locale'
 import { getDictionary } from '@/i18n/dictionaries'
 import { pageMetadata } from '@/lib/seo'
 import { getSafeReturnTo } from '@/lib/safe-return-to'
+import { loginHref } from '@/lib/login-redirect'
 import JourneysContent from '@/components/trips/journeys-content'
 import { getOpenTrip, getPublishedTripPhotos, getTripSlideImages, isTripAcceptingApplications } from '@/lib/trips'
 
@@ -41,7 +42,7 @@ export default async function JourneysPage() {
     getPublishedTripPhotos(supabase),
   ])
 
-  if (!user) redirect(`/login?returnTo=${encodeURIComponent('/journeys')}&message=login-required`)
+  if (!user) redirect(loginHref('/journeys'))
 
   if (openTripError) console.error('Failed to load the open trip for /journeys.')
   if (photosError) console.error('Failed to load trip photos for /journeys.')

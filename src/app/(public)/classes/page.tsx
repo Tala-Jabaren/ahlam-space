@@ -6,6 +6,7 @@ import { getT } from '@/i18n/get-t'
 import { getLocale } from '@/i18n/get-locale'
 import { getDictionary } from '@/i18n/dictionaries'
 import { pageMetadata } from '@/lib/seo'
+import { loginHref } from '@/lib/login-redirect'
 import { PACKAGES_ENABLED } from '@/lib/feature-flags'
 import ClassesBanner from '@/components/classes/classes-banner'
 import ClassesGrid from '@/components/classes/classes-grid'
@@ -32,7 +33,7 @@ export default async function ClassesPage({ searchParams }: {
   const { data: { user } } = await supabase.auth.getUser()
   // Browsing/booking classes now requires an account - guests are sent to
   // log in first, then land back here via returnTo.
-  if (!user) redirect(`/login?returnTo=${encodeURIComponent('/classes')}&message=login-required`)
+  if (!user) redirect(loginHref('/classes'))
   const [
     { data: classes, error: classesError },
     { data: sessions, error: sessionsError },
