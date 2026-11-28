@@ -109,11 +109,11 @@ export default async function MemberSchedulePage({ searchParams }: {
             </div>
           )}
           {PACKAGES_ENABLED && (
-            <nav className="mx-auto mb-5 flex w-fit rounded-[14px] bg-[#ECE7DE] p-1" aria-label={t.classes.viewToggleLabel}>
+            <nav className="mx-auto mb-5 grid grid-cols-2 gap-2 rounded-lg bg-[#C7D6E8]/25 p-1.5 sm:max-w-xl" aria-label={t.classes.viewToggleLabel}>
               <Link
                 href="/member-schedule"
                 aria-current={!showPackagesView ? 'page' : undefined}
-                className={`inline-flex min-h-11 items-center justify-center rounded-[10px] px-5 text-sm font-semibold transition motion-reduce:transition-none ${!showPackagesView ? 'bg-white text-[#25402F]' : 'text-[#5C574F] hover:text-[#25402F]'}`}
+                className={`flex min-h-12 items-center justify-center rounded-lg px-4 text-sm font-semibold transition motion-reduce:transition-none ${!showPackagesView ? 'bg-[#617A55] text-[#F7F6F0] shadow-sm' : 'hover:bg-[#D6E2B6]/60'}`}
               >
                 {t.classes.singleSessionView}
               </Link>
