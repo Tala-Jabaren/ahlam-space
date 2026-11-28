@@ -10,9 +10,10 @@ import { loginHref } from '@/lib/login-redirect'
 import { PACKAGES_ENABLED } from '@/lib/feature-flags'
 import ClassesBanner from '@/components/classes/classes-banner'
 import ClassesGrid from '@/components/classes/classes-grid'
+import ClassWeekRefresh from '@/components/classes/class-week-refresh'
 import type { ClassSession } from '@/components/classes/types'
-import { classCardData, loadClassBookings } from '@/lib/class-cards'
-import { getScheduleWindow, groupClassWeeks, isUpcomingSession } from '@/lib/class-schedule-weeks'
+import { classCardData, loadClassBookings, sessionStart } from '@/lib/class-cards'
+import { CLASS_SCHEDULE_ZONE, getScheduleWindow, groupClassWeeks, isUpcomingSession, resolveScheduleWeek } from '@/lib/class-schedule-weeks'
 
 export async function generateMetadata(): Promise<Metadata> {
   const locale = await getLocale()
@@ -34,6 +35,8 @@ export default async function ClassesPage({ searchParams }: {
   // Browsing/booking classes now requires an account - guests are sent to
   // log in first, then land back here via returnTo.
   if (!user) redirect(loginHref('/classes'))
+  const now = new Date()
+  const schedule = getScheduleWindow(now)
   const [
     { data: classes, error: classesError },
     { data: sessions, error: sessionsError },
@@ -43,15 +46,17 @@ export default async function ClassesPage({ searchParams }: {
     supabase.from('classes').select('*').eq('is_active', true).returns<Tables<'classes'>[]>(),
     supabase.from('class_sessions')
       .select('id, session_date, start_time, end_time, capacity, booked_count, status, location, classes(id, name, category, price)')
+      .gte('session_date', schedule.window.start)
       .order('session_date', { ascending: true }).returns<ScheduleRow[]>(),
   ])
   if (classesError) console.error('Failed to load classes:', classesError.message)
   if (sessionsError) console.error('Failed to load class sessions:', sessionsError.message)
 
   const classesById = new Map((classes ?? []).map(classItem => [classItem.id, classItem]))
-  const now = new Date()
-  const { localNow, nextWeekStart } = getScheduleWindow(now)
-  const upcoming = (sessions ?? []).filter(session => isUpcomingSession(session, localNow))
+  const displayWeek = resolveScheduleWeek(sessions ?? [], schedule)
+  const [refreshDate, refreshTime] = displayWeek.refreshAt.split('T')
+  const refreshAt = sessionStart(refreshDate, refreshTime, CLASS_SCHEDULE_ZONE)?.toISOString()
+  const upcoming = (sessions ?? []).filter(session => isUpcomingSession(session, schedule.localNow))
   // Packages (purchase, balance, package-aware booking) live only in the
   // member area now - see /member-schedule's "باقات" tab - so this public
   // page never passes packageCredit and keeps includePackageInfo only for
@@ -75,13 +80,14 @@ export default async function ClassesPage({ searchParams }: {
       return { ...card, sessionDate: session.session_date }
     })
     .sort((a, b) => (a.startsAt ?? '').localeCompare(b.startsAt ?? ''))
-  const weeks = groupClassWeeks(cards, nextWeekStart, card => card.sessionDate)
+  const weeks = groupClassWeeks(cards, displayWeek.groupingBoundary, card => card.sessionDate)
 
   return <div dir={dir}>
     <ClassesBanner title={t.classes.heading} tagline={t.classes.tagline} />
     <div className="px-5 py-16 sm:px-8 lg:px-10">
       <section className="mx-auto max-w-7xl">
         <div id="sessions-list">
+          {refreshAt && !sessionsError && <ClassWeekRefresh at={refreshAt} />}
           {!classes || classes.length === 0 ? (
             <div className="rounded-[1.75rem] bg-[#C7D6E8]/55 p-8 text-[#4f5d49]">{t.classes.noClasses}</div>
           ) : (

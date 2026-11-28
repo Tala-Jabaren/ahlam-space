@@ -4,10 +4,10 @@ import type { Tables } from '@/types/database'
 import { getT } from '@/i18n/get-t'
 import { I18nProvider } from '@/i18n/i18n-context'
 import ClassWeekSections from '@/components/classes/class-week-sections'
-import ClassesBanner from '@/components/classes/classes-banner'
+import ClassWeekRefresh from '@/components/classes/class-week-refresh'
 import type { ClassSession } from '@/components/classes/types'
-import { classCardData, loadClassBookings } from '@/lib/class-cards'
-import { getScheduleWindow, groupClassWeeks, sessionsInWindow } from '@/lib/class-schedule-weeks'
+import { classCardData, loadClassBookings, sessionStart } from '@/lib/class-cards'
+import { CLASS_SCHEDULE_ZONE, getScheduleWindow, groupClassWeeks, resolveScheduleWeek, sessionsInWindow } from '@/lib/class-schedule-weeks'
 import { PACKAGES_ENABLED } from '@/lib/feature-flags'
 import { loadPackagePurchases, type PackagePurchaseSummary } from '@/lib/package-purchases'
 import PackagesGrid from './packages-grid'
@@ -26,7 +26,7 @@ export default async function MemberSchedulePage({ searchParams }: {
   // existing single-session one, byte-for-byte what this page already did.
   const showPackagesView = PACKAGES_ENABLED && view === 'packages'
   const now = new Date()
-  const { window, localNow, nextWeekStart } = getScheduleWindow(now)
+  const schedule = getScheduleWindow(now)
   const supabase = await createClient()
   const { t, locale, dir } = await getT()
   const { data: { user } } = await supabase.auth.getUser()
@@ -41,7 +41,7 @@ export default async function MemberSchedulePage({ searchParams }: {
     supabase.from('classes').select('*').eq('is_active', true).returns<Tables<'classes'>[]>(),
     supabase.from('class_sessions')
       .select('id, session_date, start_time, end_time, capacity, booked_count, status, location, classes(id, name, category, price, image_url)')
-      .gte('session_date', window.start).lt('session_date', window.end)
+      .gte('session_date', schedule.window.start).lt('session_date', schedule.fetchEnd)
       .order('session_date', { ascending: true }).order('start_time', { ascending: true })
       .returns<ScheduleRow[]>(),
   ])
@@ -49,7 +49,10 @@ export default async function MemberSchedulePage({ searchParams }: {
   if (sessionsError) console.error('Failed to load schedule:', sessionsError.message)
 
   const classesById = new Map((classes ?? []).map(classItem => [classItem.id, classItem]))
-  const upcomingSessions = sessionsInWindow(sessions ?? [], window, localNow)
+  const displayWeek = resolveScheduleWeek(sessions ?? [], schedule)
+  const [refreshDate, refreshTime] = displayWeek.refreshAt.split('T')
+  const refreshAt = sessionStart(refreshDate, refreshTime, CLASS_SCHEDULE_ZONE)?.toISOString()
+  const upcomingSessions = sessionsInWindow(sessions ?? [], displayWeek.window, schedule.localNow)
   const current = await loadClassBookings(supabase, user?.id ?? null, upcomingSessions.map(session => session.id), now, { includePackageInfo: PACKAGES_ENABLED })
 
   // Computed before `weeks` below (not just the balance bar/packages tab
@@ -61,7 +64,7 @@ export default async function MemberSchedulePage({ searchParams }: {
     ? { purchaseId: packageSummary.active.id, remaining: packageSummary.active.sessions_remaining, total: packageSummary.active.sessions_total }
     : null
 
-  const weeks = groupClassWeeks(upcomingSessions, nextWeekStart, session => session.session_date).map(({ kind, sessions }) => ({
+  const weeks = groupClassWeeks(upcomingSessions, displayWeek.groupingBoundary, session => session.session_date).map(({ kind, sessions }) => ({
     kind,
     sessions: sessions.map(session => {
       const classInfo = session.classes?.id ? classesById.get(session.classes.id) : undefined
@@ -98,11 +101,15 @@ export default async function MemberSchedulePage({ searchParams }: {
 
   return <I18nProvider locale={locale} dictionary={t}>
     <div dir={dir}>
-      <ClassesBanner />
-      <main className="px-4 py-8 sm:px-6 lg:px-8">
+      <main className="px-4 pb-8 pt-3 sm:px-6 lg:px-8">
         <div className="mx-auto max-w-7xl">
+          {packageSummary?.active && (
+            <div className="mb-4 flex justify-center">
+              <ActivePackageCard purchase={packageSummary.active} locale={locale} t={t} />
+            </div>
+          )}
           {PACKAGES_ENABLED && (
-            <nav className="mb-8 inline-flex rounded-[14px] bg-[#ECE7DE] p-1" aria-label={t.classes.viewToggleLabel}>
+            <nav className="mx-auto mb-5 flex w-fit rounded-[14px] bg-[#ECE7DE] p-1" aria-label={t.classes.viewToggleLabel}>
               <Link
                 href="/member-schedule"
                 aria-current={!showPackagesView ? 'page' : undefined}
@@ -118,10 +125,6 @@ export default async function MemberSchedulePage({ searchParams }: {
                 {t.classes.packagesView}
               </Link>
             </nav>
-          )}
-
-          {!showPackagesView && packageSummary?.active && (
-            <div className="mb-6"><ActivePackageCard purchase={packageSummary.active} locale={locale} t={t} /></div>
           )}
 
           {showPackagesView ? (
@@ -147,6 +150,7 @@ export default async function MemberSchedulePage({ searchParams }: {
             </>
           ) : (
             <div id="sessions-list" className="scroll-mt-20">
+              {refreshAt && !sessionsError && <ClassWeekRefresh at={refreshAt} />}
               {sessionsError ? (
                 <div className="rounded-lg bg-[#C7D6E8]/55 p-6">{t.memberSchedule.loadError}</div>
               ) : (

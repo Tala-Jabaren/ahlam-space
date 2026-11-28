@@ -1,6 +1,7 @@
 type SessionDate = { session_date: string; end_time: string; status: string }
 type ScheduleWindow = { start: string; end: string }
 export type ClassWeek<T> = { kind: 'thisWeek' | 'nextWeek' | 'later'; sessions: T[] }
+export const CLASS_SCHEDULE_ZONE = 'Asia/Jerusalem'
 
 function addDays(date: string, days: number) {
   const value = new Date(`${date}T00:00:00Z`)
@@ -10,19 +11,41 @@ function addDays(date: string, days: number) {
 
 export function getScheduleWindow(now = new Date()) {
   const parts = new Intl.DateTimeFormat('en-CA', {
-    timeZone: 'Asia/Jerusalem', year: 'numeric', month: '2-digit', day: '2-digit',
+    timeZone: CLASS_SCHEDULE_ZONE, year: 'numeric', month: '2-digit', day: '2-digit',
   }).formatToParts(now)
   const part = (type: string) => parts.find(value => value.type === type)?.value
   const today = `${part('year')}-${part('month')}-${part('day')}`
   const time = new Intl.DateTimeFormat('en-GB', {
-    timeZone: 'Asia/Jerusalem', hour: '2-digit', minute: '2-digit', second: '2-digit', hourCycle: 'h23',
+    timeZone: CLASS_SCHEDULE_ZONE, hour: '2-digit', minute: '2-digit', second: '2-digit', hourCycle: 'h23',
   }).format(now)
   // UTC is used only for date arithmetic; session times remain Jerusalem local.
   const weekday = new Date(`${today}T00:00:00Z`).getUTCDay()
+  const nextWeekStart = addDays(today, 7 - weekday)
   return {
     window: { start: today, end: addDays(today, 14) },
     localNow: `${today}T${time}`,
-    nextWeekStart: addDays(today, 7 - weekday),
+    nextWeekStart,
+    friday: addDays(nextWeekStart, -2),
+    fetchEnd: addDays(nextWeekStart, 14),
+  }
+}
+
+export function resolveScheduleWeek(sessions: SessionDate[], schedule: ReturnType<typeof getScheduleWindow>) {
+  const { friday, localNow, nextWeekStart, window, fetchEnd } = schedule
+  let cutoff = `${friday}T00:00:00`
+  for (const session of sessions) {
+    if (session.status !== 'scheduled' || session.session_date < friday || session.session_date >= nextWeekStart) continue
+    const end = `${session.session_date}T${session.end_time.slice(0, 8)}`
+    if (end > cutoff) cutoff = end
+  }
+
+  // Friday ends the display week once its final class has finished. A
+  // Saturday class, if one is scheduled, still belongs to the current week.
+  const rolledOver = localNow >= cutoff
+  return {
+    groupingBoundary: rolledOver ? addDays(nextWeekStart, 7) : nextWeekStart,
+    window: rolledOver ? { start: nextWeekStart, end: fetchEnd } : window,
+    refreshAt: rolledOver ? `${nextWeekStart}T00:00:00` : cutoff,
   }
 }
 

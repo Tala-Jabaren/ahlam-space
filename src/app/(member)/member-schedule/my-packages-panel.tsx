@@ -5,7 +5,6 @@ import { ChevronDown } from 'lucide-react'
 import type { PackagePurchaseRow, PackagePurchaseSummary } from '@/lib/package-purchases'
 import type { Dictionary } from '@/i18n/dictionaries'
 import PackagePaymentSheet from './package-payment-sheet'
-import ActivePackageCard from './active-package-card'
 
 function formatAmount(value: number, locale: string) {
   return `${new Intl.NumberFormat(locale).format(value)} ₪`
@@ -56,17 +55,12 @@ function ClosedPurchaseRow({ purchase, locale, t }: { purchase: PackagePurchaseR
   )
 }
 
-// Rendered at the top of the «باقات» tab for a logged-in member - her
-// active package, any purchases still awaiting payment, and a collapsed
-// history of closed (expired/cancelled) ones. Everything below the
-// package catalog grid, which renders unconditionally after this.
 export default function MyPackagesPanel({ summary, locale, t }: { summary: PackagePurchaseSummary; locale: string; t: Dictionary }) {
   const copy = t.classes.packages
-  if (!summary.all.length) return null
+  if (!summary.pending.length && !summary.closed.length) return null
 
   return (
     <div className="mb-8 grid gap-3.5">
-      {summary.active && <ActivePackageCard purchase={summary.active} locale={locale} t={t} />}
       {summary.pending.map(purchase => (
         <PendingPurchaseRow key={purchase.id} purchase={purchase} locale={locale} t={t} />
       ))}

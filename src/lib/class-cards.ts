@@ -14,12 +14,12 @@ const categoryImages: Record<string, string> = {
 }
 
 // Convert Hebron wall-clock columns on the server, accounting for DST.
-export function sessionStart(date: string, time: string): Date | null {
+export function sessionStart(date: string, time: string, timeZone = ZONE): Date | null {
   if (!/^\d{4}-\d{2}-\d{2}$/.test(date) || !/^\d{2}:\d{2}(:\d{2}(\.\d+)?)?$/.test(time)) return null
   const wall = Date.parse(`${date}T${time}Z`)
   if (!Number.isFinite(wall)) return null
   const formatter = new Intl.DateTimeFormat('en-GB', {
-    timeZone: ZONE, year: 'numeric', month: '2-digit', day: '2-digit',
+    timeZone, year: 'numeric', month: '2-digit', day: '2-digit',
     hour: '2-digit', minute: '2-digit', second: '2-digit', hourCycle: 'h23',
   })
   let instant = wall
