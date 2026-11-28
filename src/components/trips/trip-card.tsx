@@ -53,7 +53,7 @@ export default function TripCard({
           images={slides}
           title={trip.title}
           locale={locale}
-          className="h-24 group-has-[details[open]]/trip-card:h-56 sm:col-start-2 sm:row-start-1 sm:h-40 sm:group-has-[details[open]]/trip-card:h-auto sm:group-has-[details[open]]/trip-card:min-h-40"
+          className="h-36 group-has-[details[open]]/trip-card:h-56 sm:col-start-2 sm:row-start-1 sm:h-52 sm:group-has-[details[open]]/trip-card:h-auto sm:group-has-[details[open]]/trip-card:min-h-52"
         />
       )}
       <div className="min-w-0 px-4 py-3 sm:col-start-1 sm:row-start-1 sm:px-5 sm:py-4">
