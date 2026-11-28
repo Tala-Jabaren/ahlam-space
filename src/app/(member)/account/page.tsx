@@ -1,5 +1,4 @@
-import { redirect } from 'next/navigation'
-import { createClient } from '@/lib/supabase/server'
+import { getMemberSession } from '@/lib/member-session'
 import AccountProfile from './account-profile'
 
 function splitName(fullName: string | null | undefined) {
@@ -12,18 +11,7 @@ function splitName(fullName: string | null | undefined) {
 }
 
 export default async function AccountPage() {
-  const supabase = await createClient()
-  const {
-    data: { user },
-    error: userError,
-  } = await supabase.auth.getUser()
-
-  if (!user) {
-    if (userError) {
-      console.error('supabase.auth.getUser() failed:', userError.message)
-    }
-    redirect('/login?message=session-expired')
-  }
+  const { supabase, user } = await getMemberSession()
 
   const { data: profile, error: profileError } = await supabase
     .from('profiles')

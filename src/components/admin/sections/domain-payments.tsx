@@ -6,6 +6,7 @@ import Link from 'next/link'
 import AdminRpcButton from '@/components/admin/admin-rpc-button'
 import AdminCancelBookingButton from '@/components/admin/admin-cancel-booking-button'
 import { createAdminClient } from '@/lib/supabase/admin'
+import { getEmailsByIds } from '@/lib/admin-user-emails'
 
 type PaymentKind = 'booking' | 'course' | 'order'
 type PaymentFilter = 'unpaid' | 'paid' | 'all'
@@ -121,7 +122,6 @@ export default async function DomainPayments({ kind, filter, selectedId, include
   includePackageInfo?: boolean
 }) {
   await getAdminSession()
-  const { available } = await getAdminNotificationCounts()
   const activeTab = kind
   const activeFilter: PaymentFilter = filter === 'paid' || filter === 'all' ? filter : 'unpaid'
   const sectionHref = kind === 'booking' ? '/admin/classes' : kind === 'course' ? '/admin/courses' : '/admin/products'
@@ -130,8 +130,11 @@ export default async function DomainPayments({ kind, filter, selectedId, include
     + (includePackageInfo ? ', status, package_purchase_id' : '')
 
   const admin = createAdminClient()
-  const [bookingsResult, coursesResult, ordersResult, referencesResult] =
+  // getAdminNotificationCounts() is independent of the four queries below -
+  // run it alongside them instead of waiting on it first.
+  const [{ available }, bookingsResult, coursesResult, ordersResult, referencesResult] =
     await Promise.all([
+      getAdminNotificationCounts(),
       admin
         .from('bookings')
         .select(bookingColumns)
@@ -168,23 +171,19 @@ export default async function DomainPayments({ kind, filter, selectedId, include
     )
   )
 
-  const profilesResult = allUserIds.length
-    ? await admin
-        .from('profiles')
-        .select('id, full_name, phone')
-        .in('id', allUserIds)
-        .returns<ProfileRow[]>()
-    : { data: [] as ProfileRow[], error: null }
+  const [profilesResult, emails] = await Promise.all([
+    allUserIds.length
+      ? admin
+          .from('profiles')
+          .select('id, full_name, phone')
+          .in('id', allUserIds)
+          .returns<ProfileRow[]>()
+      : Promise.resolve({ data: [] as ProfileRow[], error: null }),
+    getEmailsByIds(admin, allUserIds),
+  ])
 
   const profiles = new Map(
     (profilesResult.data ?? []).map((profile) => [profile.id, profile])
-  )
-  const emails = new Map<string, string>()
-  await Promise.all(
-    allUserIds.map(async (userId) => {
-      const { data } = await admin.auth.admin.getUserById(userId)
-      if (data.user?.email) emails.set(userId, data.user.email)
-    })
   )
 
   function registeredCustomer(userId: string): Customer {

@@ -1,6 +1,6 @@
 import Link from 'next/link'
-import { redirect, notFound } from 'next/navigation'
-import { createClient } from '@/lib/supabase/server'
+import { notFound } from 'next/navigation'
+import { getMemberSession } from '@/lib/member-session'
 import ApplicationForm from '@/components/trips/application-form'
 import { formatTripDate } from '@/components/trips/trip-card'
 import TripImageCarousel from '@/components/trips/trip-image-carousel'
@@ -12,16 +12,7 @@ export default async function TripApplyPage({
   params: Promise<{ tripId: string }>
 }) {
   const { tripId } = await params
-  const supabase = await createClient()
-  const {
-    data: { user },
-    error: userError,
-  } = await supabase.auth.getUser()
-
-  if (!user) {
-    if (userError) console.error('supabase.auth.getUser() failed:', userError.message)
-    redirect(`/login?returnTo=${encodeURIComponent(`/trips/${tripId}/apply`)}`)
-  }
+  const { supabase, user } = await getMemberSession()
 
   const { data: trip } = await supabase
     .from('trips')

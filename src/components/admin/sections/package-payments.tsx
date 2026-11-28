@@ -46,15 +46,18 @@ function formatDate(value: string | null) {
 export default async function PackagePayments({ filter, selectedId }: { filter?: string; selectedId?: string }) {
   const activeFilter: PackageFilter = filter === 'paid' || filter === 'all' ? filter : 'unpaid'
   await getAdminSession()
-  const { counts, available } = await getAdminNotificationCounts()
-  const unseenCount = counts.package_purchase
   const admin = createAdminClient()
-
-  const { data: purchases, error } = await admin
-    .from('package_purchases')
-    .select('id, user_id, status, reference, price_snapshot, sessions_total, sessions_remaining, created_at, class_packages(name)')
-    .order('created_at', { ascending: false })
-    .returns<PurchaseRow[]>()
+  // getAdminNotificationCounts() is independent of the purchases query -
+  // run them together instead of waiting on the counts first.
+  const [{ counts, available }, { data: purchases, error }] = await Promise.all([
+    getAdminNotificationCounts(),
+    admin
+      .from('package_purchases')
+      .select('id, user_id, status, reference, price_snapshot, sessions_total, sessions_remaining, created_at, class_packages(name)')
+      .order('created_at', { ascending: false })
+      .returns<PurchaseRow[]>(),
+  ])
+  const unseenCount = counts.package_purchase
 
   if (error) {
     return (

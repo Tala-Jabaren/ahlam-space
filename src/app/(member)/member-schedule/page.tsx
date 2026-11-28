@@ -1,5 +1,5 @@
 import Link from 'next/link'
-import { createClient } from '@/lib/supabase/server'
+import { getMemberSession } from '@/lib/member-session'
 import type { Tables } from '@/types/database'
 import { getT } from '@/i18n/get-t'
 import { I18nProvider } from '@/i18n/i18n-context'
@@ -27,9 +27,8 @@ export default async function MemberSchedulePage({ searchParams }: {
   const showPackagesView = PACKAGES_ENABLED && view === 'packages'
   const now = new Date()
   const schedule = getScheduleWindow(now)
-  const supabase = await createClient()
   const { t, locale, dir } = await getT()
-  const { data: { user } } = await supabase.auth.getUser()
+  const { supabase, user } = await getMemberSession()
   const [
     { data: classes, error: classesError },
     { data: sessions, error: sessionsError },

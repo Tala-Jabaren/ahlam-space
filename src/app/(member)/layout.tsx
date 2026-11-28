@@ -1,9 +1,8 @@
 import Link from 'next/link'
 import FloatingWhatsApp from '@/components/contact/floating-whatsapp'
 import { WHATSAPP_URL } from '@/content/site-contact'
-import { redirect } from 'next/navigation'
 import { ArrowUpRight, BookOpen, CalendarDays, Compass, Flower2, House, ShieldCheck, ShoppingBag, Ticket, UserRound } from 'lucide-react'
-import { createClient } from '@/lib/supabase/server'
+import { getMemberSession } from '@/lib/member-session'
 import LogoutButton from './dashboard/logout-button'
 import MemberNavLink from './member-nav-link'
 import { getT } from '@/i18n/get-t'
@@ -38,22 +37,7 @@ export default async function MemberLayout({
 }: {
   children: React.ReactNode
 }) {
-  const supabase = await createClient()
-  const {
-    data: { user },
-    error: userError,
-  } = await supabase.auth.getUser()
-
-  if (!user) {
-    // Bare redirect('/login') left every member page bouncing back to a
-    // blank login form with no explanation whenever the session couldn't
-    // be verified (expired/revoked refresh token, clock skew, ...) - the
-    // message tells the login page to show a reason instead of nothing.
-    if (userError) {
-      console.error('supabase.auth.getUser() failed in member layout:', userError.message)
-    }
-    redirect('/login?message=session-expired')
-  }
+  const { supabase, user } = await getMemberSession()
 
   const { data: profile } = await supabase
     .from('profiles')

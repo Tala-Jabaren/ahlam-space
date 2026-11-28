@@ -1,6 +1,5 @@
 import Link from 'next/link'
-import { redirect } from 'next/navigation'
-import { createClient } from '@/lib/supabase/server'
+import { getMemberSession } from '@/lib/member-session'
 import TripPhotoStrip from '@/components/trips/trip-photo-strip'
 import TripCard, { formatMeetingTime, formatTripDate } from '@/components/trips/trip-card'
 import WithdrawApplicationButton from '@/components/trips/withdraw-application-button'
@@ -37,16 +36,7 @@ type MyApplicationRow = {
 }
 
 export default async function MyTripsPage() {
-  const supabase = await createClient()
-  const {
-    data: { user },
-    error: userError,
-  } = await supabase.auth.getUser()
-
-  if (!user) {
-    if (userError) console.error('supabase.auth.getUser() failed:', userError.message)
-    redirect('/login?returnTo=/trips')
-  }
+  const { supabase, user } = await getMemberSession()
 
   const [
     { trip: openTrip, error: openTripError },

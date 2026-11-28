@@ -1,7 +1,6 @@
 import Image from 'next/image'
 import Link from 'next/link'
-import { redirect } from 'next/navigation'
-import { createClient } from '@/lib/supabase/server'
+import { getMemberSession } from '@/lib/member-session'
 import PaymentConfirmationBlock from '@/components/payment-confirmation-block'
 import BookingCancelControl from '@/components/classes/booking-cancel-control'
 import { canCancelSession } from '@/lib/class-cards'
@@ -92,18 +91,7 @@ export default async function MyBookingsPage({
 }) {
   const { view } = await searchParams
   const activeView: BookingsView = view === 'past' ? 'past' : 'upcoming'
-  const supabase = await createClient()
-  const {
-    data: { user },
-    error: userError,
-  } = await supabase.auth.getUser()
-
-  if (!user) {
-    if (userError) {
-      console.error('supabase.auth.getUser() failed:', userError.message)
-    }
-    redirect('/login?message=session-expired')
-  }
+  const { supabase, user } = await getMemberSession()
 
   const bookingColumns = 'id, status, payment_status, reference, class_sessions(id, session_date, start_time, end_time, location, classes(name, description, category, price))'
     + (PACKAGES_ENABLED ? ', package_purchase_id' : '')

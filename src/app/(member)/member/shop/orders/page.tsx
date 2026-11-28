@@ -1,8 +1,7 @@
 import Image from 'next/image'
 import Link from 'next/link'
-import { redirect } from 'next/navigation'
 import { ChevronDown, ShoppingBag } from 'lucide-react'
-import { createClient } from '@/lib/supabase/server'
+import { getMemberSession } from '@/lib/member-session'
 import PaymentConfirmationBlock from '@/components/payment-confirmation-block'
 import { memberRoutes } from '@/lib/experience-routes'
 
@@ -47,12 +46,7 @@ function dateLabel(value: string | null) {
 }
 
 export default async function MyOrdersPage() {
-  const supabase = await createClient()
-  const { data: { user }, error: userError } = await supabase.auth.getUser()
-  if (!user) {
-    if (userError) console.error('supabase.auth.getUser() failed:', userError.message)
-    redirect(`/login?returnTo=${encodeURIComponent(memberRoutes.orders)}`)
-  }
+  const { supabase, user } = await getMemberSession()
   const { data: orders, error } = await supabase.from('orders')
     .select('id, created_at, status, fulfillment_method, delivery_address, total, reference, order_items(id, quantity, unit_price, product_variants(size, color, products(name, image_url)))')
     .eq('user_id', user.id).order('created_at', { ascending: false }).returns<OrderRow[]>()
