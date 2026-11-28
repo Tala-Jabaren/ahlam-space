@@ -39,7 +39,7 @@ export default async function MemberSchedulePage({ searchParams }: {
     // might not exist yet" reasoning as /classes used before this moved.
     supabase.from('classes').select('*').eq('is_active', true).returns<Tables<'classes'>[]>(),
     supabase.from('class_sessions')
-      .select('id, session_date, start_time, end_time, capacity, booked_count, status, location, classes(id, name, category, price, image_url)')
+      .select('id, session_date, start_time, end_time, capacity, booked_count, status, location, classes(id, name, description, category, price, image_url)')
       .gte('session_date', schedule.window.start).lt('session_date', schedule.fetchEnd)
       .order('session_date', { ascending: true }).order('start_time', { ascending: true })
       .returns<ScheduleRow[]>(),

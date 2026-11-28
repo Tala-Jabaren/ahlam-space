@@ -4,7 +4,7 @@ import Link from 'next/link'
 import Image from 'next/image'
 import { useId, useRef, useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { CalendarDays, Clock, Leaf, Wallet } from 'lucide-react'
+import { CalendarDays, ChevronDown, Clock, Leaf, Wallet } from 'lucide-react'
 import BookSessionButton from '@/app/(public)/schedule/book-session-button'
 import PaymentConfirmationBlock from '@/components/payment-confirmation-block'
 import { useT } from '@/i18n/i18n-context'
@@ -88,6 +88,18 @@ export default function ClassCard({ session, headingLevel = 2 }: { session: Clas
             </div>
           )}
         </dl>
+        {session.description && (
+          <details className="group mt-1">
+            <summary className="inline-flex min-h-11 cursor-pointer list-none items-center gap-2 rounded-lg text-sm font-semibold text-[#465d3d] hover:underline focus-visible:outline-2 [&::-webkit-details-marker]:hidden">
+              <span className="group-open:hidden">{copy.learnMore}</span>
+              <span className="hidden group-open:inline">{copy.hideDescription}</span>
+              <ChevronDown size={16} aria-hidden="true" className="group-open:rotate-180" />
+            </summary>
+            <p className="rounded-lg bg-[#F7F6F0] p-3 text-sm leading-7 whitespace-pre-wrap break-words text-[#4f5d49]">
+              {session.description}
+            </p>
+          </details>
+        )}
         <div className={styles.instructor}>
           <span className={styles.avatar}>
             <Image src="/images/mainaboutpic.png" alt="" width={85} height={85} />

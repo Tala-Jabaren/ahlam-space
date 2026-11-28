@@ -45,7 +45,7 @@ export default async function ClassesPage({ searchParams }: {
     // name/category/price directly.
     supabase.from('classes').select('*').eq('is_active', true).returns<Tables<'classes'>[]>(),
     supabase.from('class_sessions')
-      .select('id, session_date, start_time, end_time, capacity, booked_count, status, location, classes(id, name, category, price)')
+      .select('id, session_date, start_time, end_time, capacity, booked_count, status, location, classes(id, name, description, category, price)')
       .gte('session_date', schedule.window.start)
       .order('session_date', { ascending: true }).returns<ScheduleRow[]>(),
   ])

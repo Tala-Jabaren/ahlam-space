@@ -72,7 +72,7 @@ export async function loadClassBookings(
 
 export function classCardData(session: ClassSession, locale: Locale, options: {
   now: Date; booking?: ClassBooking; known: boolean; authenticated: boolean; requested?: boolean
-  classInfo?: { name: string; category: string | null; price: number | null; image_url?: string | null; package_eligible?: boolean | null }
+  classInfo?: NonNullable<ClassSession['classes']> & { package_eligible?: boolean | null }
   packageCredit?: { purchaseId: string; remaining: number; total: number } | null
 }): ClassCardData {
   const info = options.classInfo ?? session.classes
@@ -84,6 +84,7 @@ export function classCardData(session: ClassSession, locale: Locale, options: {
   const day = new Intl.DateTimeFormat(intlLocale, { day: 'numeric', month: 'long', timeZone: ZONE }).format(date)
   return {
     id: session.id, name: info?.name ?? null, category: info?.category ?? null,
+    description: info?.description?.trim() || null,
     image: info?.image_url || categoryImages[info?.category ?? ''] || null,
     price, priceLabel: price === null ? null : new Intl.NumberFormat(intlLocale, { style: 'currency', currency: 'ILS', minimumFractionDigits: 0, maximumFractionDigits: 2 }).format(price),
     dateLabel: `${weekday} · ${day}`, timeLabel: `${session.start_time.slice(0, 5)} – ${session.end_time.slice(0, 5)}`,

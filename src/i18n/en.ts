@@ -313,6 +313,8 @@ export const en: typeof ar = {
     },
   },
   classCards: {
+    learnMore: 'Learn more',
+    hideDescription: 'Hide description',
     register: 'Register for class', registerWithPrice: 'Book · {price}', full: 'Full', started: 'Class has started',
     pending: 'Awaiting payment', confirmed: 'Confirmed', cancel: 'Cancel booking',
     yoga: 'Yoga', fitness: 'Fitness', dance: 'Dance',

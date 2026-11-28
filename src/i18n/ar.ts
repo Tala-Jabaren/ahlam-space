@@ -312,6 +312,8 @@ export const ar = {
     },
   },
   classCards: {
+    learnMore: 'معرفة المزيد',
+    hideDescription: 'إخفاء الوصف',
     register: 'سجّلي بالحصة', registerWithPrice: 'احجزي · {price}', full: 'مكتملة', started: 'بدأت الحصة',
     pending: 'بانتظار الدفع', confirmed: 'مؤكدة', cancel: 'إلغاء الحجز',
     yoga: 'يوغا', fitness: 'لياقة', dance: 'رقص',

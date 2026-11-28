@@ -7,7 +7,7 @@ export type ClassSession = {
   booked_count: number
   status: string
   location: string | null
-  classes: { id?: string; name: string; category: string | null; price: number | null; image_url?: string | null } | null
+  classes: { id?: string; name: string; category: string | null; price: number | null; image_url?: string | null; description?: string | null } | null
 }
 
 export type ClassBooking = {
@@ -24,6 +24,7 @@ export type ClassBooking = {
 export type ClassCardData = {
   id: string
   name: string | null
+  description: string | null
   category: string | null
   image: string | null
   price: number | null
