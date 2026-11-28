@@ -8,9 +8,15 @@ export default async function AdminLayout({
 }: {
   children: React.ReactNode
 }) {
-  const isPrimaryAdmin = await hasPrimaryAdminAccess()
+  // This layout re-runs on every admin navigation, so these two
+  // independent round trips (an RPC call, six count queries) ran one
+  // after another on every single page load until now - locale is a
+  // plain cookie read, no network call, so it doesn't need to join them.
+  const [isPrimaryAdmin, { counts }] = await Promise.all([
+    hasPrimaryAdminAccess(),
+    getAdminNotificationCounts(),
+  ])
   const locale = await getLocale()
-  const { counts } = await getAdminNotificationCounts()
 
   return <AdminSidebar locale={locale} notificationCounts={counts} isPrimaryAdmin={isPrimaryAdmin}>{children}</AdminSidebar>
 }

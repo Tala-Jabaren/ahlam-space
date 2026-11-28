@@ -70,13 +70,17 @@ export default async function AdminRequestsPage({ searchParams }: { searchParams
   }
 
   const onlyPending = status === 'pending'
-  const { available } = await getAdminNotificationCounts()
-  const { data, error } = await supabase
-    .from('session_requests')
-    .select('id, full_name, phone, email, message, session_type, created_at, status, preferred_slots')
-    .order('created_at', { ascending: false })
-    .match({ ...(selectedId ? { id: selectedId } : {}), ...(onlyPending ? { status: 'pending' } : {}) })
-    .returns<SessionRequest[]>()
+  // getAdminNotificationCounts() is independent of the session_requests
+  // query - run them together instead of waiting on the counts first.
+  const [{ available }, { data, error }] = await Promise.all([
+    getAdminNotificationCounts(),
+    supabase
+      .from('session_requests')
+      .select('id, full_name, phone, email, message, session_type, created_at, status, preferred_slots')
+      .order('created_at', { ascending: false })
+      .match({ ...(selectedId ? { id: selectedId } : {}), ...(onlyPending ? { status: 'pending' } : {}) })
+      .returns<SessionRequest[]>(),
+  ])
 
   return (
     <main className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
