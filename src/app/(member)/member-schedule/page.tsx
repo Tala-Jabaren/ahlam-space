@@ -120,7 +120,7 @@ export default async function MemberSchedulePage({ searchParams }: {
               <Link
                 href="/member-schedule?view=packages"
                 aria-current={showPackagesView ? 'page' : undefined}
-                className={`inline-flex min-h-11 items-center justify-center rounded-[10px] px-5 text-sm font-semibold transition motion-reduce:transition-none ${showPackagesView ? 'bg-white text-[#25402F]' : 'text-[#5C574F] hover:text-[#25402F]'}`}
+                className={`flex min-h-12 items-center justify-center rounded-lg px-4 text-sm font-semibold transition motion-reduce:transition-none ${showPackagesView ? 'bg-[#617A55] text-[#F7F6F0] shadow-sm' : 'hover:bg-[#D6E2B6]/60'}`}
               >
                 {t.classes.packagesView}
               </Link>
