@@ -12,14 +12,14 @@ export default function ActivePackageCard({ purchase, locale, t }: { purchase: P
   return (
     <article className="w-full max-w-xl rounded-2xl bg-[#3F6350] p-4 text-white">
       <div className="flex items-start justify-between gap-2">
-        <h2 className="min-w-0 break-words text-base font-bold">{purchase.class_packages?.name ?? (locale === 'ar' ? 'باقة' : 'Package')}</h2>
+        <h2 className="min-w-0 break-words text-lg font-bold sm:text-xl">{purchase.class_packages?.name ?? (locale === 'ar' ? 'باقة' : 'Package')}</h2>
         <span className="shrink-0 rounded-full bg-[#E1EEE5] px-2.5 py-0.5 text-xs font-semibold text-[#25513A]">
           {copy.statusActive}
         </span>
       </div>
       <p className="mt-2 flex flex-wrap items-baseline gap-x-2 text-sm">
         <bdi className="text-2xl font-bold leading-none">{purchase.sessions_remaining}</bdi>
-        <span>{copy.balanceCaption.replace('{total}', String(purchase.sessions_total))}</span>
+        <span>{purchase.sessions_remaining === 1 ? copy.balanceCaptionSingle : copy.balanceCaption}</span>
       </p>
       <div className="mt-2 flex gap-1" aria-hidden="true">
         {segments.map((filled, index) => (

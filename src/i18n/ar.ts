@@ -280,7 +280,8 @@ export const ar = {
       balanceCompact: 'رصيدك: {remaining} حصص',
       balanceCompactSub: '{name} · تنتهي {date}',
       balanceCompactSubNoExpiry: '{name}',
-      balanceCaption: 'من {total} حصص متبقية',
+      balanceCaption: 'حصص متبقية',
+      balanceCaptionSingle: 'حصة متبقية',
       successBalanceCaption: 'حصص متبقية من {total}',
       // Kept for booking-cancel-control.tsx's post-cancel balance message -
       // unrelated to this design match (cancellation isn't one of its
