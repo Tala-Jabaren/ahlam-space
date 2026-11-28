@@ -80,7 +80,7 @@ export default function PackagePaymentSheet({ packageName, sessionsCount, price,
       >
         <div aria-hidden="true" className="mx-auto mb-3 h-[5px] w-11 rounded-full bg-[#E8E2D8] sm:hidden" />
 
-        <button type="button" onClick={onClose} className="flex min-h-11 items-center gap-1 self-start text-[15px] font-medium text-[#3F6350]">
+        <button type="button" onClick={onClose} className="flex min-h-11 items-center gap-1 self-start text-[15px] font-medium text-[#617A55]">
           <ChevronRight aria-hidden="true" className="size-4" />
           {copy.backToPackages}
         </button>
@@ -131,7 +131,7 @@ export default function PackagePaymentSheet({ packageName, sessionsCount, price,
           <button
             type="button"
             onClick={copyAccount}
-            className="mt-3 inline-flex min-h-11 items-center justify-center rounded-lg border border-[#3F6350]/35 px-4 text-sm font-semibold text-[#3F6350] transition hover:bg-[#3F6350]/10"
+            className="mt-3 inline-flex min-h-11 items-center justify-center rounded-lg border border-[#617A55]/35 px-4 text-sm font-semibold text-[#617A55] transition hover:bg-[#617A55]/10"
           >
             {copied ? copy.accountNumberCopied : copy.copyAccountNumber}
           </button>
@@ -146,7 +146,7 @@ export default function PackagePaymentSheet({ packageName, sessionsCount, price,
           href={`${WHATSAPP_URL}?text=${whatsappText}`}
           target="_blank"
           rel="noopener noreferrer"
-          className="mt-4 text-[15px] font-semibold text-[#3F6350] underline underline-offset-4"
+          className="mt-4 text-[15px] font-semibold text-[#617A55] underline underline-offset-4"
         >
           {copy.sendProofWhatsapp}
         </a>
@@ -154,7 +154,7 @@ export default function PackagePaymentSheet({ packageName, sessionsCount, price,
         <button
           type="button"
           onClick={handleReturn}
-          className="sticky bottom-0 mt-5 inline-flex min-h-[50px] w-full items-center justify-center rounded-xl bg-[#3F6350] px-6 text-[17px] font-bold text-white transition hover:bg-[#345142]"
+          className="sticky bottom-0 mt-5 inline-flex min-h-[50px] w-full items-center justify-center rounded-xl bg-[#617A55] px-6 text-[17px] font-bold text-white transition hover:bg-[#4F6446]"
         >
           {copy.returnToClasses}
         </button>

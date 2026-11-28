@@ -10,7 +10,7 @@ export default function ActivePackageCard({ purchase, locale, t }: { purchase: P
   const segments = Array.from({ length: purchase.sessions_total }, (_, index) => index < purchase.sessions_remaining)
 
   return (
-    <article className="w-full max-w-xl rounded-2xl bg-[#3F6350] p-4 text-white">
+    <article className="w-full max-w-xl rounded-2xl bg-[#617A55] p-4 text-white">
       <div className="flex items-start justify-between gap-2">
         <h2 className="min-w-0 break-words text-lg font-bold sm:text-xl">{purchase.class_packages?.name ?? (locale === 'ar' ? 'باقة' : 'Package')}</h2>
         <span className="shrink-0 rounded-full bg-[#E1EEE5] px-2.5 py-0.5 text-xs font-semibold text-[#25513A]">
@@ -30,7 +30,7 @@ export default function ActivePackageCard({ purchase, locale, t }: { purchase: P
         {expiresLabel && <p className="text-xs leading-5 text-white/90">{copy.expiresOnPackage.replace('{date}', expiresLabel)}</p>}
         <Link
           href="/member-schedule#sessions-list"
-          className="ms-auto inline-flex min-h-11 items-center justify-center rounded-lg bg-white px-3 text-sm font-bold text-[#25402F] transition hover:bg-white/90 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white"
+          className="ms-auto inline-flex min-h-11 items-center justify-center rounded-lg bg-white px-3 text-sm font-bold text-[#617A55] transition hover:bg-white/95 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white"
         >
           {copy.bookWithPackage}
         </Link>

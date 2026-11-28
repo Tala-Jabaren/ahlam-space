@@ -25,7 +25,7 @@ function PendingPurchaseRow({ purchase, locale, t }: { purchase: PackagePurchase
       <p className="mt-2 text-[14px] leading-6 text-[#5C574F]">
         {copy.pendingOrderLine.replace('{reference}', purchase.reference).replace('{amount}', formatAmount(purchase.price_snapshot, locale))}
       </p>
-      <button type="button" onClick={() => setOpen(true)} className="mt-2 text-[14px] font-semibold text-[#3F6350] underline underline-offset-4">
+      <button type="button" onClick={() => setOpen(true)} className="mt-2 text-[14px] font-semibold text-[#617A55] underline underline-offset-4">
         {copy.paymentDetailsToggle}
       </button>
       {open && (

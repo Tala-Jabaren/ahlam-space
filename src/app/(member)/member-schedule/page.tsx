@@ -101,7 +101,7 @@ export default async function MemberSchedulePage({ searchParams }: {
 
   return <I18nProvider locale={locale} dictionary={t}>
     <div dir={dir}>
-      <main className="px-4 pb-8 pt-3 sm:px-6 lg:px-8">
+      <main className="px-4 pb-8 pt-3 [--class-card-action:#617A55] sm:px-6 lg:px-8">
         <div className="mx-auto max-w-7xl">
           {packageSummary?.active && (
             <div className="mb-4 flex justify-center">

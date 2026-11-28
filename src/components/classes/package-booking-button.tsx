@@ -128,7 +128,7 @@ export default function PackageBookingButton({ sessionId, sessionName, dateLabel
       <button
         type="button"
         onClick={() => openSheet('package')}
-        className="flex min-h-[46px] flex-1 items-center justify-center rounded-xl bg-[#3F6350] px-4 text-[15px] font-bold text-white transition hover:bg-[#345142]"
+        className="flex min-h-[46px] flex-1 items-center justify-center rounded-xl bg-[#617A55] px-4 text-[15px] font-bold text-white transition hover:bg-[#4F6446]"
       >
         {copy.bookWithPackageCta}
       </button>
@@ -163,8 +163,8 @@ export default function PackageBookingButton({ sessionId, sessionName, dateLabel
 
             <fieldset className="mt-4 grid gap-3 border-0 p-0">
               <legend className="mb-1 text-[15px] font-semibold text-[#2B2A27]">{copy.paymentMethodLabel}</legend>
-              <label className={`flex min-h-11 cursor-pointer items-start gap-3 rounded-2xl p-3 ${method === 'package' ? 'border-2 border-[#3F6350] bg-[#F2F7F3]' : 'border border-[#D9D2C5]'}`}>
-                <input type="radio" name="method" checked={method === 'package'} onChange={() => setMethod('package')} className="mt-1 size-[22px] accent-[#3F6350]" />
+              <label className={`flex min-h-11 cursor-pointer items-start gap-3 rounded-2xl p-3 ${method === 'package' ? 'border-2 border-[#617A55] bg-[#F2F7F3]' : 'border border-[#D9D2C5]'}`}>
+                <input type="radio" name="method" checked={method === 'package'} onChange={() => setMethod('package')} className="mt-1 size-[22px] accent-[#617A55]" />
                 <span>
                   <span className="block font-semibold text-[#2B2A27]">{copy.payWithPackageLabel}</span>
                   <span className="block text-[14px] text-[#5C574F]">
@@ -172,8 +172,8 @@ export default function PackageBookingButton({ sessionId, sessionName, dateLabel
                   </span>
                 </span>
               </label>
-              <label className={`flex min-h-11 cursor-pointer items-start gap-3 rounded-2xl p-3 ${method === 'cash' ? 'border-2 border-[#3F6350] bg-[#F2F7F3]' : 'border border-[#D9D2C5]'}`}>
-                <input type="radio" name="method" checked={method === 'cash'} onChange={() => setMethod('cash')} className="mt-1 size-[22px] accent-[#3F6350]" />
+              <label className={`flex min-h-11 cursor-pointer items-start gap-3 rounded-2xl p-3 ${method === 'cash' ? 'border-2 border-[#617A55] bg-[#F2F7F3]' : 'border border-[#D9D2C5]'}`}>
+                <input type="radio" name="method" checked={method === 'cash'} onChange={() => setMethod('cash')} className="mt-1 size-[22px] accent-[#617A55]" />
                 <span>
                   <span className="block font-semibold text-[#2B2A27]">{copy.payCashLabel.replace('{amount}', amountLabel)}</span>
                   <span className="block text-[14px] text-[#5C574F]">{copy.payCashDescription}</span>
@@ -188,7 +188,7 @@ export default function PackageBookingButton({ sessionId, sessionName, dateLabel
               type="button"
               disabled={state === 'booking'}
               onClick={confirm}
-              className="mt-5 inline-flex min-h-[54px] w-full items-center justify-center rounded-2xl bg-[#3F6350] px-6 text-[18px] font-bold text-white transition hover:bg-[#345142] disabled:cursor-not-allowed disabled:opacity-60"
+              className="mt-5 inline-flex min-h-[54px] w-full items-center justify-center rounded-2xl bg-[#617A55] px-6 text-[18px] font-bold text-white transition hover:bg-[#4F6446] disabled:cursor-not-allowed disabled:opacity-60"
             >
               {state === 'booking' ? copy.bookingLoading : copy.confirmBooking}
             </button>

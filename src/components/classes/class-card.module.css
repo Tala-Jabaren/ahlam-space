@@ -20,7 +20,7 @@
 .footer { margin-block-start:auto; padding-block-start:4px; }
 .bookingAction > div { inline-size:100%; }
 .bookingAction :global(p.text-xs) { color:#4f5d49; }
-.button { display:inline-flex; align-items:center; justify-content:center; min-block-size:46px; inline-size:100%; padding:12px 16px; border:0; border-radius:10px; background:#55684A; color:white; font-size:14px; font-weight:600; line-height:1.5; cursor:pointer; transition:background-color .2s ease; }
+.button { display:inline-flex; align-items:center; justify-content:center; min-block-size:46px; inline-size:100%; padding:12px 16px; border:0; border-radius:10px; background:var(--class-card-action,#55684A); color:white; font-size:14px; font-weight:600; line-height:1.5; cursor:pointer; transition:background-color .2s ease; }
 .button:hover { background:#34472B; }
 .button:disabled { cursor:not-allowed; background:#F7F6F0; color:#4f5d49; }
 .secondary { background:#F7F6F0; border:1px solid rgb(97 122 85 / 25%); color:#25311f; }

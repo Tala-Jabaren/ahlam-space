@@ -148,7 +148,7 @@ export default function ClassCard({ session, headingLevel = 2 }: { session: Clas
             <span className="mt-2 inline-flex items-center rounded-full bg-[#E1EEE5] px-3 py-1 text-xs font-semibold text-[#25513A]">{copy.paidFromPackageBadge}</span>
           </div>
 
-          <div className="mt-3 rounded-2xl bg-[#3F6350] p-5 text-start text-white">
+          <div className="mt-3 rounded-2xl bg-[#617A55] p-5 text-start text-white">
             <p className="text-[44px] font-bold leading-none"><bdi>{receipt.packageBalance.remaining}</bdi></p>
             <p className="mt-1 text-[17px]">{t.classes.packages.successBalanceCaption.replace('{total}', String(receipt.packageBalance.total))}</p>
             <div className="mt-3 flex gap-1.5" aria-hidden="true">
@@ -160,7 +160,7 @@ export default function ClassCard({ session, headingLevel = 2 }: { session: Clas
 
           <p className="mt-4 text-[14px] leading-6 text-[#5C574F]">{t.classes.packages.successCancelNote}</p>
 
-          <Link href="/bookings" className="mt-5 inline-flex min-h-[50px] w-full items-center justify-center rounded-xl bg-[#3F6350] px-6 text-[17px] font-bold text-white transition hover:bg-[#345142]" onClick={closeConfirmation}>
+          <Link href="/bookings" className="mt-5 inline-flex min-h-[50px] w-full items-center justify-center rounded-xl bg-[#617A55] px-6 text-[17px] font-bold text-white transition hover:bg-[#4F6446]" onClick={closeConfirmation}>
             {t.classes.packages.myBookingsCta}
           </Link>
           <Link href="/member-schedule#sessions-list" className="mt-3 inline-block text-[15px] font-medium text-[#5C574F] underline underline-offset-4" onClick={closeConfirmation}>

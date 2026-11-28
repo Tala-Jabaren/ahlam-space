@@ -6,7 +6,7 @@ import { useT } from '@/i18n/i18n-context'
 import PackagePaymentSheet from './package-payment-sheet'
 
 const buttonStyle =
-  'inline-flex min-h-[50px] w-full items-center justify-center rounded-xl bg-[#3F6350] px-6 text-[17px] font-bold text-white transition hover:bg-[#345142] disabled:cursor-not-allowed disabled:opacity-50'
+  'inline-flex min-h-[50px] w-full items-center justify-center rounded-xl bg-[#617A55] px-6 text-[17px] font-bold text-white transition hover:bg-[#4F6446] disabled:cursor-not-allowed disabled:opacity-50'
 
 type State = 'idle' | 'saving' | 'error'
 
